@@ -4,7 +4,6 @@ const o11y = @import("o11y");
 
 const PolicyRegistry = policy.Registry;
 const PolicyEngine = policy.PolicyEngine;
-const FileProvider = policy.FileProvider;
 const FieldRef = policy.FieldRef;
 const MetricFieldRef = policy.MetricFieldRef;
 const TraceFieldRef = policy.TraceFieldRef;
@@ -353,15 +352,6 @@ fn writeOutput(allocator: std.mem.Allocator, path: []const u8, results: []const 
 
 // ─── Core evaluation logic ───────────────────────────────────────────
 
-const CallbackContext = struct {
-    registry: *PolicyRegistry,
-
-    fn handleUpdate(ctx: *anyopaque, update: policy.PolicyUpdate) !void {
-        const self: *CallbackContext = @ptrCast(@alignCast(ctx));
-        try self.registry.updatePolicies(update.policies, update.provider_id, .file);
-    }
-};
-
 fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, out_path: []const u8) !void {
     // Set up event bus
     var noop_bus: o11y.NoopEventBus = undefined;
@@ -371,15 +361,15 @@ fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, 
     var registry = PolicyRegistry.init(allocator, noop_bus.eventBus());
     defer registry.deinit();
 
-    // Load policies via FileProvider
-    const provider = try FileProvider.init(allocator, noop_bus.eventBus(), "conformance", pol_path);
-    defer provider.deinit();
-
-    var cb_ctx = CallbackContext{ .registry = &registry };
-    try provider.subscribe(.{
-        .context = @ptrCast(&cb_ctx),
-        .onUpdate = CallbackContext.handleUpdate,
-    });
+    // Parse policies and load into registry
+    const policies = try policy.parser.parsePoliciesFile(allocator, pol_path);
+    defer {
+        for (policies) |*p| {
+            @constCast(p).deinit(allocator);
+        }
+        allocator.free(policies);
+    }
+    try registry.updatePolicies(policies, "conformance", .file);
 
     // Create engine
     const engine = PolicyEngine.init(noop_bus.eventBus(), &registry);
@@ -519,7 +509,7 @@ pub fn main() !void {
 
 // ─── Tests ───────────────────────────────────────────────────────────
 
-test "no memory leaks with FileProvider" {
+test "no memory leaks" {
     const allocator = std.testing.allocator;
 
     // Write a temporary policies file

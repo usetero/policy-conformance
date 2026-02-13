@@ -117,6 +117,23 @@ tasks:
         echo "{{.LANG}}: $PASS passed, $FAIL failed"
         [ "$FAIL" -eq 0 ]
 
+  # ── Benchmarks ──────────────────────────────────────────────
+  bench:
+    desc: Benchmark all runners against each test case
+    aliases: [bch]
+    deps: [build]
+    cmds:
+      - |
+        for tc in testcases/*/; do
+          name=$(basename "$tc")
+          echo "── $name ──"
+          hyperfine --warmup 2 -N \
+            -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null" \
+            -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null" \
+            -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null"
+          echo ""
+        done
+
   # ── Utilities ──────────────────────────────────────────────
   clean:
     desc: Clean build artifacts and outputs
