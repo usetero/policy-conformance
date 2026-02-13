@@ -1,0 +1,27 @@
+{
+  "signal_type": "metric",
+  "records": [
+    {
+      "id": "record-1",
+      "name": "http.requests",
+      "description": "Total HTTP requests",
+      "unit": "1",
+      "metric_type": "SUM",
+      "aggregation_temporality": "CUMULATIVE",
+      "datapoint_attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-2",
+      "name": "grpc.calls",
+      "description": "Total gRPC calls",
+      "unit": "1",
+      "metric_type": "SUM",
+      "aggregation_temporality": "CUMULATIVE",
+      "datapoint_attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    }
+  ]
+}

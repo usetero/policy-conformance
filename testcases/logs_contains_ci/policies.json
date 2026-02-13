@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-timeout-logs",
+      "name": "Drop logs containing timeout (case insensitive)",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "timeout", "case_insensitive": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

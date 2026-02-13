@@ -1,0 +1,35 @@
+{
+  "signal_type": "log",
+  "records": [
+    {
+      "id": "record-1",
+      "body": "debug message received",
+      "severity_text": "DEBUG",
+      "trace_id": "",
+      "span_id": "",
+      "attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-2",
+      "body": "trace span started",
+      "severity_text": "TRACE",
+      "trace_id": "",
+      "span_id": "",
+      "attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-3",
+      "body": "info message processed",
+      "severity_text": "INFO",
+      "trace_id": "",
+      "span_id": "",
+      "attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    }
+  ]
+}

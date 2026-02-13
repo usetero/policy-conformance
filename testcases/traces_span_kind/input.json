@@ -1,0 +1,31 @@
+{
+  "signal_type": "trace",
+  "records": [
+    {
+      "id": "record-1",
+      "name": "internal-operation",
+      "trace_id": "abcdef1234567890abcdef1234567890",
+      "span_id": "1234567890abcdef",
+      "parent_span_id": "",
+      "trace_state": "",
+      "span_kind": "SPAN_KIND_INTERNAL",
+      "span_status": "SPAN_STATUS_CODE_OK",
+      "attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-2",
+      "name": "handle-request",
+      "trace_id": "1234567890abcdef1234567890abcdef",
+      "span_id": "abcdef1234567890",
+      "parent_span_id": "",
+      "trace_state": "",
+      "span_kind": "SPAN_KIND_SERVER",
+      "span_status": "SPAN_STATUS_CODE_OK",
+      "attributes": {},
+      "resource_attributes": {},
+      "scope_attributes": {}
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "signal_type": "metric",
+  "records": [
+    {
+      "id": "record-1",
+      "name": "telemetry.count",
+      "description": "",
+      "unit": "1",
+      "metric_type": "SUM",
+      "aggregation_temporality": "CUMULATIVE",
+      "datapoint_attributes": { "data_type": "logs" },
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-2",
+      "name": "telemetry.count",
+      "description": "",
+      "unit": "1",
+      "metric_type": "SUM",
+      "aggregation_temporality": "CUMULATIVE",
+      "datapoint_attributes": { "data_type": "metrics" },
+      "resource_attributes": {},
+      "scope_attributes": {}
+    }
+  ]
+}

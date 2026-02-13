@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "record_id": "record-1",
+      "decision": "keep",
+      "matched_policy_ids": ["keep-error-spans"]
+    },
+    {
+      "record_id": "record-2",
+      "decision": "no_match",
+      "matched_policy_ids": []
+    }
+  ]
+}

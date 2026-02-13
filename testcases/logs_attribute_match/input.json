@@ -1,0 +1,25 @@
+{
+  "signal_type": "log",
+  "records": [
+    {
+      "id": "record-1",
+      "body": "request processed",
+      "severity_text": "INFO",
+      "trace_id": "",
+      "span_id": "",
+      "attributes": { "ddsource": "nginx" },
+      "resource_attributes": {},
+      "scope_attributes": {}
+    },
+    {
+      "id": "record-2",
+      "body": "request handled",
+      "severity_text": "INFO",
+      "trace_id": "",
+      "span_id": "",
+      "attributes": { "ddsource": "apache" },
+      "resource_attributes": {},
+      "scope_attributes": {}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-prod-services",
+      "name": "Drop logs from services ending with -prod",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "ends_with": "-prod" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

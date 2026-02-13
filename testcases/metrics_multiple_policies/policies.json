@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "drop-system-load",
+      "name": "Drop system.load metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "regex": "^system\\.load.*$" }
+        ],
+        "keep": false
+      }
+    },
+    {
+      "id": "drop-promhttp",
+      "name": "Drop promhttp metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "regex": "^promhttp.*$" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

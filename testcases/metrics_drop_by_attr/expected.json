@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "record_id": "record-1",
+      "decision": "drop",
+      "matched_policy_ids": ["drop-logs-datatype"]
+    },
+    {
+      "record_id": "record-2",
+      "decision": "no_match",
+      "matched_policy_ids": []
+    }
+  ]
+}

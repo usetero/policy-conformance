@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "keep-non-debug",
+      "name": "Keep logs that do NOT contain debug",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "debug", "negate": true }
+        ],
+        "keep": "all"
+      }
+    }
+  ]
+}

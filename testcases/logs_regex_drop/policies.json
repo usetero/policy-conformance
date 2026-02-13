@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-trace",
+      "name": "Drop debug and trace logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "debug|trace" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

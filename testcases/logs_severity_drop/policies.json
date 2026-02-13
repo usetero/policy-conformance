@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-severity",
+      "name": "Drop DEBUG severity logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

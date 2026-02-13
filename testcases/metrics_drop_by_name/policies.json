@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-system-load",
+      "name": "Drop system.load metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "regex": "^system\\.load.*$" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

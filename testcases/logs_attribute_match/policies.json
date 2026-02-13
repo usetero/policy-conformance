@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-nginx-logs",
+      "name": "Drop nginx logs by attribute",
+      "log": {
+        "match": [
+          { "log_attribute": "ddsource", "exact": "nginx" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

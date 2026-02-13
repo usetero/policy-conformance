@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "record_id": "record-1",
+      "decision": "drop",
+      "matched_policy_ids": ["drop-system-load"]
+    },
+    {
+      "record_id": "record-2",
+      "decision": "drop",
+      "matched_policy_ids": ["drop-promhttp"]
+    },
+    {
+      "record_id": "record-3",
+      "decision": "no_match",
+      "matched_policy_ids": []
+    }
+  ]
+}
