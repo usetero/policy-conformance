@@ -8,74 +8,207 @@ import (
 	"sort"
 
 	"github.com/usetero/policy-go"
+	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
+	metricspb "go.opentelemetry.io/proto/otlp/metrics/v1"
+	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// Input represents the conformance test input file.
-type Input struct {
-	SignalType string          `json:"signal_type"`
-	Records    json.RawMessage `json:"records"`
+// ─── Stats output ────────────────────────────────────────────────────
+
+type StatsOutput struct {
+	Policies []PolicyHit `json:"policies"`
 }
 
-// LogRecord is a log record from the input file.
-type LogRecord struct {
-	ID                 string         `json:"id"`
-	Body               string         `json:"body"`
-	SeverityText       string         `json:"severity_text"`
-	TraceID            string         `json:"trace_id"`
-	SpanID             string         `json:"span_id"`
-	Attributes         map[string]any `json:"attributes"`
-	ResourceAttributes map[string]any `json:"resource_attributes"`
-	ScopeAttributes    map[string]any `json:"scope_attributes"`
+type PolicyHit struct {
+	PolicyID string `json:"policy_id"`
+	Hits     uint64 `json:"hits"`
 }
 
-// MetricRecord is a metric record from the input file.
-type MetricRecord struct {
-	ID                     string         `json:"id"`
-	Name                   string         `json:"name"`
-	Description            string         `json:"description"`
-	Unit                   string         `json:"unit"`
-	MetricType             string         `json:"metric_type"`
-	AggregationTemporality string         `json:"aggregation_temporality"`
-	DatapointAttributes    map[string]any `json:"datapoint_attributes"`
-	ResourceAttributes     map[string]any `json:"resource_attributes"`
-	ScopeAttributes        map[string]any `json:"scope_attributes"`
+func writeStats(path string, registry *policy.PolicyRegistry) error {
+	stats := registry.CollectStats()
+	var output StatsOutput
+	for _, s := range stats {
+		if s.Hits > 0 {
+			output.Policies = append(output.Policies, PolicyHit{
+				PolicyID: s.PolicyID,
+				Hits:     s.Hits,
+			})
+		}
+	}
+	if output.Policies == nil {
+		output.Policies = []PolicyHit{}
+	}
+	data, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
 }
 
-// TraceRecord is a trace/span record from the input file.
-type TraceRecord struct {
-	ID                 string         `json:"id"`
-	Name               string         `json:"name"`
-	TraceID            string         `json:"trace_id"`
-	SpanID             string         `json:"span_id"`
-	ParentSpanID       string         `json:"parent_span_id"`
-	TraceState         string         `json:"trace_state"`
-	SpanKind           string         `json:"span_kind"`
-	SpanStatus         string         `json:"span_status"`
-	Attributes         map[string]any `json:"attributes"`
-	ResourceAttributes map[string]any `json:"resource_attributes"`
-	ScopeAttributes    map[string]any `json:"scope_attributes"`
+// ─── Signal processing ──────────────────────────────────────────────
+
+var marshaler = protojson.MarshalOptions{
+	EmitUnpopulated: true,
 }
 
-// Output represents the conformance test output file.
-type Output struct {
-	Results []Result `json:"results"`
+func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
+	var data logspb.LogsData
+	if err := protojson.Unmarshal(inputData, &data); err != nil {
+		return nil, fmt.Errorf("unmarshal logs: %w", err)
+	}
+
+	// Reset stats before evaluation
+	registry.CollectStats()
+
+	for _, rl := range data.ResourceLogs {
+		for _, sl := range rl.ScopeLogs {
+			kept := sl.LogRecords[:0]
+			for _, rec := range sl.LogRecords {
+				ctx := &LogContext{
+					Record:   rec,
+					Resource: rl.Resource,
+					Scope:    sl.Scope,
+				}
+				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher)
+				if result != policy.ResultDrop {
+					kept = append(kept, rec)
+				}
+			}
+			sl.LogRecords = kept
+		}
+	}
+
+	// Prune empty scope containers
+	for _, rl := range data.ResourceLogs {
+		kept := rl.ScopeLogs[:0]
+		for _, sl := range rl.ScopeLogs {
+			if len(sl.LogRecords) > 0 {
+				kept = append(kept, sl)
+			}
+		}
+		rl.ScopeLogs = kept
+	}
+
+	// Prune empty resource containers
+	kept := data.ResourceLogs[:0]
+	for _, rl := range data.ResourceLogs {
+		if len(rl.ScopeLogs) > 0 {
+			kept = append(kept, rl)
+		}
+	}
+	data.ResourceLogs = kept
+
+	return marshaler.Marshal(&data)
 }
 
-// Result is the evaluation result for a single record.
-type Result struct {
-	RecordID         string   `json:"record_id"`
-	Decision         string   `json:"decision"`
-	MatchedPolicyIDs []string `json:"matched_policy_ids"`
+func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
+	var data metricspb.MetricsData
+	if err := protojson.Unmarshal(inputData, &data); err != nil {
+		return nil, fmt.Errorf("unmarshal metrics: %w", err)
+	}
+
+	registry.CollectStats()
+
+	for _, rm := range data.ResourceMetrics {
+		for _, sm := range rm.ScopeMetrics {
+			kept := sm.Metrics[:0]
+			for _, m := range sm.Metrics {
+				ctx := &MetricContext{
+					Metric:              m,
+					DatapointAttributes: getDatapointAttrs(m),
+					Resource:            rm.Resource,
+					Scope:               sm.Scope,
+				}
+				result := policy.EvaluateMetric(eng, ctx, OTelMetricMatcher)
+				if result != policy.ResultDrop {
+					kept = append(kept, m)
+				}
+			}
+			sm.Metrics = kept
+		}
+	}
+
+	for _, rm := range data.ResourceMetrics {
+		kept := rm.ScopeMetrics[:0]
+		for _, sm := range rm.ScopeMetrics {
+			if len(sm.Metrics) > 0 {
+				kept = append(kept, sm)
+			}
+		}
+		rm.ScopeMetrics = kept
+	}
+
+	keptRM := data.ResourceMetrics[:0]
+	for _, rm := range data.ResourceMetrics {
+		if len(rm.ScopeMetrics) > 0 {
+			keptRM = append(keptRM, rm)
+		}
+	}
+	data.ResourceMetrics = keptRM
+
+	return marshaler.Marshal(&data)
 }
+
+func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
+	var data tracepb.TracesData
+	if err := protojson.Unmarshal(inputData, &data); err != nil {
+		return nil, fmt.Errorf("unmarshal traces: %w", err)
+	}
+
+	registry.CollectStats()
+
+	for _, rs := range data.ResourceSpans {
+		for _, ss := range rs.ScopeSpans {
+			kept := ss.Spans[:0]
+			for _, span := range ss.Spans {
+				ctx := &TraceContext{
+					Span:     span,
+					Resource: rs.Resource,
+					Scope:    ss.Scope,
+				}
+				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher)
+				if result != policy.ResultDrop {
+					kept = append(kept, span)
+				}
+			}
+			ss.Spans = kept
+		}
+	}
+
+	for _, rs := range data.ResourceSpans {
+		kept := rs.ScopeSpans[:0]
+		for _, ss := range rs.ScopeSpans {
+			if len(ss.Spans) > 0 {
+				kept = append(kept, ss)
+			}
+		}
+		rs.ScopeSpans = kept
+	}
+
+	keptRS := data.ResourceSpans[:0]
+	for _, rs := range data.ResourceSpans {
+		if len(rs.ScopeSpans) > 0 {
+			keptRS = append(keptRS, rs)
+		}
+	}
+	data.ResourceSpans = keptRS
+
+	return marshaler.Marshal(&data)
+}
+
+// ─── Main ────────────────────────────────────────────────────────────
 
 func main() {
 	policiesPath := flag.String("policies", "", "path to policies.json")
 	inputPath := flag.String("input", "", "path to input.json")
 	outputPath := flag.String("output", "", "path to output.json")
+	statsPath := flag.String("stats", "", "path to stats.json")
+	signalFlag := flag.String("signal", "", "signal type: log, metric, trace")
 	flag.Parse()
 
-	if *policiesPath == "" || *inputPath == "" || *outputPath == "" {
-		fmt.Fprintf(os.Stderr, "usage: runner-go --policies <path> --input <path> --output <path>\n")
+	if *policiesPath == "" || *inputPath == "" || *outputPath == "" || *statsPath == "" || *signalFlag == "" {
+		fmt.Fprintf(os.Stderr, "usage: runner-go --policies <path> --input <path> --output <path> --stats <path> --signal <log|metric|trace>\n")
 		os.Exit(1)
 	}
 
@@ -96,177 +229,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	var input Input
-	if err := json.Unmarshal(inputData, &input); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse input: %v\n", err)
-		os.Exit(1)
-	}
-
 	eng := policy.NewPolicyEngine(registry)
 
-	var output Output
-
-	switch input.SignalType {
+	var output []byte
+	switch *signalFlag {
 	case "log":
-		output, err = evaluateLogs(eng, registry, input.Records)
+		output, err = processLogs(eng, registry, inputData)
 	case "metric":
-		output, err = evaluateMetrics(eng, registry, input.Records)
+		output, err = processMetrics(eng, registry, inputData)
 	case "trace":
-		output, err = evaluateTraces(eng, registry, input.Records)
+		output, err = processTraces(eng, registry, inputData)
 	default:
-		fmt.Fprintf(os.Stderr, "unknown signal type: %s\n", input.SignalType)
+		fmt.Fprintf(os.Stderr, "unknown signal: %s\n", *signalFlag)
 		os.Exit(1)
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "evaluation error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Write output
-	outputData, err := json.MarshalIndent(output, "", "  ")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to marshal output: %v\n", err)
-		os.Exit(1)
-	}
-	outputData = append(outputData, '\n')
-
-	if err := os.WriteFile(*outputPath, outputData, 0644); err != nil {
+	if err := os.WriteFile(*outputPath, output, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to write output: %v\n", err)
 		os.Exit(1)
 	}
-}
 
-func toBytes(s string) []byte {
-	if s == "" {
-		return nil
-	}
-	return []byte(s)
-}
-
-func evaluateLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, rawRecords json.RawMessage) (Output, error) {
-	var records []LogRecord
-	if err := json.Unmarshal(rawRecords, &records); err != nil {
-		return Output{}, fmt.Errorf("failed to parse log records: %w", err)
-	}
-
-	var output Output
-	for _, rec := range records {
-		simple := &policy.SimpleLogRecord{
-			Body:               toBytes(rec.Body),
-			SeverityText:       toBytes(rec.SeverityText),
-			TraceID:            toBytes(rec.TraceID),
-			SpanID:             toBytes(rec.SpanID),
-			LogAttributes:      rec.Attributes,
-			ResourceAttributes: rec.ResourceAttributes,
-			ScopeAttributes:    rec.ScopeAttributes,
-		}
-
-		// Reset stats before evaluation
-		registry.CollectStats()
-
-		result := policy.EvaluateLog(eng, simple, policy.SimpleLogMatcher)
-
-		// Collect stats to find which policies matched
-		matchedIDs := collectMatchedPolicies(registry)
-
-		output.Results = append(output.Results, Result{
-			RecordID:         rec.ID,
-			Decision:         mapDecision(result),
-			MatchedPolicyIDs: matchedIDs,
-		})
-	}
-
-	return output, nil
-}
-
-func evaluateMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, rawRecords json.RawMessage) (Output, error) {
-	var records []MetricRecord
-	if err := json.Unmarshal(rawRecords, &records); err != nil {
-		return Output{}, fmt.Errorf("failed to parse metric records: %w", err)
-	}
-
-	var output Output
-	for _, rec := range records {
-		simple := &policy.SimpleMetricRecord{
-			Name:                   toBytes(rec.Name),
-			Description:            toBytes(rec.Description),
-			Unit:                   toBytes(rec.Unit),
-			Type:                   toBytes(rec.MetricType),
-			AggregationTemporality: toBytes(rec.AggregationTemporality),
-			DatapointAttributes:    rec.DatapointAttributes,
-			ResourceAttributes:     rec.ResourceAttributes,
-			ScopeAttributes:        rec.ScopeAttributes,
-		}
-
-		registry.CollectStats()
-
-		result := policy.EvaluateMetric(eng, simple, policy.SimpleMetricMatcher)
-
-		matchedIDs := collectMatchedPolicies(registry)
-
-		output.Results = append(output.Results, Result{
-			RecordID:         rec.ID,
-			Decision:         mapDecision(result),
-			MatchedPolicyIDs: matchedIDs,
-		})
-	}
-
-	return output, nil
-}
-
-func evaluateTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, rawRecords json.RawMessage) (Output, error) {
-	var records []TraceRecord
-	if err := json.Unmarshal(rawRecords, &records); err != nil {
-		return Output{}, fmt.Errorf("failed to parse trace records: %w", err)
-	}
-
-	var output Output
-	for _, rec := range records {
-		simple := &policy.SimpleSpanRecord{
-			Name:               toBytes(rec.Name),
-			TraceID:            toBytes(rec.TraceID),
-			SpanID:             toBytes(rec.SpanID),
-			ParentSpanID:       toBytes(rec.ParentSpanID),
-			TraceState:         toBytes(rec.TraceState),
-			Kind:               toBytes(rec.SpanKind),
-			Status:             toBytes(rec.SpanStatus),
-			SpanAttributes:     rec.Attributes,
-			ResourceAttributes: rec.ResourceAttributes,
-			ScopeAttributes:    rec.ScopeAttributes,
-		}
-
-		registry.CollectStats()
-
-		result := policy.EvaluateTrace(eng, simple, policy.SimpleSpanMatcher)
-
-		matchedIDs := collectMatchedPolicies(registry)
-
-		output.Results = append(output.Results, Result{
-			RecordID:         rec.ID,
-			Decision:         mapDecision(result),
-			MatchedPolicyIDs: matchedIDs,
-		})
-	}
-
-	return output, nil
-}
-
-func mapDecision(result policy.EvaluateResult) string {
-	switch result {
-	case policy.ResultNoMatch:
-		return "no_match"
-	case policy.ResultKeep, policy.ResultKeepWithTransform:
-		return "keep"
-	case policy.ResultDrop:
-		return "drop"
-	case policy.ResultSample:
-		return "sample"
-	case policy.ResultRateLimit:
-		return "rate_limit"
-	default:
-		return "unknown"
+	// Write stats
+	if err := writeStats(*statsPath, registry); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to write stats: %v\n", err)
+		os.Exit(1)
 	}
 }
+
+// ─── Helpers ─────────────────────────────────────────────────────────
 
 func collectMatchedPolicies(registry *policy.PolicyRegistry) []string {
 	stats := registry.CollectStats()

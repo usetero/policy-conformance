@@ -95,21 +95,48 @@ tasks:
     cmds:
       - |
         set +e
+        # Normalize proto JSON: some encoders emit uint64 as strings, others as numbers
+        normalize='walk(if type == "string" and test("^[0-9]+$") then tonumber else . end) | . |= walk(if type == "number" and . == 0.0 and (. | floor) == . then 0 else . end)'
         PASS=0; FAIL=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
+          # Derive signal from directory name prefix
+          case "$name" in
+            logs_*)    signal=log ;;
+            metrics_*) signal=metric ;;
+            traces_*)  signal=trace ;;
+            *)         echo "  SKIP  $name (unknown signal)"; continue ;;
+          esac
           ./{{.RUNNER}} \
             --policies "$tc/policies.json" \
             --input "$tc/input.json" \
-            --output "$tc/output_{{.LANG}}.json"
-          if diff <(jq -S . "$tc/expected.json") \
-                  <(jq -S . "$tc/output_{{.LANG}}.json") > /dev/null 2>&1; then
+            --output "$tc/output_{{.LANG}}.json" \
+            --stats "$tc/stats_{{.LANG}}.json" \
+            --signal "$signal"
+          out_ok=true; stats_ok=true
+          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                    <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") > /dev/null 2>&1; then
+            out_ok=false
+          fi
+          if ! diff <(jq -S . "$tc/expected_stats.json") \
+                    <(jq -S . "$tc/stats_{{.LANG}}.json") > /dev/null 2>&1; then
+            stats_ok=false
+          fi
+          if $out_ok && $stats_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
           else
             echo "  FAIL  $name"
-            diff <(jq -S . "$tc/expected.json") \
-                 <(jq -S . "$tc/output_{{.LANG}}.json") || true
+            if ! $out_ok; then
+              echo "    output diff:"
+              diff <(jq -S "$normalize" "$tc/expected.json") \
+                   <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") || true
+            fi
+            if ! $stats_ok; then
+              echo "    stats diff:"
+              diff <(jq -S . "$tc/expected_stats.json") \
+                   <(jq -S . "$tc/stats_{{.LANG}}.json") || true
+            fi
             FAIL=$((FAIL + 1))
           fi
         done
@@ -126,11 +153,17 @@ tasks:
       - |
         for tc in testcases/*/; do
           name=$(basename "$tc")
+          case "$name" in
+            logs_*)    signal=log ;;
+            metrics_*) signal=metric ;;
+            traces_*)  signal=trace ;;
+            *)         continue ;;
+          esac
           echo "── $name ──"
           hyperfine --warmup 2 -N \
-            -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null" \
-            -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null" \
-            -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null"
+            -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
+            -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
+            -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal"
           echo ""
         done
 
@@ -141,6 +174,7 @@ tasks:
     cmds:
       - rm -f runners/go/runner-go
       - rm -f testcases/*/output_*.json
+      - rm -f testcases/*/stats_*.json
       - cd runners/rs && cargo clean
       - cd runners/zig && rm -rf zig-out .zig-cache
 

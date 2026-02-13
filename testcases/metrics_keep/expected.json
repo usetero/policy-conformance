@@ -1,14 +1,1 @@
-{
-  "results": [
-    {
-      "record_id": "record-1",
-      "decision": "keep",
-      "matched_policy_ids": ["keep-http-metrics"]
-    },
-    {
-      "record_id": "record-2",
-      "decision": "no_match",
-      "matched_policy_ids": []
-    }
-  ]
-}
+{"resourceMetrics":[{"resource":{"attributes":[],"droppedAttributesCount":0,"entityRefs":[]},"scopeMetrics":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"metrics":[{"name":"http.requests","description":"Total HTTP requests","unit":"1","metadata":[],"sum":{"dataPoints":[{"attributes":[],"startTimeUnixNano":0,"timeUnixNano":0,"exemplars":[],"flags":0,"asDouble":0}],"aggregationTemporality":"AGGREGATION_TEMPORALITY_CUMULATIVE","isMonotonic":false}},{"name":"grpc.calls","description":"Total gRPC calls","unit":"1","metadata":[],"sum":{"dataPoints":[{"attributes":[],"startTimeUnixNano":0,"timeUnixNano":0,"exemplars":[],"flags":0,"asDouble":0}],"aggregationTemporality":"AGGREGATION_TEMPORALITY_CUMULATIVE","isMonotonic":false}}],"schemaUrl":""}],"schemaUrl":""}]}

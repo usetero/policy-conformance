@@ -1,14 +1,1 @@
-{
-  "results": [
-    {
-      "record_id": "record-1",
-      "decision": "drop",
-      "matched_policy_ids": ["drop-logs-datatype"]
-    },
-    {
-      "record_id": "record-2",
-      "decision": "no_match",
-      "matched_policy_ids": []
-    }
-  ]
-}
+{"resourceMetrics":[{"resource":{"attributes":[],"droppedAttributesCount":0,"entityRefs":[]},"scopeMetrics":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"metrics":[{"name":"telemetry.count","description":"","unit":"1","metadata":[],"sum":{"dataPoints":[{"attributes":[{"key":"data_type","value":{"stringValue":"metrics"}}],"startTimeUnixNano":0,"timeUnixNano":0,"exemplars":[],"flags":0,"asDouble":0}],"aggregationTemporality":"AGGREGATION_TEMPORALITY_CUMULATIVE","isMonotonic":false}}],"schemaUrl":""}],"schemaUrl":""}]}

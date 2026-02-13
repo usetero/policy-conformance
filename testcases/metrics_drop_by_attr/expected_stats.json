@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-logs-datatype",
+      "hits": 1
+    }
+  ]
+}

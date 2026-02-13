@@ -6,6 +6,7 @@ runners/zig/.zig-cache/
 
 # Test outputs
 testcases/*/output_*.json
+testcases/*/stats_*.json
 
 # OS
 .DS_Store
