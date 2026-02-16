@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-logs-datatype",
+      "name": "Drop metrics with data_type=logs",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": "data_type", "exact": "logs" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-spans",
+      "name": "Drop internal spans (0% sampling)",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_INTERNAL", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

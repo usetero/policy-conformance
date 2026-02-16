@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-otel-sdk-logs",
+      "name": "Drop logs from opentelemetry SDK scope",
+      "log": {
+        "match": [
+          { "scope_attribute": "library.type", "exact": "sdk" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

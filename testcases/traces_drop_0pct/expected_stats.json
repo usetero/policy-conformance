@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-basic-spans",
+      "hits": 1
+    }
+  ]
+}

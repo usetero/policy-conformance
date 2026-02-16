@@ -1,0 +1,17 @@
+.{
+    .name = .runner_zig,
+    .version = "0.1.0",
+    .fingerprint = 0xc320c559d1fd6c72,
+    .minimum_zig_version = "0.15.1",
+    .dependencies = .{
+        .policy_zig = .{
+            .url = "git+https://github.com/usetero/policy-zig#00f7eb7c1468979d6b8dc49d7b86b1e5885780e0",
+            .hash = "policy_zig-0.1.6-5_dp3sM3DgBTmHrTz5SKx8pjY0CbLIEklowA22CU_ozx",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

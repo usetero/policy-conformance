@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-test-instrumentation",
+      "name": "Drop spans from test instrumentation",
+      "trace": {
+        "match": [
+          { "scope_attribute": "instrumentation.type", "exact": "test" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

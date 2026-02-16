@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "drop-payment-errors",
+      "name": "Drop error logs from payment service (AND logic)",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "error" },
+          { "resource_attribute": "service.name", "exact": "payment" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

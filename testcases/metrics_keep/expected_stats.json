@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "keep-http-metrics",
+      "hits": 1
+    }
+  ]
+}

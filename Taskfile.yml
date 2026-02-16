@@ -1,0 +1,195 @@
+---
+version: "3"
+
+tasks:
+  # ── Top-level composite tasks ──────────────────────────────
+  default:
+    desc: Build all runners
+    cmds:
+      - task: build
+
+  build:
+    desc: Build all runners
+    aliases: [b]
+    cmds:
+      - task: build:go
+      - task: build:rs
+      - task: build:zig
+
+  test:
+    desc: Run conformance tests for all runners
+    aliases: [t]
+    cmds:
+      - task: test:go
+      - task: test:rs
+      - task: test:zig
+
+  do:
+    desc: Pre-commit checks
+    cmds:
+      - task: build
+      - task: test
+
+  signoff:
+    desc: Full validation for CI
+    cmds:
+      - task: do
+      - gh signoff
+
+  # ── Build per-language ─────────────────────────────────────
+  build:go:
+    desc: Build Go runner
+    aliases: [bg]
+    dir: runners/go
+    cmds:
+      - go build -o runner-go .
+
+  build:rs:
+    desc: Build Rust runner
+    aliases: [brs]
+    dir: runners/rs
+    cmds:
+      - cargo build --release
+
+  build:zig:
+    desc: Build Zig runner
+    aliases: [bz]
+    dir: runners/zig
+    cmds:
+      - ../../bin/zig build -Doptimize=ReleaseSafe
+
+  # ── Test per-language ──────────────────────────────────────
+  test:go:
+    desc: Run conformance tests with Go runner
+    aliases: [tg]
+    deps: [build:go]
+    cmds:
+      - task: conformance
+        vars:
+          RUNNER: runners/go/runner-go
+          LANG: go
+
+  test:rs:
+    desc: Run conformance tests with Rust runner
+    aliases: [trs]
+    deps: [build:rs]
+    cmds:
+      - task: conformance
+        vars:
+          RUNNER: runners/rs/target/release/runner-rs
+          LANG: rs
+
+  test:zig:
+    desc: Run conformance tests with Zig runner
+    aliases: [tz]
+    deps: [build:zig]
+    cmds:
+      - task: conformance
+        vars:
+          RUNNER: runners/zig/zig-out/bin/runner-zig
+          LANG: zig
+
+  # ── Core conformance logic ─────────────────────────────────
+  conformance:
+    desc: Run all test cases against a single runner
+    internal: true
+    cmds:
+      - |
+        set +e
+        # Normalize proto JSON: some encoders emit uint64 as strings, others as numbers
+        normalize='walk(if type == "string" and test("^[0-9]+$") then tonumber else . end) | . |= walk(if type == "number" and (. | floor) == . then (. | floor) else . end)'
+        PASS=0; FAIL=0
+        for tc in testcases/*/; do
+          name=$(basename "$tc")
+          # Derive signal from directory name prefix
+          case "$name" in
+            logs_*)    signal=log ;;
+            metrics_*) signal=metric ;;
+            traces_*)  signal=trace ;;
+            *)         echo "  SKIP  $name (unknown signal)"; continue ;;
+          esac
+          ./{{.RUNNER}} \
+            --policies "$tc/policies.json" \
+            --input "$tc/input.json" \
+            --output "$tc/output_{{.LANG}}.json" \
+            --stats "$tc/stats_{{.LANG}}.json" \
+            --signal "$signal"
+          out_ok=true; stats_ok=true
+          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                    <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") > /dev/null 2>&1; then
+            out_ok=false
+          fi
+          if ! diff <(jq -S . "$tc/expected_stats.json") \
+                    <(jq -S . "$tc/stats_{{.LANG}}.json") > /dev/null 2>&1; then
+            stats_ok=false
+          fi
+          if $out_ok && $stats_ok; then
+            echo "  PASS  $name"
+            PASS=$((PASS + 1))
+          else
+            echo "  FAIL  $name"
+            if ! $out_ok; then
+              echo "    output diff:"
+              diff <(jq -S "$normalize" "$tc/expected.json") \
+                   <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") || true
+            fi
+            if ! $stats_ok; then
+              echo "    stats diff:"
+              diff <(jq -S . "$tc/expected_stats.json") \
+                   <(jq -S . "$tc/stats_{{.LANG}}.json") || true
+            fi
+            FAIL=$((FAIL + 1))
+          fi
+        done
+        echo ""
+        echo "{{.LANG}}: $PASS passed, $FAIL failed"
+        [ "$FAIL" -eq 0 ]
+
+  # ── Benchmarks ──────────────────────────────────────────────
+  bench:
+    desc: Benchmark all runners against each test case
+    aliases: [bch]
+    deps: [build]
+    cmds:
+      - |
+        for tc in testcases/*/; do
+          name=$(basename "$tc")
+          case "$name" in
+            logs_*)    signal=log ;;
+            metrics_*) signal=metric ;;
+            traces_*)  signal=trace ;;
+            *)         continue ;;
+          esac
+          echo "── $name ──"
+          hyperfine --warmup 2 -N \
+            -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
+            -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
+            -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal"
+          echo ""
+        done
+
+  # ── Utilities ──────────────────────────────────────────────
+  clean:
+    desc: Clean build artifacts and outputs
+    aliases: [c]
+    cmds:
+      - rm -f runners/go/runner-go
+      - rm -f testcases/*/output_*.json
+      - rm -f testcases/*/stats_*.json
+      - cd runners/rs && cargo clean
+      - cd runners/zig && rm -rf zig-out .zig-cache
+
+  ci:setup:
+    desc: Install CI dependencies (hyperscan/vectorscan)
+    cmds:
+      - |
+        if pkg-config --exists libhs 2>/dev/null; then
+          echo "libhs already installed"
+          exit 0
+        fi
+        OS=$(uname -s)
+        if [ "$OS" = "Darwin" ]; then
+          brew install vectorscan
+        else
+          sudo apt-get update && sudo apt-get install -y libhyperscan-dev
+        fi

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-error-prefix",
+      "name": "Drop logs starting with ERROR:",
+      "log": {
+        "match": [
+          { "log_field": "body", "starts_with": "ERROR:" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

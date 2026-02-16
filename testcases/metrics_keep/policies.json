@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "keep-http-metrics",
+      "name": "Keep HTTP metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "regex": "^http\\..*$" }
+        ],
+        "keep": true
+      }
+    }
+  ]
+}

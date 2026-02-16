@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-basic-spans",
+      "name": "Drop all basic spans (0% sampling)",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "exact": "basic" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

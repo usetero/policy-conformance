@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "keep-all-errors",
+      "name": "Keep all error logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-health-checks",
+      "name": "Drop health check logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "health check" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

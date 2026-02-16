@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-timeout-logs",
+      "hits": 1
+    }
+  ]
+}

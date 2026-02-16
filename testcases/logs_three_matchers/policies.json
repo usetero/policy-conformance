@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-prod-payment-errors",
+      "name": "Drop error logs from payment service in production",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "payment" },
+          { "resource_attribute": "deployment.environment", "exact": "production" },
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

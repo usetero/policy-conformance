@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-critical",
+      "name": "Drop CRITICAL severity logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "CRITICAL" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

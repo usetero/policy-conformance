@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-edge-services",
+      "name": "Drop logs from edge services",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "regex": "^.*edge$" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

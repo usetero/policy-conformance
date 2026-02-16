@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-secret-token",
+      "name": "Drop logs containing SECRET (case-sensitive)",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "SECRET" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

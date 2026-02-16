@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-health-check",
+      "name": "Drop health check logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "exact": "health check" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

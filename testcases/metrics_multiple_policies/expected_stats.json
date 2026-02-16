@@ -1,0 +1,12 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-promhttp",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-system-load",
+      "hits": 1
+    }
+  ]
+}
