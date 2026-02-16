@@ -128,29 +128,26 @@ pub fn metricFieldAccessor(ctx: *const anyopaque, field: MetricFieldRef) ?[]cons
             const key = attrKey(attr) orelse break :blk null;
             break :blk findAttribute(scopeAttrs(mc.scope), key);
         },
-        .metric_type => blk: {
+        .metric_type => |requested_type| blk: {
             const data = mc.metric.data orelse break :blk null;
-            break :blk switch (data) {
-                .gauge => "gauge",
-                .sum => "sum",
-                .histogram => "histogram",
-                .exponential_histogram => "exponential_histogram",
-                .summary => "summary",
+            const actual_type: @TypeOf(requested_type) = switch (data) {
+                .gauge => .METRIC_TYPE_GAUGE,
+                .sum => .METRIC_TYPE_SUM,
+                .histogram => .METRIC_TYPE_HISTOGRAM,
+                .exponential_histogram => .METRIC_TYPE_EXPONENTIAL_HISTOGRAM,
+                .summary => .METRIC_TYPE_SUMMARY,
             };
+            break :blk if (actual_type == requested_type) @tagName(requested_type) else null;
         },
-        .aggregation_temporality => blk: {
+        .aggregation_temporality => |requested_at| blk: {
             const data = mc.metric.data orelse break :blk null;
-            const at = switch (data) {
+            const actual_at = switch (data) {
                 .sum => |s| s.aggregation_temporality,
                 .histogram => |h| h.aggregation_temporality,
                 .exponential_histogram => |eh| eh.aggregation_temporality,
                 else => break :blk null,
             };
-            break :blk switch (at) {
-                .AGGREGATION_TEMPORALITY_DELTA => "delta",
-                .AGGREGATION_TEMPORALITY_CUMULATIVE => "cumulative",
-                else => null,
-            };
+            break :blk if (@intFromEnum(actual_at) == @intFromEnum(requested_at)) @tagName(requested_at) else null;
         },
     };
 }

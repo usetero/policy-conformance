@@ -145,11 +145,11 @@ pub enum MetricData {
 impl MetricData {
     pub fn metric_type(&self) -> &'static str {
         match self {
-            MetricData::Gauge(_) => "gauge",
-            MetricData::Sum(_) => "sum",
-            MetricData::Histogram(_) => "histogram",
-            MetricData::ExponentialHistogram(_) => "exponential_histogram",
-            MetricData::Summary(_) => "summary",
+            MetricData::Gauge(_) => "METRIC_TYPE_GAUGE",
+            MetricData::Sum(_) => "METRIC_TYPE_SUM",
+            MetricData::Histogram(_) => "METRIC_TYPE_HISTOGRAM",
+            MetricData::ExponentialHistogram(_) => "METRIC_TYPE_EXPONENTIAL_HISTOGRAM",
+            MetricData::Summary(_) => "METRIC_TYPE_SUMMARY",
         }
     }
 
@@ -162,13 +162,13 @@ impl MetricData {
         };
         match at {
             serde_json::Value::Number(n) => match n.as_i64()? {
-                1 => Some("delta"),
-                2 => Some("cumulative"),
+                1 => Some("AGGREGATION_TEMPORALITY_DELTA"),
+                2 => Some("AGGREGATION_TEMPORALITY_CUMULATIVE"),
                 _ => None,
             },
             serde_json::Value::String(s) => match s.as_str() {
-                "AGGREGATION_TEMPORALITY_DELTA" => Some("delta"),
-                "AGGREGATION_TEMPORALITY_CUMULATIVE" => Some("cumulative"),
+                "AGGREGATION_TEMPORALITY_DELTA" => Some("AGGREGATION_TEMPORALITY_DELTA"),
+                "AGGREGATION_TEMPORALITY_CUMULATIVE" => Some("AGGREGATION_TEMPORALITY_CUMULATIVE"),
                 _ => None,
             },
             _ => None,

@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "policy_zig", .module = policy_dep.module("policy_zig") },
-                .{ .name = "o11y", .module = policy_dep.module("o11y") },
+                .{ .name = "o11y", .module = policy_dep.module("observability") },
             },
         }),
     });
@@ -34,7 +34,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "policy_zig", .module = policy_dep.module("policy_zig") },
-                .{ .name = "o11y", .module = policy_dep.module("o11y") },
+                .{ .name = "o11y", .module = policy_dep.module("observability") },
             },
         }),
     });

@@ -4,9 +4,7 @@
       "id": "drop-delta-metrics",
       "name": "Drop metrics with delta aggregation temporality",
       "metric": {
-        "match": [
-          { "aggregation_temporality": "delta" }
-        ],
+        "match": [{ "aggregation_temporality": "delta" }],
         "keep": false
       }
     }
