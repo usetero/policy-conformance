@@ -34,6 +34,7 @@ tasks:
     desc: Full validation for CI
     cmds:
       - task: do
+      - gh signoff
 
   # ── Build per-language ─────────────────────────────────────
   build:go:
