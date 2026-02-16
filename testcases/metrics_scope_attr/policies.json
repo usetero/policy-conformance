@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-metrics",
+      "name": "Drop metrics from debug instrumentation scope",
+      "metric": {
+        "match": [
+          { "scope_attribute": "telemetry.level", "exact": "debug" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

@@ -47,6 +47,7 @@ fn write_stats(path: &str, registry: &PolicyRegistry) {
             });
         }
     }
+    policies.sort_by(|a, b| a.policy_id.cmp(&b.policy_id));
     let output = StatsOutput { policies };
     let data = serde_json::to_string(&output).unwrap_or_else(|e| {
         eprintln!("failed to serialize stats: {e}");

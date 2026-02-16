@@ -39,6 +39,9 @@ func writeStats(path string, registry *policy.PolicyRegistry) error {
 	if output.Policies == nil {
 		output.Policies = []PolicyHit{}
 	}
+	sort.Slice(output.Policies, func(i, j int) bool {
+		return output.Policies[i].PolicyID < output.Policies[j].PolicyID
+	})
 	data, err := json.Marshal(output)
 	if err != nil {
 		return err

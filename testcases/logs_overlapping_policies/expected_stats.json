@@ -5,7 +5,7 @@
       "hits": 1
     },
     {
-      "policy_id": "keep-error-spans",
+      "policy_id": "keep-all-errors",
       "hits": 1
     }
   ]

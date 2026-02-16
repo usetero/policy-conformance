@@ -1,0 +1,34 @@
+{
+  "policies": [
+    {
+      "id": "keep-http-metrics",
+      "name": "Keep HTTP metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "http." }
+        ],
+        "keep": true
+      }
+    },
+    {
+      "id": "drop-internal-metrics",
+      "name": "Drop internal debug metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "contains": "internal" }
+        ],
+        "keep": false
+      }
+    },
+    {
+      "id": "drop-system-metrics",
+      "name": "Drop system metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "system." }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

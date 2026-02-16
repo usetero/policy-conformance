@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-frontend-spans",
+      "name": "Drop internal spans from frontend service",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_INTERNAL", "exists": true },
+          { "resource_attribute": "service.name", "exact": "frontend" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

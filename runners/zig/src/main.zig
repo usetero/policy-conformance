@@ -6,6 +6,9 @@ const eval = @import("eval.zig");
 const PolicyRegistry = policy.Registry;
 const PolicyEngine = policy.PolicyEngine;
 const FilterDecision = policy.FilterDecision;
+const FileProvider = policy.FileProvider;
+const PolicyCallback = policy.PolicyCallback;
+const PolicyUpdate = policy.PolicyUpdate;
 
 const proto = policy.proto;
 const LogsData = proto.logs.LogsData;
@@ -32,6 +35,12 @@ fn writeStats(allocator: std.mem.Allocator, path: []const u8, registry: *PolicyR
             try stats.append(allocator, .{ .policy_id = p.id, .hits = counters.hits });
         }
     }
+
+    std.mem.sort(PolicyStat, stats.items, {}, struct {
+        fn lessThan(_: void, a: PolicyStat, b: PolicyStat) bool {
+            return std.mem.order(u8, a.policy_id, b.policy_id) == .lt;
+        }
+    }.lessThan);
 
     var buf: std.ArrayListUnmanaged(u8) = .empty;
     defer buf.deinit(allocator);
@@ -233,6 +242,15 @@ fn getDatapointAttrs(metric: *const proto.metrics.Metric) []const proto.common.K
 
 const Signal = enum { log, metric, trace };
 
+const CallbackContext = struct {
+    registry: *PolicyRegistry,
+
+    fn handleUpdate(context: *anyopaque, update: PolicyUpdate) !void {
+        const self: *CallbackContext = @ptrCast(@alignCast(context));
+        try self.registry.updatePolicies(update.policies, update.provider_id, .file);
+    }
+};
+
 fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, out_path: []const u8, stats_path: []const u8, signal: Signal) !void {
     var noop_bus: o11y.NoopEventBus = undefined;
     noop_bus.init();
@@ -240,14 +258,15 @@ fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, 
     var registry = PolicyRegistry.init(allocator, noop_bus.eventBus());
     defer registry.deinit();
 
-    const policies = try policy.parser.parsePoliciesFile(allocator, pol_path);
-    defer {
-        for (policies) |*p| {
-            @constCast(p).deinit(allocator);
-        }
-        allocator.free(policies);
-    }
-    try registry.updatePolicies(policies, "conformance", .file);
+    const file_provider = try FileProvider.init(allocator, noop_bus.eventBus(), "conformance", pol_path);
+    defer file_provider.deinit();
+
+    var callback_ctx = CallbackContext{ .registry = &registry };
+    try file_provider.subscribe(.{
+        .context = @ptrCast(&callback_ctx),
+        .onUpdate = CallbackContext.handleUpdate,
+    });
+    defer file_provider.shutdown();
 
     const engine = PolicyEngine.init(noop_bus.eventBus(), &registry);
 

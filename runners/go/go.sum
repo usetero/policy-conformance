@@ -24,8 +24,8 @@ github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sS
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/usetero/policy-go v1.3.1 h1:vpPFbGkdym6As054Di8QS/P2zuMEViYPznf8zBB1mbY=
-github.com/usetero/policy-go v1.3.1/go.mod h1:tFtx5VEgt9yTBN8ac85U3tsSZNqtfPhw4/8mAboG278=
+github.com/usetero/policy-go v1.3.2 h1:EYEJZM+7ib8a31UDMukSu8SVA6ZjM/MhQPHVJaldyT4=
+github.com/usetero/policy-go v1.3.2/go.mod h1:tFtx5VEgt9yTBN8ac85U3tsSZNqtfPhw4/8mAboG278=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/otel v1.38.0 h1:RkfdswUDRimDg0m2Az18RKOsnI8UDzppJAtj01/Ymk8=

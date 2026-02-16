@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-everything",
+      "name": "Drop all INFO logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

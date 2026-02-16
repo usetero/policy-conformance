@@ -1,11 +1,11 @@
 {
   "policies": [
     {
-      "policy_id": "drop-health-checks",
+      "policy_id": "drop-health-spans",
       "hits": 1
     },
     {
-      "policy_id": "keep-error-spans",
+      "policy_id": "keep-all-errors",
       "hits": 1
     }
   ]

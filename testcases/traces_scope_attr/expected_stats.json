@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-test-instrumentation",
+      "hits": 1
+    }
+  ]
+}
