@@ -285,9 +285,6 @@ fn evaluate(allocator: std.mem.Allocator, registry: *PolicyRegistry, bus: *o11y.
     const input_data = try std.fs.cwd().readFileAlloc(allocator, in_path, 10 * 1024 * 1024);
     defer allocator.free(input_data);
 
-    // Use standard protobuf JSON mapping (oneof fields emitted without wrapper)
-    proto.protobuf.json.pb_options.emit_oneof_field_name = false;
-
     const output = switch (signal) {
         .log => try processLogs(allocator, engine, input_data),
         .metric => try processMetrics(allocator, engine, input_data),
@@ -307,6 +304,9 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
+
+    // Use standard protobuf JSON mapping (oneof fields emitted without wrapper)
+    proto.protobuf.json.pb_options.emit_oneof_field_name = false;
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
