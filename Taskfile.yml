@@ -196,14 +196,33 @@ tasks:
       - task: test:http:rs
       - task: test:http:zig
 
-  test:grpc:
+  test:grpc:go:
     desc: Run gRPC provider conformance tests for Go runner
-    aliases: [tgrpc]
     deps: [build:server, build:go]
     cmds:
       - task: conformance:http
         vars:
           { RUNNER: runners/go/runner-go, LANG: go, PROVIDER_FLAG: "--grpc" }
+
+  test:grpc:rs:
+    desc: Run gRPC provider conformance tests for Rust runner
+    deps: [build:server, build:rs]
+    cmds:
+      - task: conformance:http
+        vars:
+          {
+            RUNNER: runners/rs/target/release/runner-rs,
+            LANG: rs,
+            PROVIDER_FLAG: "--grpc",
+          }
+
+  test:grpc:
+    desc: Run gRPC provider conformance tests for all runners
+    aliases: [tgrpc]
+    deps: [build:server, build:go, build:rs]
+    cmds:
+      - task: test:grpc:go
+      - task: test:grpc:rs
 
   conformance:http:
     desc: Run HTTP/gRPC provider test cases against a single runner
