@@ -3,6 +3,8 @@ runners/go/runner-go
 runners/rs/target/
 runners/zig/zig-out/
 runners/zig/.zig-cache/
+server/server
+server/conformance-server
 
 # Test outputs
 testcases/*/output_*.json

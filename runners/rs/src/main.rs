@@ -2,7 +2,10 @@ use std::fs;
 use std::process;
 
 use clap::Parser;
-use policy_rs::{FileProvider, PolicyEngine, PolicyRegistry};
+use policy_rs::{
+    ContentType, FileProvider, HttpProvider, HttpProviderConfig, PolicyEngine, PolicyProvider,
+    PolicyRegistry,
+};
 use serde::{Deserialize, Serialize};
 
 mod eval;
@@ -11,13 +14,15 @@ mod otel;
 #[derive(Parser)]
 struct Args {
     #[arg(long)]
-    policies: String,
+    policies: Option<String>,
+    #[arg(long)]
+    server: Option<String>,
     #[arg(long)]
     input: String,
     #[arg(long)]
     output: String,
     #[arg(long)]
-    stats: String,
+    stats: Option<String>,
     #[arg(long)]
     signal: String,
 }
@@ -191,10 +196,37 @@ async fn process_traces(
 async fn main() {
     let args = Args::parse();
 
+    let remote_mode = args.server.is_some();
+
     // Load policies
     let registry = PolicyRegistry::new();
-    let provider = FileProvider::new(&args.policies);
-    if let Err(e) = registry.subscribe(&provider) {
+
+    // Create provider based on mode
+    let file_provider;
+    let mut http_provider = None;
+    let provider: &dyn PolicyProvider = if let Some(ref url) = args.server {
+        http_provider = Some(
+            HttpProvider::new_with_initial_fetch(
+                HttpProviderConfig::new(url).content_type(ContentType::Json),
+            )
+            .await
+            .unwrap_or_else(|e| {
+                eprintln!("failed to connect to server: {e}");
+                process::exit(1);
+            }),
+        );
+        http_provider.as_ref().unwrap()
+    } else if let Some(ref path) = args.policies {
+        file_provider = FileProvider::new(path);
+        &file_provider
+    } else {
+        eprintln!(
+            "usage: runner-rs (--policies <path> | --server <url>) --input <path> --output <path> --signal <log|metric|trace> [--stats <path>]"
+        );
+        process::exit(1);
+    };
+
+    if let Err(e) = registry.subscribe(provider) {
         eprintln!("failed to load policies: {e}");
         process::exit(1);
     }
@@ -229,6 +261,12 @@ async fn main() {
         process::exit(1);
     });
 
-    // Write stats
-    write_stats(&args.stats, &registry);
+    if remote_mode {
+        // Trigger a sync to report stats back to the server
+        if let Err(e) = http_provider.as_ref().unwrap().load().await {
+            eprintln!("failed to sync stats: {e}");
+        }
+    } else if let Some(ref stats_path) = args.stats {
+        write_stats(stats_path, &registry);
+    }
 }

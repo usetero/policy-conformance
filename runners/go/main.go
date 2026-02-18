@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"time"
 
 	"github.com/usetero/policy-go"
 	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
@@ -204,20 +205,43 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 
 func main() {
 	policiesPath := flag.String("policies", "", "path to policies.json")
+	serverURL := flag.String("server", "", "HTTP sync endpoint URL (e.g. http://localhost:8080/v1/policy/sync)")
+	grpcAddr := flag.String("grpc", "", "gRPC server address (e.g. localhost:9090)")
 	inputPath := flag.String("input", "", "path to input.json")
 	outputPath := flag.String("output", "", "path to output.json")
 	statsPath := flag.String("stats", "", "path to stats.json")
 	signalFlag := flag.String("signal", "", "signal type: log, metric, trace")
 	flag.Parse()
 
-	if *policiesPath == "" || *inputPath == "" || *outputPath == "" || *statsPath == "" || *signalFlag == "" {
+	if *inputPath == "" || *outputPath == "" || *signalFlag == "" {
+		fmt.Fprintf(os.Stderr, "usage: runner-go (--policies <path> | --server <url> | --grpc <addr>) --input <path> --output <path> --signal <log|metric|trace> [--stats <path>]\n")
+		os.Exit(1)
+	}
+
+	remoteMode := *serverURL != "" || *grpcAddr != ""
+	if !remoteMode && (*policiesPath == "" || *statsPath == "") {
 		fmt.Fprintf(os.Stderr, "usage: runner-go --policies <path> --input <path> --output <path> --stats <path> --signal <log|metric|trace>\n")
 		os.Exit(1)
 	}
 
 	// Load policies
 	registry := policy.NewPolicyRegistry()
-	provider := policy.NewFileProvider(*policiesPath)
+	var provider policy.PolicyProvider
+	switch {
+	case *serverURL != "":
+		provider = policy.NewHttpProvider(*serverURL,
+			policy.WithContentType(policy.ContentTypeJSON),
+			policy.WithHTTPPollInterval(60*time.Second),
+		)
+	case *grpcAddr != "":
+		provider = policy.NewGrpcProvider(*grpcAddr,
+			policy.WithGrpcInsecure(),
+			policy.WithGrpcPollInterval(60*time.Second),
+		)
+	default:
+		provider = policy.NewFileProvider(*policiesPath)
+	}
+
 	handle, err := registry.Register(provider)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to load policies: %v\n", err)
@@ -257,10 +281,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Write stats
-	if err := writeStats(*statsPath, registry); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to write stats: %v\n", err)
-		os.Exit(1)
+	if remoteMode {
+		// In remote mode, trigger a second sync to report stats back to the server.
+		// Load() performs a sync which includes policy_statuses from CollectStats.
+		if _, err := provider.Load(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to sync stats: %v\n", err)
+		}
+	} else {
+		// In file mode, write stats locally
+		if err := writeStats(*statsPath, registry); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to write stats: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 

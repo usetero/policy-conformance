@@ -5,8 +5,8 @@
     .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .policy_zig = .{
-            .url = "git+https://github.com/usetero/policy-zig#00f7eb7c1468979d6b8dc49d7b86b1e5885780e0",
-            .hash = "policy_zig-0.1.6-5_dp3sM3DgBTmHrTz5SKx8pjY0CbLIEklowA22CU_ozx",
+            .url = "https://github.com/usetero/policy-zig/archive/v0.1.7.tar.gz",
+            .hash = "policy_zig-0.1.7-5_dp3rQhDgD069GE3Nw-9RPNZauPCOsxg_6-arJMrPjW",
         },
     },
     .paths = .{

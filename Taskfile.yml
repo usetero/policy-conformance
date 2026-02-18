@@ -9,12 +9,13 @@ tasks:
       - task: build
 
   build:
-    desc: Build all runners
+    desc: Build all runners and server
     aliases: [b]
     cmds:
       - task: build:go
       - task: build:rs
       - task: build:zig
+      - task: build:server
 
   test:
     desc: Run conformance tests for all runners
@@ -35,6 +36,14 @@ tasks:
     cmds:
       - task: do
       - gh signoff
+
+  # ── Build server ────────────────────────────────────────────
+  build:server:
+    desc: Build conformance server
+    aliases: [bs]
+    dir: server
+    cmds:
+      - go build -o conformance-server .
 
   # ── Build per-language ─────────────────────────────────────
   build:go:
@@ -145,6 +154,153 @@ tasks:
         echo "{{.LANG}}: $PASS passed, $FAIL failed"
         [ "$FAIL" -eq 0 ]
 
+  # ── HTTP provider tests ─────────────────────────────────────
+  test:http:go:
+    desc: Run HTTP provider conformance tests for Go runner
+    deps: [build:server, build:go]
+    cmds:
+      - task: conformance:http
+        vars:
+          { RUNNER: runners/go/runner-go, LANG: go, PROVIDER_FLAG: "--server" }
+
+  test:http:rs:
+    desc: Run HTTP provider conformance tests for Rust runner
+    deps: [build:server, build:rs]
+    cmds:
+      - task: conformance:http
+        vars:
+          {
+            RUNNER: runners/rs/target/release/runner-rs,
+            LANG: rs,
+            PROVIDER_FLAG: "--server",
+          }
+
+  test:http:zig:
+    desc: Run HTTP provider conformance tests for Zig runner
+    deps: [build:server, build:zig]
+    cmds:
+      - task: conformance:http
+        vars:
+          {
+            RUNNER: runners/zig/zig-out/bin/runner-zig,
+            LANG: zig,
+            PROVIDER_FLAG: "--server",
+          }
+
+  test:http:
+    desc: Run HTTP provider conformance tests for all runners
+    aliases: [th]
+    deps: [build:server, build:go, build:rs, build:zig]
+    cmds:
+      - task: test:http:go
+      - task: test:http:rs
+      - task: test:http:zig
+
+  test:grpc:
+    desc: Run gRPC provider conformance tests for Go runner
+    aliases: [tgrpc]
+    deps: [build:server, build:go]
+    cmds:
+      - task: conformance:http
+        vars:
+          { RUNNER: runners/go/runner-go, LANG: go, PROVIDER_FLAG: "--grpc" }
+
+  conformance:http:
+    desc: Run HTTP/gRPC provider test cases against a single runner
+    internal: true
+    cmds:
+      - |
+        set +e
+        normalize='walk(if type == "string" and test("^[0-9]+$") then tonumber else . end) | . |= walk(if type == "number" and (. | floor) == . then (. | floor) else . end)'
+        PASS=0; FAIL=0; ERRORS=0
+        for tc in testcases/*/; do
+          name=$(basename "$tc")
+          case "$name" in
+            logs_*)    signal=log ;;
+            metrics_*) signal=metric ;;
+            traces_*)  signal=trace ;;
+            *)         echo "  SKIP  $name (unknown signal)"; continue ;;
+          esac
+
+          # Start conformance server, capture port output
+          PORT_FILE=$(mktemp)
+          ./server/conformance-server --policies "$tc/policies.json" --http-port 0 --grpc-port 0 > "$PORT_FILE" 2>/dev/null &
+          SERVER_PID=$!
+          sleep 0.3
+
+          HTTP_PORT=$(grep '^HTTP_PORT=' "$PORT_FILE" | cut -d= -f2)
+          GRPC_PORT=$(grep '^GRPC_PORT=' "$PORT_FILE" | cut -d= -f2)
+          rm -f "$PORT_FILE"
+
+          if [ -z "$HTTP_PORT" ]; then
+            echo "  ERROR $name (server failed to start)"
+            kill $SERVER_PID 2>/dev/null; wait $SERVER_PID 2>/dev/null
+            ERRORS=$((ERRORS + 1))
+            continue
+          fi
+
+          # Determine provider address
+          if [ "{{.PROVIDER_FLAG}}" = "--grpc" ]; then
+            PROVIDER_ADDR="localhost:$GRPC_PORT"
+          else
+            PROVIDER_ADDR="http://localhost:$HTTP_PORT/v1/policy/sync"
+          fi
+
+          # Run runner
+          ./{{.RUNNER}} \
+            {{.PROVIDER_FLAG}} "$PROVIDER_ADDR" \
+            --input "$tc/input.json" \
+            --output "$tc/output_{{.LANG}}_http.json" \
+            --signal "$signal" 2>/dev/null
+          RUNNER_EXIT=$?
+
+          if [ $RUNNER_EXIT -ne 0 ]; then
+            echo "  ERROR $name (runner exited $RUNNER_EXIT)"
+            curl -s "http://localhost:$HTTP_PORT/shutdown" > /dev/null 2>&1
+            wait $SERVER_PID 2>/dev/null
+            ERRORS=$((ERRORS + 1))
+            continue
+          fi
+
+          # Fetch stats from server
+          curl -s "http://localhost:$HTTP_PORT/stats" > "$tc/stats_{{.LANG}}_http.json" 2>/dev/null
+
+          # Shutdown server
+          curl -s "http://localhost:$HTTP_PORT/shutdown" > /dev/null 2>&1
+          wait $SERVER_PID 2>/dev/null
+
+          # Compare output and stats
+          out_ok=true; stats_ok=true
+          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                    <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") > /dev/null 2>&1; then
+            out_ok=false
+          fi
+          if ! diff <(jq -S . "$tc/expected_stats.json") \
+                    <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
+            stats_ok=false
+          fi
+          if $out_ok && $stats_ok; then
+            echo "  PASS  $name"
+            PASS=$((PASS + 1))
+          else
+            echo "  FAIL  $name"
+            if ! $out_ok; then
+              echo "    output diff:"
+              diff <(jq -S "$normalize" "$tc/expected.json") \
+                   <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") || true
+            fi
+            if ! $stats_ok; then
+              echo "    stats diff:"
+              diff <(jq -S . "$tc/expected_stats.json") \
+                   <(jq -S . "$tc/stats_{{.LANG}}_http.json") || true
+            fi
+            FAIL=$((FAIL + 1))
+          fi
+        done
+        echo ""
+        echo "{{.LANG}} ({{.PROVIDER_FLAG}}): $PASS passed, $FAIL failed, $ERRORS errors"
+        [ "$FAIL" -eq 0 ] && [ "$ERRORS" -eq 0 ]
+
   # ── Benchmarks ──────────────────────────────────────────────
   bench:
     desc: Benchmark all runners against each test case
@@ -174,6 +330,7 @@ tasks:
     aliases: [c]
     cmds:
       - rm -f runners/go/runner-go
+      - rm -f server/conformance-server
       - rm -f testcases/*/output_*.json
       - rm -f testcases/*/stats_*.json
       - cd runners/rs && cargo clean
