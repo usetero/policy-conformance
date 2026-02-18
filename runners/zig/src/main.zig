@@ -257,23 +257,29 @@ fn run(allocator: std.mem.Allocator, pol_path: ?[]const u8, server_url: ?[]const
         try HttpProvider.init(allocator, noop_bus.eventBus(), .{ .id = "conformance", .url = url, .poll_interval_seconds = 60 })
     else
         null;
-
     if (file_provider) |fp| {
         defer fp.deinit();
         try registry.subscribe(.{ .file = fp });
         defer fp.shutdown();
-        return runInner(allocator, &registry, noop_bus.eventBus(), null, in_path, out_path, stats_path, signal);
+
+        try evaluate(allocator, &registry, noop_bus.eventBus(), in_path, out_path, signal);
+        try writeStats(allocator, stats_path.?, &registry);
     } else if (http_provider) |hp| {
         defer hp.deinit();
         try registry.subscribe(.{ .http = hp });
         defer hp.shutdown();
-        return runInner(allocator, &registry, noop_bus.eventBus(), hp, in_path, out_path, stats_path, signal);
+
+        try evaluate(allocator, &registry, noop_bus.eventBus(), in_path, out_path, signal);
+        registry.flushStats();
+        try hp.fetchAndNotify();
     } else {
         return error.NoProvider;
     }
 }
 
-fn runInner(allocator: std.mem.Allocator, registry: *PolicyRegistry, bus: *o11y.EventBus, http_provider: ?*HttpProvider, in_path: []const u8, out_path: []const u8, stats_path: ?[]const u8, signal: Signal) !void {
+/// evaluate evaluates the policies for the given data.
+/// INVARIANT: Caller must flush the registry stats after calling.
+fn evaluate(allocator: std.mem.Allocator, registry: *PolicyRegistry, bus: *o11y.EventBus, in_path: []const u8, out_path: []const u8, signal: Signal) !void {
     const engine = PolicyEngine.init(bus, registry);
 
     const input_data = try std.fs.cwd().readFileAlloc(allocator, in_path, 10 * 1024 * 1024);
@@ -293,14 +299,6 @@ fn runInner(allocator: std.mem.Allocator, registry: *PolicyRegistry, bus: *o11y.
     const out_file = try std.fs.cwd().createFile(out_path, .{});
     defer out_file.close();
     try out_file.writeAll(output);
-
-    if (http_provider) |hp| {
-        // Flush atomic stats to the provider, then trigger an immediate sync
-        registry.flushStats();
-        hp.fetchAndNotify() catch {};
-    } else if (stats_path) |sp| {
-        try writeStats(allocator, sp, registry);
-    }
 }
 
 // ─── Main ────────────────────────────────────────────────────────────
