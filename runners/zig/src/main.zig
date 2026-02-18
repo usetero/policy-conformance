@@ -7,8 +7,7 @@ const PolicyRegistry = policy.Registry;
 const PolicyEngine = policy.PolicyEngine;
 const FilterDecision = policy.FilterDecision;
 const FileProvider = policy.FileProvider;
-const PolicyCallback = policy.PolicyCallback;
-const PolicyUpdate = policy.PolicyUpdate;
+const HttpProvider = policy.HttpProvider;
 
 const proto = policy.proto;
 const LogsData = proto.logs.LogsData;
@@ -242,33 +241,40 @@ fn getDatapointAttrs(metric: *const proto.metrics.Metric) []const proto.common.K
 
 const Signal = enum { log, metric, trace };
 
-const CallbackContext = struct {
-    registry: *PolicyRegistry,
-
-    fn handleUpdate(context: *anyopaque, update: PolicyUpdate) !void {
-        const self: *CallbackContext = @ptrCast(@alignCast(context));
-        try self.registry.updatePolicies(update.policies, update.provider_id, .file);
-    }
-};
-
-fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, out_path: []const u8, stats_path: []const u8, signal: Signal) !void {
+fn run(allocator: std.mem.Allocator, pol_path: ?[]const u8, server_url: ?[]const u8, in_path: []const u8, out_path: []const u8, stats_path: ?[]const u8, signal: Signal) !void {
     var noop_bus: o11y.NoopEventBus = undefined;
     noop_bus.init();
 
     var registry = PolicyRegistry.init(allocator, noop_bus.eventBus());
     defer registry.deinit();
 
-    const file_provider = try FileProvider.init(allocator, noop_bus.eventBus(), "conformance", pol_path);
-    defer file_provider.deinit();
+    const file_provider: ?*FileProvider = if (pol_path) |pp|
+        try FileProvider.init(allocator, noop_bus.eventBus(), .{ .id = "conformance", .path = pp })
+    else
+        null;
 
-    var callback_ctx = CallbackContext{ .registry = &registry };
-    try file_provider.subscribe(.{
-        .context = @ptrCast(&callback_ctx),
-        .onUpdate = CallbackContext.handleUpdate,
-    });
-    defer file_provider.shutdown();
+    const http_provider: ?*HttpProvider = if (server_url) |url|
+        try HttpProvider.init(allocator, noop_bus.eventBus(), .{ .id = "conformance", .url = url, .poll_interval_seconds = 60 })
+    else
+        null;
 
-    const engine = PolicyEngine.init(noop_bus.eventBus(), &registry);
+    if (file_provider) |fp| {
+        defer fp.deinit();
+        try registry.subscribe(.{ .file = fp });
+        defer fp.shutdown();
+        return runInner(allocator, &registry, noop_bus.eventBus(), null, in_path, out_path, stats_path, signal);
+    } else if (http_provider) |hp| {
+        defer hp.deinit();
+        try registry.subscribe(.{ .http = hp });
+        defer hp.shutdown();
+        return runInner(allocator, &registry, noop_bus.eventBus(), hp, in_path, out_path, stats_path, signal);
+    } else {
+        return error.NoProvider;
+    }
+}
+
+fn runInner(allocator: std.mem.Allocator, registry: *PolicyRegistry, bus: *o11y.EventBus, http_provider: ?*HttpProvider, in_path: []const u8, out_path: []const u8, stats_path: ?[]const u8, signal: Signal) !void {
+    const engine = PolicyEngine.init(bus, registry);
 
     const input_data = try std.fs.cwd().readFileAlloc(allocator, in_path, 10 * 1024 * 1024);
     defer allocator.free(input_data);
@@ -288,8 +294,13 @@ fn run(allocator: std.mem.Allocator, pol_path: []const u8, in_path: []const u8, 
     defer out_file.close();
     try out_file.writeAll(output);
 
-    // Write stats
-    try writeStats(allocator, stats_path, &registry);
+    if (http_provider) |hp| {
+        // Flush atomic stats to the provider, then trigger an immediate sync
+        registry.flushStats();
+        hp.fetchAndNotify() catch {};
+    } else if (stats_path) |sp| {
+        try writeStats(allocator, sp, registry);
+    }
 }
 
 // ─── Main ────────────────────────────────────────────────────────────
@@ -303,6 +314,7 @@ pub fn main() !void {
     defer std.process.argsFree(allocator, args);
 
     var policies_path: ?[]const u8 = null;
+    var server_url: ?[]const u8 = null;
     var input_path: ?[]const u8 = null;
     var output_path: ?[]const u8 = null;
     var stats_path: ?[]const u8 = null;
@@ -313,6 +325,9 @@ pub fn main() !void {
         if (std.mem.eql(u8, args[i], "--policies") and i + 1 < args.len) {
             i += 1;
             policies_path = args[i];
+        } else if (std.mem.eql(u8, args[i], "--server") and i + 1 < args.len) {
+            i += 1;
+            server_url = args[i];
         } else if (std.mem.eql(u8, args[i], "--input") and i + 1 < args.len) {
             i += 1;
             input_path = args[i];
@@ -337,12 +352,14 @@ pub fn main() !void {
         }
     }
 
-    const usage = "usage: runner-zig --policies <path> --input <path> --output <path> --stats <path> --signal <log|metric|trace>\n";
+    const remote_mode = server_url != null;
 
-    const pol = policies_path orelse {
+    const usage = "usage: runner-zig (--policies <path> | --server <url>) --input <path> --output <path> --signal <log|metric|trace> [--stats <path>]\n";
+
+    if (policies_path == null and server_url == null) {
         std.debug.print("{s}", .{usage});
         std.process.exit(1);
-    };
+    }
     const inp = input_path orelse {
         std.debug.print("{s}", .{usage});
         std.process.exit(1);
@@ -351,16 +368,16 @@ pub fn main() !void {
         std.debug.print("{s}", .{usage});
         std.process.exit(1);
     };
-    const sts = stats_path orelse {
+    if (!remote_mode and stats_path == null) {
         std.debug.print("{s}", .{usage});
         std.process.exit(1);
-    };
+    }
     const sig = signal orelse {
         std.debug.print("{s}", .{usage});
         std.process.exit(1);
     };
 
-    run(allocator, pol, inp, out, sts, sig) catch |err| {
+    run(allocator, policies_path, server_url, inp, out, stats_path, sig) catch |err| {
         std.debug.print("error: {}\n", .{err});
         std.process.exit(1);
     };
@@ -433,5 +450,5 @@ test "no memory leaks" {
     _ = try tmp_dir.dir.createFile("stats.json", .{});
     const stats_path = try tmp_dir.dir.realpath("stats.json", &stats_path_buf);
 
-    try run(allocator, pol_path, in_path, out_path, stats_path, .log);
+    try run(allocator, pol_path, null, in_path, out_path, stats_path, .log);
 }
