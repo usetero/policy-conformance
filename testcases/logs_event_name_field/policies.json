@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-by-event-name",
+      "name": "Drop logs with specific event name",
+      "log": {
+        "match": [
+          { "log_field": "event_name", "exact": "user.login" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

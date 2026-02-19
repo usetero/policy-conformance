@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-edge-traces",
+      "name": "Drop traces from edge services",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "edge-proxy" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

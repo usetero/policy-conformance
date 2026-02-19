@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-post-requests",
+      "name": "Drop logs with nested http.request.method = POST",
+      "log": {
+        "match": [
+          { "log_attribute": ["http", "method"], "exact": "POST" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

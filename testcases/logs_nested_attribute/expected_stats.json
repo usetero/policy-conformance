@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-post-requests",
+      "hits": 1
+    }
+  ]
+}

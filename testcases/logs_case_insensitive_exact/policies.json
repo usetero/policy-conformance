@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-error-ci",
+      "name": "Drop logs with severity ERROR (case insensitive exact)",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "error", "case_insensitive": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

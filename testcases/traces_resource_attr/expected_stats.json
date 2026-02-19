@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-edge-traces",
+      "hits": 1
+    }
+  ]
+}

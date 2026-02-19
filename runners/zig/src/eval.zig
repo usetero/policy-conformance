@@ -49,6 +49,24 @@ fn findAttribute(attrs: []const KeyValue, key: []const u8) ?[]const u8 {
     return null;
 }
 
+fn findAttributePath(attrs: []const KeyValue, path: []const []const u8) ?[]const u8 {
+    if (path.len == 0) return null;
+    for (attrs) |kv| {
+        if (!std.mem.eql(u8, kv.key, path[0])) continue;
+        if (path.len == 1) {
+            return anyValueString(kv.value);
+        }
+        // Traverse into nested kvlist
+        const av = kv.value orelse return null;
+        const inner = av.value orelse return null;
+        switch (inner) {
+            .kvlist_value => |kvlist| return findAttributePath(kvlist.values.items, path[1..]),
+            else => return null,
+        }
+    }
+    return null;
+}
+
 fn anyValueString(val: ?AnyValue) ?[]const u8 {
     const v = val orelse return null;
     const inner = v.value orelse return null;
@@ -89,20 +107,12 @@ pub fn logFieldAccessor(ctx: *const anyopaque, field: FieldRef) ?[]const u8 {
             .LOG_FIELD_SEVERITY_TEXT => nonEmpty(lc.record.severity_text),
             .LOG_FIELD_TRACE_ID => nonEmpty(lc.record.trace_id),
             .LOG_FIELD_SPAN_ID => nonEmpty(lc.record.span_id),
+            .LOG_FIELD_EVENT_NAME => nonEmpty(lc.record.event_name),
             else => null,
         },
-        .log_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(lc.record.attributes.items, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(lc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(lc.scope), key);
-        },
+        .log_attribute => |attr| findAttributePath(lc.record.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(lc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(lc.scope), attr.path.items),
     };
 }
 
@@ -117,18 +127,9 @@ pub fn metricFieldAccessor(ctx: *const anyopaque, field: MetricFieldRef) ?[]cons
             .METRIC_FIELD_UNIT => nonEmpty(mc.metric.unit),
             else => null,
         },
-        .datapoint_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(mc.datapoint_attributes, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(mc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(mc.scope), key);
-        },
+        .datapoint_attribute => |attr| findAttributePath(mc.datapoint_attributes, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(mc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(mc.scope), attr.path.items),
         .metric_type => |requested_type| blk: {
             const data = mc.metric.data orelse break :blk null;
             const actual_type: @TypeOf(requested_type) = switch (data) {
@@ -166,18 +167,9 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
             .TRACE_FIELD_TRACE_STATE => nonEmpty(tc.span.trace_state),
             else => null,
         },
-        .span_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(tc.span.attributes.items, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(tc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(tc.scope), key);
-        },
+        .span_attribute => |attr| findAttributePath(tc.span.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(tc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(tc.scope), attr.path.items),
         .span_kind => |requested_kind| blk: {
             // Compare by integer value — OTel SpanKind and policy SpanKind share values
             break :blk if (@intFromEnum(tc.span.kind) == @intFromEnum(requested_kind))

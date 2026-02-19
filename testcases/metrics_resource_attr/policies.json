@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-staging-metrics",
+      "name": "Drop metrics from staging environment",
+      "metric": {
+        "match": [
+          { "resource_attribute": "deployment.environment", "exact": "staging" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

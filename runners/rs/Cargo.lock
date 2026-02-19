@@ -1405,6 +1405,7 @@ dependencies = [
 name = "runner-rs"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "clap",
  "policy-rs",
  "serde",

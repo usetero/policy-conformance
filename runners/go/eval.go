@@ -41,6 +41,28 @@ func findAttribute(attrs []*commonpb.KeyValue, key string) []byte {
 	return nil
 }
 
+func findAttributePath(attrs []*commonpb.KeyValue, path []string) []byte {
+	if len(path) == 0 {
+		return nil
+	}
+	for _, kv := range attrs {
+		if kv.Key != path[0] {
+			continue
+		}
+		if len(path) == 1 {
+			return anyValueBytes(kv.Value)
+		}
+		// Traverse into nested kvlist
+		if kv.Value != nil {
+			if kvl, ok := kv.Value.Value.(*commonpb.AnyValue_KvlistValue); ok && kvl.KvlistValue != nil {
+				return findAttributePath(kvl.KvlistValue.Values, path[1:])
+			}
+		}
+		return nil
+	}
+	return nil
+}
+
 func anyValueBytes(v *commonpb.AnyValue) []byte {
 	if v == nil {
 		return nil
@@ -113,6 +135,11 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 				return nil
 			}
 			return ctx.Record.SpanId
+		case policy.LogFieldEventName:
+			if ctx.Record.EventName == "" {
+				return nil
+			}
+			return []byte(ctx.Record.EventName)
 		default:
 			return nil
 		}
@@ -129,11 +156,7 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := attrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 // ─── Metric matcher ──────────────────────────────────────────────────
@@ -176,11 +199,7 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := metricAttrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 func metricType(m *metricspb.Metric) string {
@@ -261,6 +280,13 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 				return nil
 			}
 			return []byte(statusCodeString(ctx.Span.Status.Code))
+		case policy.TraceFieldEventName:
+			for _, evt := range ctx.Span.Events {
+				if evt.Name != "" {
+					return []byte(evt.Name)
+				}
+			}
+			return nil
 		default:
 			return nil
 		}
@@ -277,11 +303,7 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := traceAttrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 func spanKindString(k tracepb.Span_SpanKind) string {

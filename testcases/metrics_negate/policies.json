@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-non-http",
+      "name": "Drop metrics that do NOT start with http",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "http", "negate": true }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

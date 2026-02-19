@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-ok-spans",
+      "name": "Drop all spans with OK status",
+      "trace": {
+        "match": [
+          { "span_status": "SPAN_STATUS_CODE_OK", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

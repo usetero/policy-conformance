@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-by-trace-id",
+      "name": "Drop logs with specific trace ID",
+      "log": {
+        "match": [
+          { "log_field": "trace_id", "exact": "trace-id-abc1234" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

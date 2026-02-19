@@ -1,10 +1,12 @@
 use std::borrow::Cow;
 
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use policy_rs::proto::tero::policy::v1::{LogField, MetricField, TraceField};
 use policy_rs::{
     LogFieldSelector, LogSignal, Matchable, MetricFieldSelector, MetricSignal, TraceFieldSelector,
     TraceSignal, Transformable,
 };
+use serde::Deserialize;
 
 use crate::otel;
 
@@ -48,6 +50,65 @@ fn any_value_string(val: Option<&otel::AnyValue>) -> Option<Cow<'_, str>> {
     }
 }
 
+fn find_attribute_path<'a>(attrs: &'a [otel::KeyValue], path: &[String]) -> Option<Cow<'a, str>> {
+    if path.is_empty() {
+        return None;
+    }
+    for kv in attrs {
+        if kv.key != path[0] {
+            continue;
+        }
+        if path.len() == 1 {
+            return any_value_string(kv.value.as_ref());
+        }
+        // Traverse into nested kvlist
+        if let Some(ref val) = kv.value {
+            if let Some(ref kvlist) = val.kvlist_value {
+                if let Ok(nested) = serde_json::from_value::<KvlistValues>(kvlist.clone()) {
+                    return find_attribute_path_owned(&nested.values, &path[1..]);
+                }
+            }
+        }
+        return None;
+    }
+    None
+}
+
+#[derive(Deserialize)]
+struct KvlistValues {
+    values: Vec<otel::KeyValue>,
+}
+
+fn find_attribute_path_owned(attrs: &[otel::KeyValue], path: &[String]) -> Option<Cow<'static, str>> {
+    if path.is_empty() {
+        return None;
+    }
+    for kv in attrs {
+        if kv.key != path[0] {
+            continue;
+        }
+        if path.len() == 1 {
+            if let Some(ref val) = kv.value {
+                if let Some(ref s) = val.string_value {
+                    if !s.is_empty() {
+                        return Some(Cow::Owned(s.clone()));
+                    }
+                }
+            }
+            return None;
+        }
+        if let Some(ref val) = kv.value {
+            if let Some(ref kvlist) = val.kvlist_value {
+                if let Ok(nested) = serde_json::from_value::<KvlistValues>(kvlist.clone()) {
+                    return find_attribute_path_owned(&nested.values, &path[1..]);
+                }
+            }
+        }
+        return None;
+    }
+    None
+}
+
 fn resource_attrs(resource: Option<&otel::Resource>) -> &[otel::KeyValue] {
     resource.map(|r| r.attributes.as_slice()).unwrap_or(&[])
 }
@@ -68,6 +129,16 @@ fn non_empty(s: &str) -> Option<Cow<'_, str>> {
     }
 }
 
+/// Decode a base64-encoded byte field (trace_id, span_id) and return as owned string.
+/// Proto JSON encodes bytes fields as base64; the policy engine matches on raw bytes.
+fn decode_base64_field(s: &str) -> Option<Cow<'static, str>> {
+    if s.is_empty() {
+        return None;
+    }
+    let bytes = BASE64.decode(s).ok()?;
+    String::from_utf8(bytes).ok().map(Cow::Owned)
+}
+
 // ─── Log Matchable ───────────────────────────────────────────────────
 
 impl Matchable for LogContext<'_> {
@@ -78,21 +149,19 @@ impl Matchable for LogContext<'_> {
             LogFieldSelector::Simple(f) => match f {
                 LogField::Body => any_value_string(self.record.body.as_ref()),
                 LogField::SeverityText => non_empty(&self.record.severity_text),
-                LogField::TraceId => non_empty(&self.record.trace_id),
-                LogField::SpanId => non_empty(&self.record.span_id),
+                LogField::TraceId => decode_base64_field(&self.record.trace_id),
+                LogField::SpanId => decode_base64_field(&self.record.span_id),
+                LogField::EventName => non_empty(&self.record.event_name),
                 _ => None,
             },
             LogFieldSelector::LogAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(&self.record.attributes, key)
+                find_attribute_path(&self.record.attributes, path)
             }
             LogFieldSelector::ResourceAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(resource_attrs(self.resource), key)
+                find_attribute_path(resource_attrs(self.resource), path)
             }
             LogFieldSelector::ScopeAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(scope_attrs(self.scope), key)
+                find_attribute_path(scope_attrs(self.scope), path)
             }
         }
     }
@@ -114,32 +183,30 @@ impl Matchable for MutLogContext<'_> {
             LogFieldSelector::Simple(f) => match f {
                 LogField::Body => any_value_string(self.record.body.as_ref()),
                 LogField::SeverityText => non_empty(&self.record.severity_text),
-                LogField::TraceId => non_empty(&self.record.trace_id),
-                LogField::SpanId => non_empty(&self.record.span_id),
+                LogField::TraceId => decode_base64_field(&self.record.trace_id),
+                LogField::SpanId => decode_base64_field(&self.record.span_id),
+                LogField::EventName => non_empty(&self.record.event_name),
                 _ => None,
             },
             LogFieldSelector::LogAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(&self.record.attributes, key)
+                find_attribute_path(&self.record.attributes, path)
             }
             LogFieldSelector::ResourceAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(
+                find_attribute_path(
                     self.resource
                         .as_ref()
                         .map(|r| r.attributes.as_slice())
                         .unwrap_or(&[]),
-                    key,
+                    path,
                 )
             }
             LogFieldSelector::ScopeAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(
+                find_attribute_path(
                     self.scope
                         .as_ref()
                         .map(|s| s.attributes.as_slice())
                         .unwrap_or(&[]),
-                    key,
+                    path,
                 )
             }
         }
@@ -403,16 +470,13 @@ impl Matchable for MetricContext<'_> {
                 _ => None,
             },
             MetricFieldSelector::DatapointAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(self.datapoint_attributes, key)
+                find_attribute_path(self.datapoint_attributes, path)
             }
             MetricFieldSelector::ResourceAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(resource_attrs(self.resource), key)
+                find_attribute_path(resource_attrs(self.resource), path)
             }
             MetricFieldSelector::ScopeAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(scope_attrs(self.scope), key)
+                find_attribute_path(scope_attrs(self.scope), path)
             }
             MetricFieldSelector::Type => {
                 let data = self.metric.data.as_ref()?;
@@ -435,23 +499,20 @@ impl Matchable for TraceContext<'_> {
         match field {
             TraceFieldSelector::Simple(f) => match f {
                 TraceField::Name => non_empty(&self.span.name),
-                TraceField::TraceId => non_empty(&self.span.trace_id),
-                TraceField::SpanId => non_empty(&self.span.span_id),
-                TraceField::ParentSpanId => non_empty(&self.span.parent_span_id),
+                TraceField::TraceId => decode_base64_field(&self.span.trace_id),
+                TraceField::SpanId => decode_base64_field(&self.span.span_id),
+                TraceField::ParentSpanId => decode_base64_field(&self.span.parent_span_id),
                 TraceField::TraceState => non_empty(&self.span.trace_state),
                 _ => None,
             },
             TraceFieldSelector::SpanAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(&self.span.attributes, key)
+                find_attribute_path(&self.span.attributes, path)
             }
             TraceFieldSelector::ResourceAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(resource_attrs(self.resource), key)
+                find_attribute_path(resource_attrs(self.resource), path)
             }
             TraceFieldSelector::ScopeAttribute(path) => {
-                let key = attr_path(path)?;
-                find_attribute(scope_attrs(self.scope), key)
+                find_attribute_path(scope_attrs(self.scope), path)
             }
             TraceFieldSelector::SpanKind => non_empty(&self.span.kind),
             TraceFieldSelector::SpanStatus => {

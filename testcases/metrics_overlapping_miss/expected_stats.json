@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-system",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-all-gauges",
+      "hits": 1,
+      "misses": 1
+    }
+  ]
+}

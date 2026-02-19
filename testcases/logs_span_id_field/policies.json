@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-by-span-id",
+      "name": "Drop logs with specific span ID",
+      "log": {
+        "match": [
+          { "log_field": "span_id", "exact": "span0001" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}
