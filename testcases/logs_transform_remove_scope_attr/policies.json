@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "remove-debug-level",
+      "name": "Remove debug.level from scope attributes",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "remove": [{ "scope_attribute": "debug.level" }]
+        }
+      }
+    }
+  ]
+}

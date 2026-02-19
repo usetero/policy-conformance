@@ -1,0 +1,20 @@
+{
+  "policies": [
+    {
+      "id": "all-transforms",
+      "name": "All four transform operations in spec order",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "remove": [{ "log_attribute": "to_delete" }],
+          "redact": [
+            { "log_attribute": "secret", "replacement": "[REDACTED]" }
+          ],
+          "rename": [{ "from_log_attribute": "old_name", "to": "new_name" }],
+          "add": [{ "log_attribute": "added_field", "value": "added_value" }]
+        }
+      }
+    }
+  ]
+}

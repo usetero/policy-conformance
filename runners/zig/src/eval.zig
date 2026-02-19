@@ -19,9 +19,10 @@ const Resource = proto.resource.Resource;
 // resource_attributes and scope_attributes from the parent containers.
 
 pub const LogContext = struct {
-    record: *const LogRecord,
-    resource: ?*const Resource,
-    scope: ?*const InstrumentationScope,
+    record: *LogRecord,
+    resource: ?*Resource,
+    scope: ?*InstrumentationScope,
+    allocator: std.mem.Allocator,
 };
 
 pub const MetricContext = struct {
@@ -200,4 +201,172 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
 
 fn nonEmpty(s: []const u8) ?[]const u8 {
     return if (s.len == 0) null else s;
+}
+
+// ─── Log field mutator ───────────────────────────────────────────────
+
+const MutateOp = policy.MutateOp;
+
+pub fn logFieldMutator(ctx: *anyopaque, op: MutateOp) bool {
+    const lc: *LogContext = @ptrCast(@alignCast(ctx));
+    switch (op) {
+        .remove => |field| return mutRemove(lc, field),
+        .set => |s| return mutSet(lc, s.field, s.value, s.upsert),
+        .rename => |r| return mutRename(lc, r.from, r.to, r.upsert),
+    }
+}
+
+fn mutRemove(lc: *LogContext, field: FieldRef) bool {
+    switch (field) {
+        .log_field => |lf| {
+            switch (lf) {
+                .LOG_FIELD_BODY => {
+                    const hit = lc.record.body != null;
+                    lc.record.body = null;
+                    return hit;
+                },
+                .LOG_FIELD_SEVERITY_TEXT => {
+                    const hit = lc.record.severity_text.len > 0;
+                    lc.record.severity_text = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_TRACE_ID => {
+                    const hit = lc.record.trace_id.len > 0;
+                    lc.record.trace_id = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_SPAN_ID => {
+                    const hit = lc.record.span_id.len > 0;
+                    lc.record.span_id = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_EVENT_NAME => {
+                    const hit = lc.record.event_name.len > 0;
+                    lc.record.event_name = &.{};
+                    return hit;
+                },
+                else => return false,
+            }
+        },
+        .log_attribute => |attr| return removeAttr(&lc.record.attributes, attrKey(attr)),
+        .resource_attribute => |attr| {
+            if (lc.resource) |r| return removeAttr(&r.attributes, attrKey(attr));
+            return false;
+        },
+        .scope_attribute => |attr| {
+            if (lc.scope) |s| return removeAttr(&s.attributes, attrKey(attr));
+            return false;
+        },
+    }
+}
+
+fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, upsert: bool) bool {
+    switch (field) {
+        .log_field => |lf| {
+            switch (lf) {
+                .LOG_FIELD_BODY => {
+                    if (!upsert and lc.record.body == null) return false;
+                    lc.record.body = .{ .value = .{ .string_value = value } };
+                    return true;
+                },
+                .LOG_FIELD_SEVERITY_TEXT => {
+                    if (!upsert and lc.record.severity_text.len == 0) return false;
+                    lc.record.severity_text = value;
+                    return true;
+                },
+                .LOG_FIELD_TRACE_ID => {
+                    if (!upsert and lc.record.trace_id.len == 0) return false;
+                    lc.record.trace_id = value;
+                    return true;
+                },
+                .LOG_FIELD_SPAN_ID => {
+                    if (!upsert and lc.record.span_id.len == 0) return false;
+                    lc.record.span_id = value;
+                    return true;
+                },
+                .LOG_FIELD_EVENT_NAME => {
+                    if (!upsert and lc.record.event_name.len == 0) return false;
+                    lc.record.event_name = value;
+                    return true;
+                },
+                else => return false,
+            }
+        },
+        .log_attribute => |attr| return setAttr(lc.allocator, &lc.record.attributes, attrKey(attr), value, upsert),
+        .resource_attribute => |attr| {
+            if (lc.resource) |r| return setAttr(lc.allocator, &r.attributes, attrKey(attr), value, upsert);
+            return false;
+        },
+        .scope_attribute => |attr| {
+            if (lc.scope) |s| return setAttr(lc.allocator, &s.attributes, attrKey(attr), value, upsert);
+            return false;
+        },
+    }
+}
+
+fn mutRename(lc: *LogContext, from: FieldRef, to: []const u8, upsert: bool) bool {
+    const attrs = switch (from) {
+        .log_attribute => &lc.record.attributes,
+        .resource_attribute => if (lc.resource) |r| &r.attributes else return false,
+        .scope_attribute => if (lc.scope) |s| &s.attributes else return false,
+        .log_field => return false, // renaming fixed fields not supported
+    };
+    const key = switch (from) {
+        .log_attribute => |attr| attrKey(attr),
+        .resource_attribute => |attr| attrKey(attr),
+        .scope_attribute => |attr| attrKey(attr),
+        .log_field => return false,
+    };
+    const k = key orelse return false;
+
+    // Find and remove source
+    const src_idx = findAttrIndex(attrs.items, k) orelse return false;
+    const src_val = attrs.items[src_idx].value;
+
+    // Check if target exists
+    if (!upsert) {
+        if (findAttrIndex(attrs.items, to) != null) return true; // blocked
+    }
+
+    // Remove source
+    _ = attrs.orderedRemove(src_idx);
+
+    // Remove existing target if upsert
+    if (upsert) {
+        if (findAttrIndex(attrs.items, to)) |ti| {
+            _ = attrs.orderedRemove(ti);
+        }
+    }
+
+    // Add renamed entry
+    attrs.append(lc.allocator, .{ .key = to, .value = src_val }) catch return false;
+    return true;
+}
+
+fn removeAttr(attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8) bool {
+    const k = key orelse return false;
+    const idx = findAttrIndex(attrs.items, k) orelse return false;
+    _ = attrs.orderedRemove(idx);
+    return true;
+}
+
+fn setAttr(allocator: std.mem.Allocator, attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8, value: []const u8, upsert: bool) bool {
+    const k = key orelse return false;
+    if (findAttrIndex(attrs.items, k)) |idx| {
+        // Always overwrite when key exists. The engine handles "don't overwrite"
+        // checks (e.g. add with upsert=false) before calling the mutator.
+        attrs.items[idx].value = .{ .value = .{ .string_value = value } };
+        return true;
+    }
+    // upsert controls whether to create a new entry when the key is missing
+    if (!upsert) return false;
+    attrs.append(allocator, .{ .key = k, .value = .{ .value = .{ .string_value = value } } }) catch return false;
+    return true;
+}
+
+fn findAttrIndex(attrs: []const KeyValue, key: []const u8) ?usize {
+    for (attrs, 0..) |kv, i| {
+        if (std.mem.eql(u8, kv.key, key)) return i;
+    }
+    return null;
 }

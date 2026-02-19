@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "keep-all",
+      "name": "Explicitly keep all matching logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all"
+      }
+    }
+  ]
+}

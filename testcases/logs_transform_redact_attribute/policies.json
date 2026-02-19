@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "redact-api-key",
+      "name": "Redact api_key attribute on login logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "login" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            { "log_attribute": "api_key", "replacement": "[REDACTED]" }
+          ]
+        }
+      }
+    }
+  ]
+}

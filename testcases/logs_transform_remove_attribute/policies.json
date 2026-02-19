@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "remove-password-attr",
+      "name": "Remove password attribute from auth logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "auth" }
+        ],
+        "keep": "all",
+        "transform": {
+          "remove": [
+            { "log_attribute": "password" }
+          ]
+        }
+      }
+    }
+  ]
+}

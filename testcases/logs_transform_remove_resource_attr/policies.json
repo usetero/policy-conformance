@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "remove-internal-id",
+      "name": "Remove internal.id from resource attributes",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "remove": [{ "resource_attribute": "internal.id" }]
+        }
+      }
+    }
+  ]
+}

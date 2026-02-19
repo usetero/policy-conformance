@@ -19,6 +19,7 @@ const TracesData = proto.trace.TracesData;
 const PolicyStat = struct {
     policy_id: []const u8,
     hits: i64,
+    misses: i64,
 };
 
 fn writeStats(allocator: std.mem.Allocator, path: []const u8, registry: *PolicyRegistry) !void {
@@ -30,8 +31,8 @@ fn writeStats(allocator: std.mem.Allocator, path: []const u8, registry: *PolicyR
     for (snapshot.policies, 0..) |p, i| {
         const s = snapshot.getStats(@intCast(i)) orelse continue;
         const counters = s.readAndReset();
-        if (counters.hits > 0) {
-            try stats.append(allocator, .{ .policy_id = p.id, .hits = counters.hits });
+        if (counters.hits > 0 or counters.misses > 0) {
+            try stats.append(allocator, .{ .policy_id = p.id, .hits = counters.hits, .misses = counters.misses });
         }
     }
 
@@ -48,7 +49,11 @@ fn writeStats(allocator: std.mem.Allocator, path: []const u8, registry: *PolicyR
     try writer.writeAll("{\"policies\":[");
     for (stats.items, 0..) |st, i| {
         if (i > 0) try writer.writeByte(',');
-        try writer.print("{{\"policy_id\":\"{s}\",\"hits\":{d}}}", .{ st.policy_id, st.hits });
+        if (st.misses > 0) {
+            try writer.print("{{\"policy_id\":\"{s}\",\"hits\":{d},\"misses\":{d}}}", .{ st.policy_id, st.hits, st.misses });
+        } else {
+            try writer.print("{{\"policy_id\":\"{s}\",\"hits\":{d}}}", .{ st.policy_id, st.hits });
+        }
     }
     try writer.writeAll("]}");
 
@@ -68,6 +73,10 @@ fn processLogs(allocator: std.mem.Allocator, engine: PolicyEngine, input_data: [
     defer parsed.deinit();
     var data = parsed.value;
 
+    // Arena for transform mutations (e.g. attribute appends). Freed after encoding.
+    var transform_arena = std.heap.ArenaAllocator.init(allocator);
+    defer transform_arena.deinit();
+
     // Evaluate each log record, mark dropped ones
     for (data.resource_logs.items) |*rl| {
         const resource = if (rl.resource) |*r| r else null;
@@ -79,9 +88,10 @@ fn processLogs(allocator: std.mem.Allocator, engine: PolicyEngine, input_data: [
                     .record = &sl.log_records.items[i],
                     .resource = resource,
                     .scope = scope,
+                    .allocator = transform_arena.allocator(),
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.log, @ptrCast(&ctx), eval.logFieldAccessor, null, &policy_id_buf);
+                const result = engine.evaluate(.log, @ptrCast(&ctx), eval.logFieldAccessor, eval.logFieldMutator, &policy_id_buf);
                 if (result.decision == .drop) {
                     _ = sl.log_records.orderedRemove(i);
                 } else {

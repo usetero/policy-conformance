@@ -314,6 +314,217 @@ func statusCodeString(c tracepb.Status_StatusCode) string {
 	}
 }
 
+// ─── Log transformer ─────────────────────────────────────────────────
+
+func OTelLogTransformer(ctx *LogContext, op policy.TransformOp) bool {
+	switch op.Kind {
+	case policy.TransformRemove:
+		return otelLogRemove(ctx, op.Ref)
+	case policy.TransformRedact:
+		return otelLogRedact(ctx, op.Ref, op.Value)
+	case policy.TransformRename:
+		return otelLogRename(ctx, op.Ref, op.To, op.Upsert)
+	case policy.TransformAdd:
+		return otelLogAdd(ctx, op.Ref, op.Value, op.Upsert)
+	}
+	return false
+}
+
+func otelLogRemove(ctx *LogContext, ref policy.LogFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			hit := ctx.Record.Body != nil
+			ctx.Record.Body = nil
+			return hit
+		case policy.LogFieldSeverityText:
+			hit := ctx.Record.SeverityText != ""
+			ctx.Record.SeverityText = ""
+			return hit
+		case policy.LogFieldTraceID:
+			hit := len(ctx.Record.TraceId) > 0
+			ctx.Record.TraceId = nil
+			return hit
+		case policy.LogFieldSpanID:
+			hit := len(ctx.Record.SpanId) > 0
+			ctx.Record.SpanId = nil
+			return hit
+		case policy.LogFieldEventName:
+			hit := ctx.Record.EventName != ""
+			ctx.Record.EventName = ""
+			return hit
+		}
+		return false
+	}
+	return removeAttribute(otelLogAttrs(ctx, ref), attrPath(ref))
+}
+
+func otelLogRedact(ctx *LogContext, ref policy.LogFieldRef, replacement string) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			hit := ctx.Record.Body != nil
+			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
+			return hit
+		case policy.LogFieldSeverityText:
+			hit := ctx.Record.SeverityText != ""
+			ctx.Record.SeverityText = replacement
+			return hit
+		case policy.LogFieldTraceID:
+			hit := len(ctx.Record.TraceId) > 0
+			ctx.Record.TraceId = []byte(replacement)
+			return hit
+		case policy.LogFieldSpanID:
+			hit := len(ctx.Record.SpanId) > 0
+			ctx.Record.SpanId = []byte(replacement)
+			return hit
+		case policy.LogFieldEventName:
+			hit := ctx.Record.EventName != ""
+			ctx.Record.EventName = replacement
+			return hit
+		}
+		return false
+	}
+	attrs := otelLogAttrs(ctx, ref)
+	key := attrPath(ref)
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
+	return true
+}
+
+func otelLogRename(ctx *LogContext, ref policy.LogFieldRef, to string, upsert bool) bool {
+	if ref.IsField() {
+		return false // renaming fixed fields not supported
+	}
+	attrs := otelLogAttrs(ctx, ref)
+	key := attrPath(ref)
+	if key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	val := anyValueBytes((*attrs)[idx].Value)
+	if !upsert {
+		if findAttributeIndex(*attrs, to) >= 0 {
+			return true // source existed but target blocked
+		}
+	}
+	// Remove source
+	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
+	// Set target
+	if val != nil {
+		setAttribute(attrs, to, string(val), true)
+	} else {
+		setAttribute(attrs, to, "", true)
+	}
+	return true
+}
+
+func otelLogAdd(ctx *LogContext, ref policy.LogFieldRef, value string, upsert bool) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			if !upsert && ctx.Record.Body != nil {
+				return true
+			}
+			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+			return true
+		case policy.LogFieldSeverityText:
+			if !upsert && ctx.Record.SeverityText != "" {
+				return true
+			}
+			ctx.Record.SeverityText = value
+			return true
+		case policy.LogFieldTraceID:
+			if !upsert && len(ctx.Record.TraceId) > 0 {
+				return true
+			}
+			ctx.Record.TraceId = []byte(value)
+			return true
+		case policy.LogFieldSpanID:
+			if !upsert && len(ctx.Record.SpanId) > 0 {
+				return true
+			}
+			ctx.Record.SpanId = []byte(value)
+			return true
+		case policy.LogFieldEventName:
+			if !upsert && ctx.Record.EventName != "" {
+				return true
+			}
+			ctx.Record.EventName = value
+			return true
+		}
+		return false
+	}
+	return setAttribute(otelLogAttrs(ctx, ref), attrPath(ref), value, upsert)
+}
+
+func otelLogAttrs(ctx *LogContext, ref policy.LogFieldRef) *[]*commonpb.KeyValue {
+	switch {
+	case ref.IsRecordAttr():
+		return &ctx.Record.Attributes
+	case ref.IsResourceAttr():
+		if ctx.Resource == nil {
+			return nil
+		}
+		return &ctx.Resource.Attributes
+	case ref.IsScopeAttr():
+		if ctx.Scope == nil {
+			return nil
+		}
+		return &ctx.Scope.Attributes
+	}
+	return nil
+}
+
+func findAttributeIndex(attrs []*commonpb.KeyValue, key string) int {
+	for i, kv := range attrs {
+		if kv.Key == key {
+			return i
+		}
+	}
+	return -1
+}
+
+func removeAttribute(attrs *[]*commonpb.KeyValue, key string) bool {
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
+	return true
+}
+
+func setAttribute(attrs *[]*commonpb.KeyValue, key, value string, upsert bool) bool {
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx >= 0 {
+		if !upsert {
+			return true // exists but not overwriting
+		}
+		(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+		return true
+	}
+	*attrs = append(*attrs, &commonpb.KeyValue{
+		Key:   key,
+		Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}},
+	})
+	return true
+}
+
 // ─── Datapoint attribute helpers ─────────────────────────────────────
 
 func getDatapointAttrs(m *metricspb.Metric) []*commonpb.KeyValue {

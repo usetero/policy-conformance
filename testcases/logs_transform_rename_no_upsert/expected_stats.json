@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "rename-no-upsert",
+      "hits": 1
+    }
+  ]
+}

@@ -106,7 +106,7 @@ tasks:
       - |
         set +e
         # Normalize proto JSON: some encoders emit uint64 as strings, others as numbers
-        normalize='walk(if type == "string" and test("^[0-9]+$") then tonumber else . end) | . |= walk(if type == "number" and (. | floor) == . then (. | floor) else . end)'
+        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         PASS=0; FAIL=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
@@ -230,7 +230,7 @@ tasks:
     cmds:
       - |
         set +e
-        normalize='walk(if type == "string" and test("^[0-9]+$") then tonumber else . end) | . |= walk(if type == "number" and (. | floor) == . then (. | floor) else . end)'
+        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         PASS=0; FAIL=0; ERRORS=0
         for tc in testcases/*/; do
           name=$(basename "$tc")

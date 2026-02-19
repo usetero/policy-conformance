@@ -38,6 +38,12 @@ struct StatsOutput {
 struct PolicyHit {
     policy_id: String,
     hits: u64,
+    #[serde(skip_serializing_if = "is_zero")]
+    misses: u64,
+}
+
+fn is_zero(v: &u64) -> bool {
+    *v == 0
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────
@@ -47,10 +53,11 @@ fn write_stats(path: &str, registry: &PolicyRegistry) {
     let mut policies = Vec::new();
     for entry in snapshot.iter() {
         let stats = entry.stats.reset_all();
-        if stats.match_hits > 0 {
+        if stats.match_hits > 0 || stats.match_misses > 0 {
             policies.push(PolicyHit {
                 policy_id: entry.policy.id().to_string(),
                 hits: stats.match_hits,
+                misses: stats.match_misses,
             });
         }
     }
@@ -81,16 +88,19 @@ async fn process_logs(
     for rl in &mut data.resource_logs {
         for sl in &mut rl.scope_logs {
             let mut kept = Vec::new();
-            for rec in &sl.log_records {
-                let ctx = eval::LogContext {
+            for rec in sl.log_records.iter_mut() {
+                let mut ctx = eval::MutLogContext {
                     record: rec,
-                    resource: rl.resource.as_ref(),
-                    scope: sl.scope.as_ref(),
+                    resource: rl.resource.as_mut(),
+                    scope: sl.scope.as_mut(),
                 };
-                let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
-                    eprintln!("evaluation error: {e}");
-                    process::exit(1);
-                });
+                let result = engine
+                    .evaluate_and_transform(snapshot, &mut ctx)
+                    .await
+                    .unwrap_or_else(|e| {
+                        eprintln!("evaluation error: {e}");
+                        process::exit(1);
+                    });
                 if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
                     kept.push(rec.clone());
                 }

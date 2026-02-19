@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-health",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-info",
+      "hits": 1,
+      "misses": 1
+    }
+  ]
+}

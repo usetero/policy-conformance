@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "keep-info",
+      "name": "Keep INFO logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-health",
+      "name": "Drop health check logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "health" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

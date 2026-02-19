@@ -1,1 +1,55 @@
-{"resourceLogs":[{"resource":{"attributes":[],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":0,"observedTimeUnixNano":0,"severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"ERROR","body":{"stringValue":"ERROR: connection refused"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":0,"observedTimeUnixNano":0,"severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"WARN","body":{"stringValue":"Warning: disk space low"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": {
+                "stringValue": "ERROR: connection refused"
+              },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "WARN",
+              "body": {
+                "stringValue": "Warning: disk space low"
+              },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

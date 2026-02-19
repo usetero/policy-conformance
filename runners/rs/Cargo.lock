@@ -1075,8 +1075,8 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "policy-rs"
-version = "1.4.4"
-source = "git+https://github.com/usetero/policy-rs.git?tag=v1.4.4#4b480bb74bbd9d0b6fe8187aac56afad6b172cee"
+version = "1.4.7"
+source = "git+https://github.com/usetero/policy-rs.git?tag=v1.4.7#15639e9ad9c66285602d80c3f4f8c361511744b8"
 dependencies = [
  "notify",
  "pbjson",

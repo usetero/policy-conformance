@@ -1,1 +1,90 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"api-prod"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":0,"observedTimeUnixNano":0,"severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"processing order"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""},{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"api-dev"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":0,"observedTimeUnixNano":0,"severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"running tests"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-prod"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": {
+                "stringValue": "processing order"
+              },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-dev"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": {
+                "stringValue": "running tests"
+              },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

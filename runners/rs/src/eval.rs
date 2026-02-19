@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use policy_rs::proto::tero::policy::v1::{LogField, MetricField, TraceField};
 use policy_rs::{
     LogFieldSelector, LogSignal, Matchable, MetricFieldSelector, MetricSignal, TraceFieldSelector,
-    TraceSignal,
+    TraceSignal, Transformable,
 };
 
 use crate::otel;
@@ -96,6 +96,297 @@ impl Matchable for LogContext<'_> {
             }
         }
     }
+}
+
+// ─── Mutable Log Context (for transforms) ────────────────────────────
+
+pub struct MutLogContext<'a> {
+    pub record: &'a mut otel::LogRecord,
+    pub resource: Option<&'a mut otel::Resource>,
+    pub scope: Option<&'a mut otel::InstrumentationScope>,
+}
+
+impl Matchable for MutLogContext<'_> {
+    type Signal = LogSignal;
+
+    fn get_field(&self, field: &LogFieldSelector) -> Option<Cow<'_, str>> {
+        match field {
+            LogFieldSelector::Simple(f) => match f {
+                LogField::Body => any_value_string(self.record.body.as_ref()),
+                LogField::SeverityText => non_empty(&self.record.severity_text),
+                LogField::TraceId => non_empty(&self.record.trace_id),
+                LogField::SpanId => non_empty(&self.record.span_id),
+                _ => None,
+            },
+            LogFieldSelector::LogAttribute(path) => {
+                let key = attr_path(path)?;
+                find_attribute(&self.record.attributes, key)
+            }
+            LogFieldSelector::ResourceAttribute(path) => {
+                let key = attr_path(path)?;
+                find_attribute(
+                    self.resource
+                        .as_ref()
+                        .map(|r| r.attributes.as_slice())
+                        .unwrap_or(&[]),
+                    key,
+                )
+            }
+            LogFieldSelector::ScopeAttribute(path) => {
+                let key = attr_path(path)?;
+                find_attribute(
+                    self.scope
+                        .as_ref()
+                        .map(|s| s.attributes.as_slice())
+                        .unwrap_or(&[]),
+                    key,
+                )
+            }
+        }
+    }
+}
+
+impl Transformable for MutLogContext<'_> {
+    fn remove_field(&mut self, field: &LogFieldSelector) -> bool {
+        match field {
+            LogFieldSelector::Simple(f) => match f {
+                LogField::Body => {
+                    let hit = self.record.body.is_some();
+                    self.record.body = None;
+                    hit
+                }
+                LogField::SeverityText => {
+                    let hit = !self.record.severity_text.is_empty();
+                    self.record.severity_text.clear();
+                    hit
+                }
+                LogField::TraceId => {
+                    let hit = !self.record.trace_id.is_empty();
+                    self.record.trace_id.clear();
+                    hit
+                }
+                LogField::SpanId => {
+                    let hit = !self.record.span_id.is_empty();
+                    self.record.span_id.clear();
+                    hit
+                }
+                LogField::EventName => {
+                    let hit = !self.record.event_name.is_empty();
+                    self.record.event_name.clear();
+                    hit
+                }
+                _ => false,
+            },
+            LogFieldSelector::LogAttribute(path) => remove_attr(&mut self.record.attributes, path),
+            LogFieldSelector::ResourceAttribute(path) => {
+                if let Some(ref mut r) = self.resource {
+                    remove_attr(&mut r.attributes, path)
+                } else {
+                    false
+                }
+            }
+            LogFieldSelector::ScopeAttribute(path) => {
+                if let Some(ref mut s) = self.scope {
+                    remove_attr(&mut s.attributes, path)
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    fn redact_field(&mut self, field: &LogFieldSelector, replacement: &str) -> bool {
+        match field {
+            LogFieldSelector::Simple(f) => match f {
+                LogField::Body => {
+                    let hit = self.record.body.is_some();
+                    self.record.body = Some(otel::AnyValue {
+                        string_value: Some(replacement.to_string()),
+                        ..Default::default()
+                    });
+                    hit
+                }
+                LogField::SeverityText => {
+                    let hit = !self.record.severity_text.is_empty();
+                    self.record.severity_text = replacement.to_string();
+                    hit
+                }
+                LogField::TraceId => {
+                    let hit = !self.record.trace_id.is_empty();
+                    self.record.trace_id = replacement.to_string();
+                    hit
+                }
+                LogField::SpanId => {
+                    let hit = !self.record.span_id.is_empty();
+                    self.record.span_id = replacement.to_string();
+                    hit
+                }
+                LogField::EventName => {
+                    let hit = !self.record.event_name.is_empty();
+                    self.record.event_name = replacement.to_string();
+                    hit
+                }
+                _ => false,
+            },
+            LogFieldSelector::LogAttribute(path) => {
+                set_attr(&mut self.record.attributes, path, replacement, true)
+            }
+            LogFieldSelector::ResourceAttribute(path) => {
+                if let Some(ref mut r) = self.resource {
+                    set_attr(&mut r.attributes, path, replacement, true)
+                } else {
+                    false
+                }
+            }
+            LogFieldSelector::ScopeAttribute(path) => {
+                if let Some(ref mut s) = self.scope {
+                    set_attr(&mut s.attributes, path, replacement, true)
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    fn rename_field(&mut self, from: &LogFieldSelector, to: &str, upsert: bool) -> bool {
+        // Only attribute renames are supported
+        let (attrs, path) = match from {
+            LogFieldSelector::LogAttribute(path) => (&mut self.record.attributes, path),
+            LogFieldSelector::ResourceAttribute(path) => {
+                if let Some(ref mut r) = self.resource {
+                    (&mut r.attributes, path)
+                } else {
+                    return false;
+                }
+            }
+            LogFieldSelector::ScopeAttribute(path) => {
+                if let Some(ref mut s) = self.scope {
+                    (&mut s.attributes, path)
+                } else {
+                    return false;
+                }
+            }
+            _ => return false,
+        };
+        let key = match attr_path(path) {
+            Some(k) => k,
+            None => return false,
+        };
+        let idx = attrs.iter().position(|kv| kv.key == key);
+        let idx = match idx {
+            Some(i) => i,
+            None => return false,
+        };
+        if !upsert && attrs.iter().any(|kv| kv.key == to) {
+            return true; // source exists but target blocked
+        }
+        let mut removed = attrs.remove(idx);
+        // Remove existing target if upsert
+        if upsert {
+            attrs.retain(|kv| kv.key != to);
+        }
+        removed.key = to.to_string();
+        attrs.push(removed);
+        true
+    }
+
+    fn add_field(&mut self, field: &LogFieldSelector, value: &str, upsert: bool) -> bool {
+        match field {
+            LogFieldSelector::Simple(f) => match f {
+                LogField::Body => {
+                    if !upsert && self.record.body.is_some() {
+                        return true;
+                    }
+                    self.record.body = Some(otel::AnyValue {
+                        string_value: Some(value.to_string()),
+                        ..Default::default()
+                    });
+                    true
+                }
+                LogField::SeverityText => {
+                    if !upsert && !self.record.severity_text.is_empty() {
+                        return true;
+                    }
+                    self.record.severity_text = value.to_string();
+                    true
+                }
+                LogField::TraceId => {
+                    if !upsert && !self.record.trace_id.is_empty() {
+                        return true;
+                    }
+                    self.record.trace_id = value.to_string();
+                    true
+                }
+                LogField::SpanId => {
+                    if !upsert && !self.record.span_id.is_empty() {
+                        return true;
+                    }
+                    self.record.span_id = value.to_string();
+                    true
+                }
+                LogField::EventName => {
+                    if !upsert && !self.record.event_name.is_empty() {
+                        return true;
+                    }
+                    self.record.event_name = value.to_string();
+                    true
+                }
+                _ => false,
+            },
+            LogFieldSelector::LogAttribute(path) => {
+                set_attr(&mut self.record.attributes, path, value, upsert)
+            }
+            LogFieldSelector::ResourceAttribute(path) => {
+                if let Some(ref mut r) = self.resource {
+                    set_attr(&mut r.attributes, path, value, upsert)
+                } else {
+                    false
+                }
+            }
+            LogFieldSelector::ScopeAttribute(path) => {
+                if let Some(ref mut s) = self.scope {
+                    set_attr(&mut s.attributes, path, value, upsert)
+                } else {
+                    false
+                }
+            }
+        }
+    }
+}
+
+fn remove_attr(attrs: &mut Vec<otel::KeyValue>, path: &[String]) -> bool {
+    let key = match attr_path(path) {
+        Some(k) => k,
+        None => return false,
+    };
+    let len_before = attrs.len();
+    attrs.retain(|kv| kv.key != key);
+    attrs.len() < len_before
+}
+
+fn set_attr(attrs: &mut Vec<otel::KeyValue>, path: &[String], value: &str, upsert: bool) -> bool {
+    let key = match attr_path(path) {
+        Some(k) => k,
+        None => return false,
+    };
+    if let Some(kv) = attrs.iter_mut().find(|kv| kv.key == key) {
+        if !upsert {
+            return true; // exists but not overwriting
+        }
+        kv.value = Some(otel::AnyValue {
+            string_value: Some(value.to_string()),
+            ..Default::default()
+        });
+        return true;
+    }
+    attrs.push(otel::KeyValue {
+        key: key.to_string(),
+        value: Some(otel::AnyValue {
+            string_value: Some(value.to_string()),
+            ..Default::default()
+        }),
+    });
+    true
 }
 
 // ─── Metric Matchable ────────────────────────────────────────────────

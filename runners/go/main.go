@@ -24,16 +24,18 @@ type StatsOutput struct {
 type PolicyHit struct {
 	PolicyID string `json:"policy_id"`
 	Hits     uint64 `json:"hits"`
+	Misses   uint64 `json:"misses,omitempty"`
 }
 
 func writeStats(path string, registry *policy.PolicyRegistry) error {
 	stats := registry.CollectStats()
 	var output StatsOutput
 	for _, s := range stats {
-		if s.Hits > 0 {
+		if s.MatchHits > 0 || s.MatchMisses > 0 {
 			output.Policies = append(output.Policies, PolicyHit{
 				PolicyID: s.PolicyID,
-				Hits:     s.Hits,
+				Hits:     s.MatchHits,
+				Misses:   s.MatchMisses,
 			})
 		}
 	}
@@ -74,7 +76,7 @@ func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inpu
 					Resource: rl.Resource,
 					Scope:    sl.Scope,
 				}
-				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher)
+				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher, policy.WithLogTransform(OTelLogTransformer))
 				if result != policy.ResultDrop {
 					kept = append(kept, rec)
 				}
@@ -302,7 +304,7 @@ func collectMatchedPolicies(registry *policy.PolicyRegistry) []string {
 	stats := registry.CollectStats()
 	var matched []string
 	for _, s := range stats {
-		if s.Hits > 0 {
+		if s.MatchHits > 0 {
 			matched = append(matched, s.PolicyID)
 		}
 	}
