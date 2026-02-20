@@ -176,17 +176,25 @@ async fn process_traces(
     for rs in &mut data.resource_spans {
         for ss in &mut rs.scope_spans {
             let mut kept = Vec::new();
-            for span in &ss.spans {
-                let ctx = eval::TraceContext {
-                    span: span,
+            for span in &mut ss.spans {
+                let mut ctx = eval::MutTraceContext {
+                    span,
                     resource: rs.resource.as_ref(),
                     scope: ss.scope.as_ref(),
                 };
-                let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
-                    eprintln!("evaluation error: {e}");
-                    process::exit(1);
-                });
-                if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
+                let result = engine
+                    .evaluate_trace(snapshot, &mut ctx)
+                    .await
+                    .unwrap_or_else(|e| {
+                        eprintln!("evaluation error: {e}");
+                        process::exit(1);
+                    });
+                let should_keep = match &result {
+                    policy_rs::EvaluateResult::Drop { .. } => false,
+                    policy_rs::EvaluateResult::Sample { keep, .. } => *keep,
+                    _ => true,
+                };
+                if should_keep {
                     kept.push(span.clone());
                 }
             }

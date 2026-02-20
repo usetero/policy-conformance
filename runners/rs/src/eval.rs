@@ -139,6 +139,18 @@ fn decode_base64_field(s: &str) -> Option<Cow<'static, str>> {
     String::from_utf8(bytes).ok().map(Cow::Owned)
 }
 
+/// Decode a base64-encoded byte field and return as a hex string.
+/// Used for trace IDs where the policy engine expects hex-encoded values
+/// for consistent probability sampling (extracting 56-bit randomness).
+fn decode_base64_to_hex(s: &str) -> Option<Cow<'static, str>> {
+    if s.is_empty() {
+        return None;
+    }
+    let bytes = BASE64.decode(s).ok()?;
+    let hex: String = bytes.iter().map(|b| format!("{:02x}", b)).collect();
+    Some(Cow::Owned(hex))
+}
+
 // ─── Log Matchable ───────────────────────────────────────────────────
 
 impl Matchable for LogContext<'_> {
@@ -492,43 +504,88 @@ impl Matchable for MetricContext<'_> {
 
 // ─── Trace Matchable ─────────────────────────────────────────────────
 
+/// Shared trace field resolution used by both immutable and mutable trace contexts.
+fn resolve_trace_field<'a>(
+    span: &'a otel::Span,
+    resource: Option<&'a otel::Resource>,
+    scope: Option<&'a otel::InstrumentationScope>,
+    field: &TraceFieldSelector,
+) -> Option<Cow<'a, str>> {
+    match field {
+        TraceFieldSelector::Simple(f) => match f {
+            TraceField::Name => non_empty(&span.name),
+            // Return trace ID as hex for consistent probability sampling
+            TraceField::TraceId => decode_base64_to_hex(&span.trace_id),
+            TraceField::SpanId => decode_base64_to_hex(&span.span_id),
+            TraceField::ParentSpanId => decode_base64_to_hex(&span.parent_span_id),
+            TraceField::TraceState => non_empty(&span.trace_state),
+            _ => None,
+        },
+        TraceFieldSelector::SpanAttribute(path) => find_attribute_path(&span.attributes, path),
+        TraceFieldSelector::ResourceAttribute(path) => {
+            find_attribute_path(resource_attrs(resource), path)
+        }
+        TraceFieldSelector::ScopeAttribute(path) => {
+            find_attribute_path(scope_attrs(scope), path)
+        }
+        TraceFieldSelector::SpanKind => non_empty(&span.kind),
+        TraceFieldSelector::SpanStatus => {
+            let status = span.status.as_ref()?;
+            // Map OTel StatusCode to policy SpanStatusCode string format
+            match status.code.as_str() {
+                "STATUS_CODE_OK" => Some(Cow::Borrowed("SPAN_STATUS_CODE_OK")),
+                "STATUS_CODE_ERROR" => Some(Cow::Borrowed("SPAN_STATUS_CODE_ERROR")),
+                "STATUS_CODE_UNSET" => Some(Cow::Borrowed("SPAN_STATUS_CODE_UNSET")),
+                _ => None,
+            }
+        }
+        TraceFieldSelector::EventName
+        | TraceFieldSelector::EventAttribute(_)
+        | TraceFieldSelector::LinkTraceId
+        | TraceFieldSelector::SamplingThreshold => None,
+    }
+}
+
 impl Matchable for TraceContext<'_> {
     type Signal = TraceSignal;
 
     fn get_field(&self, field: &TraceFieldSelector) -> Option<Cow<'_, str>> {
-        match field {
-            TraceFieldSelector::Simple(f) => match f {
-                TraceField::Name => non_empty(&self.span.name),
-                TraceField::TraceId => decode_base64_field(&self.span.trace_id),
-                TraceField::SpanId => decode_base64_field(&self.span.span_id),
-                TraceField::ParentSpanId => decode_base64_field(&self.span.parent_span_id),
-                TraceField::TraceState => non_empty(&self.span.trace_state),
-                _ => None,
-            },
-            TraceFieldSelector::SpanAttribute(path) => {
-                find_attribute_path(&self.span.attributes, path)
-            }
-            TraceFieldSelector::ResourceAttribute(path) => {
-                find_attribute_path(resource_attrs(self.resource), path)
-            }
-            TraceFieldSelector::ScopeAttribute(path) => {
-                find_attribute_path(scope_attrs(self.scope), path)
-            }
-            TraceFieldSelector::SpanKind => non_empty(&self.span.kind),
-            TraceFieldSelector::SpanStatus => {
-                let status = self.span.status.as_ref()?;
-                // Map OTel StatusCode to policy SpanStatusCode string format
-                match status.code.as_str() {
-                    "STATUS_CODE_OK" => Some(Cow::Borrowed("SPAN_STATUS_CODE_OK")),
-                    "STATUS_CODE_ERROR" => Some(Cow::Borrowed("SPAN_STATUS_CODE_ERROR")),
-                    "STATUS_CODE_UNSET" => Some(Cow::Borrowed("SPAN_STATUS_CODE_UNSET")),
-                    _ => None,
-                }
-            }
-            TraceFieldSelector::EventName
-            | TraceFieldSelector::EventAttribute(_)
-            | TraceFieldSelector::LinkTraceId
-            | TraceFieldSelector::SamplingThreshold => None,
-        }
+        resolve_trace_field(self.span, self.resource, self.scope, field)
+    }
+}
+
+// ─── Mutable Trace Context (for evaluate_trace) ──────────────────────
+
+pub struct MutTraceContext<'a> {
+    pub span: &'a mut otel::Span,
+    pub resource: Option<&'a otel::Resource>,
+    pub scope: Option<&'a otel::InstrumentationScope>,
+}
+
+impl Matchable for MutTraceContext<'_> {
+    type Signal = TraceSignal;
+
+    fn get_field(&self, field: &TraceFieldSelector) -> Option<Cow<'_, str>> {
+        resolve_trace_field(self.span, self.resource, self.scope, field)
+    }
+}
+
+impl Transformable for MutTraceContext<'_> {
+    fn remove_field(&mut self, _field: &TraceFieldSelector) -> bool {
+        false // not needed for sampling
+    }
+
+    fn redact_field(&mut self, _field: &TraceFieldSelector, _replacement: &str) -> bool {
+        false // not needed for sampling
+    }
+
+    fn rename_field(&mut self, _from: &TraceFieldSelector, _to: &str, _upsert: bool) -> bool {
+        false // not needed for sampling
+    }
+
+    fn add_field(&mut self, field: &TraceFieldSelector, _value: &str, _upsert: bool) -> bool {
+        // The engine writes the sampling threshold (th) to the span's tracestate.
+        // For conformance testing we don't need to persist this, but we acknowledge it.
+        matches!(field, TraceFieldSelector::SamplingThreshold)
     }
 }
