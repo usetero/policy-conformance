@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-health-contains",
+      "name": "Drop spans containing health",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "contains": "health" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

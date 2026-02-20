@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "rate-limit-and-transform",
+      "name": "Rate limit with transform",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "1/s",
+        "transform": {
+          "add": [
+            { "log_attribute": "processed", "value": "true", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

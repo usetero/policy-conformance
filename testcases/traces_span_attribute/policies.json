@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-db-spans",
+      "name": "Drop database spans",
+      "trace": {
+        "match": [
+          { "span_attribute": "db.system", "exact": "postgresql" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "rate-limit-per-minute",
+      "name": "Rate limit to 2 per minute",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "2/m"
+      }
+    }
+  ]
+}

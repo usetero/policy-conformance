@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-prod-suffix",
+      "name": "Drop logs from prod services (case insensitive)",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "ends_with": "-PROD", "case_insensitive": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

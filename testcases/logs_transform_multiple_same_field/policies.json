@@ -1,0 +1,34 @@
+{
+  "policies": [
+    {
+      "id": "add-tag-alpha",
+      "name": "Add tag alpha",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "alpha", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "add-tag-beta",
+      "name": "Add tag beta",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "beta", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

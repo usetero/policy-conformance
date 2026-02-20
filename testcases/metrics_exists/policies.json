@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-has-debug-attr",
+      "name": "Drop metrics with debug attribute",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": "debug", "exists": true }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

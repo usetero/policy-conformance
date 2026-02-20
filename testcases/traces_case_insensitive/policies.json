@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-health-ci",
+      "name": "Drop health spans (case insensitive)",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "contains": "HEALTH", "case_insensitive": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

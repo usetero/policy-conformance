@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-total-suffix",
+      "hits": 1
+    }
+  ]
+}

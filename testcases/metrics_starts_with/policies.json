@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-system-prefix",
+      "name": "Drop metrics starting with system.",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "system." }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

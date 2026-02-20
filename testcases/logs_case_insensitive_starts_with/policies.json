@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-error-prefix",
+      "name": "Drop logs starting with error (case insensitive)",
+      "log": {
+        "match": [
+          { "log_field": "body", "starts_with": "error:", "case_insensitive": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

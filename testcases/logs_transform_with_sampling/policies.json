@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "sample-and-transform",
+      "name": "Sample at 0% with transform",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "0%",
+        "transform": {
+          "add": [
+            { "log_attribute": "processed", "value": "true", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

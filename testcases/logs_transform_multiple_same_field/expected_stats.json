@@ -1,0 +1,12 @@
+{
+  "policies": [
+    {
+      "policy_id": "add-tag-alpha",
+      "hits": 1
+    },
+    {
+      "policy_id": "add-tag-beta",
+      "hits": 1
+    }
+  ]
+}

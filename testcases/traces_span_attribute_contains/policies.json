@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-endpoints",
+      "name": "Drop spans for internal endpoints",
+      "trace": {
+        "match": [
+          { "span_attribute": "http.url", "contains": "/internal/" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

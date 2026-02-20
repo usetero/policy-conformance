@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "sample-api-logs",
+      "name": "Sample API logs at 50%",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "50%"
+      }
+    },
+    {
+      "id": "drop-debug-logs",
+      "name": "Drop DEBUG logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

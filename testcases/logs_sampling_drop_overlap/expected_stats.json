@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-debug-logs",
+      "hits": 2
+    },
+    {
+      "policy_id": "sample-api-logs",
+      "hits": 0,
+      "misses": 2
+    }
+  ]
+}

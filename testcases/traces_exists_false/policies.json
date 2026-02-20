@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-no-team",
+      "name": "Drop spans without team attribute",
+      "trace": {
+        "match": [
+          { "span_attribute": "team", "exists": false }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

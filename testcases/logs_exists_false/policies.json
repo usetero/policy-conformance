@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-no-pii-tag",
+      "name": "Drop logs without pii attribute",
+      "log": {
+        "match": [
+          { "log_attribute": "pii", "exists": false }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "disabled-policy",
+      "name": "This policy is disabled",
+      "enabled": false,
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-client-spans",
+      "name": "Drop client spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_CLIENT", "exists": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}
