@@ -89,6 +89,8 @@ fn processLogs(allocator: std.mem.Allocator, engine: PolicyEngine, input_data: [
                     .resource = resource,
                     .scope = scope,
                     .allocator = transform_arena.allocator(),
+                    .resource_schema_url = rl.schema_url,
+                    .scope_schema_url = sl.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
                 const result = engine.evaluate(.log, @ptrCast(&ctx), eval.logFieldAccessor, eval.logFieldMutator, &policy_id_buf);
@@ -147,6 +149,8 @@ fn processMetrics(allocator: std.mem.Allocator, engine: PolicyEngine, input_data
                     .datapoint_attributes = dp_attrs,
                     .resource = resource,
                     .scope = scope,
+                    .resource_schema_url = rm.schema_url,
+                    .scope_schema_url = sm.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
                 const result = engine.evaluate(.metric, @ptrCast(&ctx), eval.metricFieldAccessor, null, &policy_id_buf);
@@ -199,6 +203,8 @@ fn processTraces(allocator: std.mem.Allocator, engine: PolicyEngine, input_data:
                     .span = &ss.spans.items[i],
                     .resource = resource,
                     .scope = scope,
+                    .resource_schema_url = rs.schema_url,
+                    .scope_schema_url = ss.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
                 const result = engine.evaluate(.trace, @ptrCast(&ctx), eval.traceFieldAccessor, null, &policy_id_buf);

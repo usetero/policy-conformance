@@ -23,6 +23,8 @@ pub const LogContext = struct {
     resource: ?*Resource,
     scope: ?*InstrumentationScope,
     allocator: std.mem.Allocator,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 pub const MetricContext = struct {
@@ -30,12 +32,16 @@ pub const MetricContext = struct {
     datapoint_attributes: []const KeyValue,
     resource: ?*const Resource,
     scope: ?*const InstrumentationScope,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 pub const TraceContext = struct {
     span: *const Span,
     resource: ?*const Resource,
     scope: ?*const InstrumentationScope,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 // ─── Attribute helpers ───────────────────────────────────────────────
@@ -108,6 +114,8 @@ pub fn logFieldAccessor(ctx: *const anyopaque, field: FieldRef) ?[]const u8 {
             .LOG_FIELD_TRACE_ID => nonEmpty(lc.record.trace_id),
             .LOG_FIELD_SPAN_ID => nonEmpty(lc.record.span_id),
             .LOG_FIELD_EVENT_NAME => nonEmpty(lc.record.event_name),
+            .LOG_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(lc.resource_schema_url),
+            .LOG_FIELD_SCOPE_SCHEMA_URL => nonEmpty(lc.scope_schema_url),
             else => null,
         },
         .log_attribute => |attr| findAttributePath(lc.record.attributes.items, attr.path.items),
@@ -125,6 +133,10 @@ pub fn metricFieldAccessor(ctx: *const anyopaque, field: MetricFieldRef) ?[]cons
             .METRIC_FIELD_NAME => nonEmpty(mc.metric.name),
             .METRIC_FIELD_DESCRIPTION => nonEmpty(mc.metric.description),
             .METRIC_FIELD_UNIT => nonEmpty(mc.metric.unit),
+            .METRIC_FIELD_SCOPE_NAME => if (mc.scope) |s| nonEmpty(s.name) else null,
+            .METRIC_FIELD_SCOPE_VERSION => if (mc.scope) |s| nonEmpty(s.version) else null,
+            .METRIC_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(mc.resource_schema_url),
+            .METRIC_FIELD_SCOPE_SCHEMA_URL => nonEmpty(mc.scope_schema_url),
             else => null,
         },
         .datapoint_attribute => |attr| findAttributePath(mc.datapoint_attributes, attr.path.items),
@@ -165,6 +177,10 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
             .TRACE_FIELD_SPAN_ID => nonEmpty(tc.span.span_id),
             .TRACE_FIELD_PARENT_SPAN_ID => nonEmpty(tc.span.parent_span_id),
             .TRACE_FIELD_TRACE_STATE => nonEmpty(tc.span.trace_state),
+            .TRACE_FIELD_SCOPE_NAME => if (tc.scope) |s| nonEmpty(s.name) else null,
+            .TRACE_FIELD_SCOPE_VERSION => if (tc.scope) |s| nonEmpty(s.version) else null,
+            .TRACE_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(tc.resource_schema_url),
+            .TRACE_FIELD_SCOPE_SCHEMA_URL => nonEmpty(tc.scope_schema_url),
             else => null,
         },
         .span_attribute => |attr| findAttributePath(tc.span.attributes.items, attr.path.items),
@@ -185,7 +201,15 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
             else
                 null;
         },
-        .event_name, .event_attribute, .link_trace_id => null,
+        .event_name => |requested_name| blk: {
+            for (tc.span.events.items) |evt| {
+                if (evt.name.len > 0 and std.mem.eql(u8, evt.name, requested_name)) {
+                    break :blk evt.name;
+                }
+            }
+            break :blk null;
+        },
+        .event_attribute, .link_trace_id => null,
     };
 }
 
@@ -284,13 +308,13 @@ fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, upsert: bool) boo
                 else => return false,
             }
         },
-        .log_attribute => |attr| return setAttr(lc.allocator, &lc.record.attributes, attrKey(attr), value, upsert),
+        .log_attribute => |attr| return setAttr(lc.allocator, &lc.record.attributes, attrKey(attr), value),
         .resource_attribute => |attr| {
-            if (lc.resource) |r| return setAttr(lc.allocator, &r.attributes, attrKey(attr), value, upsert);
+            if (lc.resource) |r| return setAttr(lc.allocator, &r.attributes, attrKey(attr), value);
             return false;
         },
         .scope_attribute => |attr| {
-            if (lc.scope) |s| return setAttr(lc.allocator, &s.attributes, attrKey(attr), value, upsert);
+            if (lc.scope) |s| return setAttr(lc.allocator, &s.attributes, attrKey(attr), value);
             return false;
         },
     }
@@ -342,7 +366,7 @@ fn removeAttr(attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8) bool {
     return true;
 }
 
-fn setAttr(allocator: std.mem.Allocator, attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8, value: []const u8, upsert: bool) bool {
+fn setAttr(allocator: std.mem.Allocator, attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8, value: []const u8) bool {
     const k = key orelse return false;
     if (findAttrIndex(attrs.items, k)) |idx| {
         // Always overwrite when key exists. The engine handles "don't overwrite"
@@ -350,8 +374,6 @@ fn setAttr(allocator: std.mem.Allocator, attrs: *std.ArrayListUnmanaged(KeyValue
         attrs.items[idx].value = .{ .value = .{ .string_value = value } };
         return true;
     }
-    // upsert controls whether to create a new entry when the key is missing
-    if (!upsert) return false;
     attrs.append(allocator, .{ .key = k, .value = .{ .value = .{ .string_value = value } } }) catch return false;
     return true;
 }

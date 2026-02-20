@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-unset-status",
+      "hits": 1
+    }
+  ]
+}

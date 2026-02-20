@@ -17,6 +17,8 @@ pub struct MetricContext<'a> {
     pub datapoint_attributes: &'a [otel::KeyValue],
     pub resource: Option<&'a otel::Resource>,
     pub scope: Option<&'a otel::InstrumentationScope>,
+    pub resource_schema_url: &'a str,
+    pub scope_schema_url: &'a str,
 }
 
 // ─── Attribute helpers ───────────────────────────────────────────────
@@ -145,6 +147,8 @@ pub struct MutLogContext<'a> {
     pub record: &'a mut otel::LogRecord,
     pub resource: Option<&'a mut otel::Resource>,
     pub scope: Option<&'a mut otel::InstrumentationScope>,
+    pub resource_schema_url: &'a str,
+    pub scope_schema_url: &'a str,
 }
 
 impl Matchable for MutLogContext<'_> {
@@ -158,6 +162,8 @@ impl Matchable for MutLogContext<'_> {
                 LogField::TraceId => decode_base64_bytes(&self.record.trace_id),
                 LogField::SpanId => decode_base64_bytes(&self.record.span_id),
                 LogField::EventName => non_empty(&self.record.event_name),
+                LogField::ResourceSchemaUrl => non_empty(self.resource_schema_url),
+                LogField::ScopeSchemaUrl => non_empty(self.scope_schema_url),
                 _ => None,
             },
             LogFieldSelector::LogAttribute(path) => {
@@ -439,6 +445,14 @@ impl Matchable for MetricContext<'_> {
                 MetricField::Name => non_empty(&self.metric.name),
                 MetricField::Description => non_empty(&self.metric.description),
                 MetricField::Unit => non_empty(&self.metric.unit),
+                MetricField::ScopeName => {
+                    self.scope.as_ref().and_then(|s| non_empty(&s.name))
+                }
+                MetricField::ScopeVersion => {
+                    self.scope.as_ref().and_then(|s| non_empty(&s.version))
+                }
+                MetricField::ResourceSchemaUrl => non_empty(self.resource_schema_url),
+                MetricField::ScopeSchemaUrl => non_empty(self.scope_schema_url),
                 _ => None,
             },
             MetricFieldSelector::DatapointAttribute(path) => {
@@ -469,6 +483,8 @@ fn resolve_trace_field<'a>(
     span: &'a otel::Span,
     resource: Option<&'a otel::Resource>,
     scope: Option<&'a otel::InstrumentationScope>,
+    resource_schema_url: &'a str,
+    scope_schema_url: &'a str,
     field: &TraceFieldSelector,
 ) -> Option<Cow<'a, str>> {
     match field {
@@ -479,6 +495,10 @@ fn resolve_trace_field<'a>(
             TraceField::SpanId => decode_base64_to_hex(&span.span_id),
             TraceField::ParentSpanId => decode_base64_to_hex(&span.parent_span_id),
             TraceField::TraceState => non_empty(&span.trace_state),
+            TraceField::ScopeName => scope.as_ref().and_then(|s| non_empty(&s.name)),
+            TraceField::ScopeVersion => scope.as_ref().and_then(|s| non_empty(&s.version)),
+            TraceField::ResourceSchemaUrl => non_empty(resource_schema_url),
+            TraceField::ScopeSchemaUrl => non_empty(scope_schema_url),
             _ => None,
         },
         TraceFieldSelector::SpanAttribute(path) => find_attribute_path(&span.attributes, path),
@@ -495,12 +515,22 @@ fn resolve_trace_field<'a>(
             match status.code.as_str() {
                 "STATUS_CODE_OK" => Some(Cow::Borrowed("SPAN_STATUS_CODE_OK")),
                 "STATUS_CODE_ERROR" => Some(Cow::Borrowed("SPAN_STATUS_CODE_ERROR")),
-                "STATUS_CODE_UNSET" => Some(Cow::Borrowed("SPAN_STATUS_CODE_UNSET")),
+                "STATUS_CODE_UNSET" => Some(Cow::Borrowed("SPAN_STATUS_CODE_UNSPECIFIED")),
                 _ => None,
             }
         }
-        TraceFieldSelector::EventName
-        | TraceFieldSelector::EventAttribute(_)
+        TraceFieldSelector::EventName => {
+            // Check span events for matching event name
+            for evt in &span.events {
+                if let Some(name) = evt.get("name").and_then(|v| v.as_str()) {
+                    if !name.is_empty() {
+                        return Some(Cow::Owned(name.to_string()));
+                    }
+                }
+            }
+            None
+        }
+        TraceFieldSelector::EventAttribute(_)
         | TraceFieldSelector::LinkTraceId
         | TraceFieldSelector::SamplingThreshold => None,
     }
@@ -512,13 +542,22 @@ pub struct MutTraceContext<'a> {
     pub span: &'a mut otel::Span,
     pub resource: Option<&'a otel::Resource>,
     pub scope: Option<&'a otel::InstrumentationScope>,
+    pub resource_schema_url: &'a str,
+    pub scope_schema_url: &'a str,
 }
 
 impl Matchable for MutTraceContext<'_> {
     type Signal = TraceSignal;
 
     fn get_field(&self, field: &TraceFieldSelector) -> Option<Cow<'_, str>> {
-        resolve_trace_field(self.span, self.resource, self.scope, field)
+        resolve_trace_field(
+            self.span,
+            self.resource,
+            self.scope,
+            self.resource_schema_url,
+            self.scope_schema_url,
+            field,
+        )
     }
 }
 

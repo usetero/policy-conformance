@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-healthcheck-scope",
+      "name": "Drop spans from healthcheck instrumentation scope",
+      "trace": {
+        "match": [
+          { "trace_field": "scope_name", "exact": "internal.healthcheck" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

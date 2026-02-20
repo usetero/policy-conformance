@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-exception-events",
+      "name": "Drop spans with exception events",
+      "trace": {
+        "match": [{ "event_name": "exception", "exists": true }],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

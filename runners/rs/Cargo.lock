@@ -1075,8 +1075,8 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "policy-rs"
-version = "1.4.8"
-source = "git+https://github.com/usetero/policy-rs.git?tag=v1.4.8#b378d7f0fee3a29d6c5e31e723c28b69ddef8354"
+version = "1.4.10"
+source = "git+https://github.com/usetero/policy-rs.git?tag=v1.4.10#f6b2df673e44068bfb7e69e1017f1eeba2912033"
 dependencies = [
  "fnv",
  "notify",

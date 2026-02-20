@@ -93,6 +93,8 @@ async fn process_logs(
                     record: rec,
                     resource: rl.resource.as_mut(),
                     scope: sl.scope.as_mut(),
+                    resource_schema_url: &rl.schema_url,
+                    scope_schema_url: &sl.schema_url,
                 };
                 let result = engine
                     .evaluate_and_transform(snapshot, &mut ctx)
@@ -147,6 +149,8 @@ async fn process_metrics(
                     datapoint_attributes: dp_attrs,
                     resource: rm.resource.as_ref(),
                     scope: sm.scope.as_ref(),
+                    resource_schema_url: &rm.schema_url,
+                    scope_schema_url: &sm.schema_url,
                 };
                 let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
                     eprintln!("evaluation error: {e}");
@@ -187,6 +191,8 @@ async fn process_traces(
                     span,
                     resource: rs.resource.as_ref(),
                     scope: ss.scope.as_ref(),
+                    resource_schema_url: &rs.schema_url,
+                    scope_schema_url: &ss.schema_url,
                 };
                 let result = engine
                     .evaluate_trace(snapshot, &mut ctx)

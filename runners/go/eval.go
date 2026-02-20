@@ -12,9 +12,11 @@ import (
 // ─── Context types ───────────────────────────────────────────────────
 
 type LogContext struct {
-	Record   *logspb.LogRecord
-	Resource *resourcepb.Resource
-	Scope    *commonpb.InstrumentationScope
+	Record            *logspb.LogRecord
+	Resource          *resourcepb.Resource
+	Scope             *commonpb.InstrumentationScope
+	ResourceSchemaURL string
+	ScopeSchemaURL    string
 }
 
 type MetricContext struct {
@@ -22,12 +24,16 @@ type MetricContext struct {
 	DatapointAttributes []*commonpb.KeyValue
 	Resource            *resourcepb.Resource
 	Scope               *commonpb.InstrumentationScope
+	ResourceSchemaURL   string
+	ScopeSchemaURL      string
 }
 
 type TraceContext struct {
-	Span     *tracepb.Span
-	Resource *resourcepb.Resource
-	Scope    *commonpb.InstrumentationScope
+	Span              *tracepb.Span
+	Resource          *resourcepb.Resource
+	Scope             *commonpb.InstrumentationScope
+	ResourceSchemaURL string
+	ScopeSchemaURL    string
 }
 
 // ─── Attribute helpers ───────────────────────────────────────────────
@@ -140,6 +146,16 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 				return nil
 			}
 			return []byte(ctx.Record.EventName)
+		case policy.LogFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.LogFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}
@@ -183,6 +199,26 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 			return []byte(metricType(ctx.Metric))
 		case policy.MetricFieldAggregationTemporality:
 			return []byte(aggregationTemporality(ctx.Metric))
+		case policy.MetricFieldScopeName:
+			if ctx.Scope == nil || ctx.Scope.Name == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Name)
+		case policy.MetricFieldScopeVersion:
+			if ctx.Scope == nil || ctx.Scope.Version == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Version)
+		case policy.MetricFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.MetricFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}
@@ -287,6 +323,26 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 				}
 			}
 			return nil
+		case policy.TraceFieldScopeName:
+			if ctx.Scope == nil || ctx.Scope.Name == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Name)
+		case policy.TraceFieldScopeVersion:
+			if ctx.Scope == nil || ctx.Scope.Version == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Version)
+		case policy.TraceFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.TraceFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}

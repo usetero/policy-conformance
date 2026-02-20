@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-metric-schema",
+      "name": "Drop metrics from old schema version",
+      "metric": {
+        "match": [
+          { "metric_field": "resource_schema_url", "contains": "v1.0.0" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

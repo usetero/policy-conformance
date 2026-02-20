@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-unset-status",
+      "name": "Drop spans with unset status",
+      "trace": {
+        "match": [
+          { "span_status": "SPAN_STATUS_CODE_UNSET", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}
