@@ -101,7 +101,13 @@ async fn process_logs(
                         eprintln!("evaluation error: {e}");
                         process::exit(1);
                     });
-                if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
+                let should_keep = match &result {
+                    policy_rs::EvaluateResult::Drop { .. } => false,
+                    policy_rs::EvaluateResult::Sample { keep, .. } => *keep,
+                    policy_rs::EvaluateResult::RateLimit { allowed, .. } => *allowed,
+                    _ => true,
+                };
+                if should_keep {
                     kept.push(rec.clone());
                 }
             }

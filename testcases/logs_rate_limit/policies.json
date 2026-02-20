@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "rate-limit-api-logs",
+      "name": "Rate limit API logs to 3 per second",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "3/s"
+      }
+    }
+  ]
+}

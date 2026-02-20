@@ -12,12 +12,6 @@ use crate::otel;
 
 // ─── Context types ───────────────────────────────────────────────────
 
-pub struct LogContext<'a> {
-    pub record: &'a otel::LogRecord,
-    pub resource: Option<&'a otel::Resource>,
-    pub scope: Option<&'a otel::InstrumentationScope>,
-}
-
 pub struct MetricContext<'a> {
     pub metric: &'a otel::Metric,
     pub datapoint_attributes: &'a [otel::KeyValue],
@@ -25,22 +19,7 @@ pub struct MetricContext<'a> {
     pub scope: Option<&'a otel::InstrumentationScope>,
 }
 
-pub struct TraceContext<'a> {
-    pub span: &'a otel::Span,
-    pub resource: Option<&'a otel::Resource>,
-    pub scope: Option<&'a otel::InstrumentationScope>,
-}
-
 // ─── Attribute helpers ───────────────────────────────────────────────
-
-fn find_attribute<'a>(attrs: &'a [otel::KeyValue], key: &str) -> Option<Cow<'a, str>> {
-    for kv in attrs {
-        if kv.key == key {
-            return any_value_string(kv.value.as_ref());
-        }
-    }
-    None
-}
 
 fn any_value_string(val: Option<&otel::AnyValue>) -> Option<Cow<'_, str>> {
     let v = val?;
@@ -129,14 +108,23 @@ fn non_empty(s: &str) -> Option<Cow<'_, str>> {
     }
 }
 
-/// Decode a base64-encoded byte field (trace_id, span_id) and return as owned string.
-/// Proto JSON encodes bytes fields as base64; the policy engine matches on raw bytes.
-fn decode_base64_field(s: &str) -> Option<Cow<'static, str>> {
+/// Decode a base64-encoded byte field. Returns UTF-8 string if valid, otherwise hex.
+/// Go returns raw bytes for log trace_id/span_id. When those bytes are valid UTF-8
+/// (e.g. "trace-id-abc1234"), the policy engine matches on the literal string.
+/// When the bytes are binary (real trace IDs), we fall back to hex encoding so
+/// the policy engine's hash_sample_key() gets a stable string representation.
+fn decode_base64_bytes(s: &str) -> Option<Cow<'static, str>> {
     if s.is_empty() {
         return None;
     }
     let bytes = BASE64.decode(s).ok()?;
-    String::from_utf8(bytes).ok().map(Cow::Owned)
+    match String::from_utf8(bytes) {
+        Ok(s) => Some(Cow::Owned(s)),
+        Err(e) => {
+            let hex: String = e.into_bytes().iter().map(|b| format!("{:02x}", b)).collect();
+            Some(Cow::Owned(hex))
+        }
+    }
 }
 
 /// Decode a base64-encoded byte field and return as a hex string.
@@ -151,35 +139,7 @@ fn decode_base64_to_hex(s: &str) -> Option<Cow<'static, str>> {
     Some(Cow::Owned(hex))
 }
 
-// ─── Log Matchable ───────────────────────────────────────────────────
-
-impl Matchable for LogContext<'_> {
-    type Signal = LogSignal;
-
-    fn get_field(&self, field: &LogFieldSelector) -> Option<Cow<'_, str>> {
-        match field {
-            LogFieldSelector::Simple(f) => match f {
-                LogField::Body => any_value_string(self.record.body.as_ref()),
-                LogField::SeverityText => non_empty(&self.record.severity_text),
-                LogField::TraceId => decode_base64_field(&self.record.trace_id),
-                LogField::SpanId => decode_base64_field(&self.record.span_id),
-                LogField::EventName => non_empty(&self.record.event_name),
-                _ => None,
-            },
-            LogFieldSelector::LogAttribute(path) => {
-                find_attribute_path(&self.record.attributes, path)
-            }
-            LogFieldSelector::ResourceAttribute(path) => {
-                find_attribute_path(resource_attrs(self.resource), path)
-            }
-            LogFieldSelector::ScopeAttribute(path) => {
-                find_attribute_path(scope_attrs(self.scope), path)
-            }
-        }
-    }
-}
-
-// ─── Mutable Log Context (for transforms) ────────────────────────────
+// ─── Log Context ─────────────────────────────────────────────────────
 
 pub struct MutLogContext<'a> {
     pub record: &'a mut otel::LogRecord,
@@ -195,8 +155,8 @@ impl Matchable for MutLogContext<'_> {
             LogFieldSelector::Simple(f) => match f {
                 LogField::Body => any_value_string(self.record.body.as_ref()),
                 LogField::SeverityText => non_empty(&self.record.severity_text),
-                LogField::TraceId => decode_base64_field(&self.record.trace_id),
-                LogField::SpanId => decode_base64_field(&self.record.span_id),
+                LogField::TraceId => decode_base64_bytes(&self.record.trace_id),
+                LogField::SpanId => decode_base64_bytes(&self.record.span_id),
                 LogField::EventName => non_empty(&self.record.event_name),
                 _ => None,
             },
@@ -546,15 +506,7 @@ fn resolve_trace_field<'a>(
     }
 }
 
-impl Matchable for TraceContext<'_> {
-    type Signal = TraceSignal;
-
-    fn get_field(&self, field: &TraceFieldSelector) -> Option<Cow<'_, str>> {
-        resolve_trace_field(self.span, self.resource, self.scope, field)
-    }
-}
-
-// ─── Mutable Trace Context (for evaluate_trace) ──────────────────────
+// ─── Trace Context ───────────────────────────────────────────────────
 
 pub struct MutTraceContext<'a> {
     pub span: &'a mut otel::Span,

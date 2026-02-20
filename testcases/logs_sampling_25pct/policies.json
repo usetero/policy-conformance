@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "sample-api-logs",
+      "name": "Sample API logs at 25%",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "25%",
+        "sample_key": { "log_field": "trace_id" }
+      }
+    }
+  ]
+}
