@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "equalizing-50pct",
+      "name": "Equalizing 50% with incoming threshold to verify downstream behavior",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "mode": "SAMPLING_MODE_EQUALIZING"
+        }
+      }
+    }
+  ]
+}

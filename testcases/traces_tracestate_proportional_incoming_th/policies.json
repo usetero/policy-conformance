@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "proportional-50pct",
+      "name": "Proportional 50% with incoming threshold to verify downstream math",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "mode": "SAMPLING_MODE_PROPORTIONAL"
+        }
+      }
+    }
+  ]
+}

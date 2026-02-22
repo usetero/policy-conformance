@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "precision-50pct",
+      "name": "Sampling at 50% with high precision",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "sampling_precision": 8
+        }
+      }
+    }
+  ]
+}

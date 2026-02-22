@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-edge-proxy",
+      "name": "Drop all spans from edge-proxy service",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "edge-proxy" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "fail-open-50pct",
+      "name": "Sampling at 50% with fail_closed false",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "fail_closed": false
+        }
+      }
+    }
+  ]
+}

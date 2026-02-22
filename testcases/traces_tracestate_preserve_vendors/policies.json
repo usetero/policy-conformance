@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "sample-100pct",
+      "name": "100% sampling to verify tracestate vendor preservation",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 100.0
+        }
+      }
+    }
+  ]
+}

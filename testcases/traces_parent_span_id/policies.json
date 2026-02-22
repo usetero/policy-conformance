@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-child-spans",
+      "name": "Drop spans that have a parent span ID",
+      "trace": {
+        "match": [
+          { "trace_field": "parent_span_id", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

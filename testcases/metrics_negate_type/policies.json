@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-non-gauge",
+      "name": "Drop metrics that are NOT gauges",
+      "metric": {
+        "match": [
+          { "metric_type": "gauge", "negate": true }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

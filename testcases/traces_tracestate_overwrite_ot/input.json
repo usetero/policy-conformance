@@ -1,0 +1,81 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "test-svc" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "spanId": "AQEBAQEBAQE=",
+              "traceState": "ot=th:4;rv:abc123",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "existing-ot-with-th-and-rv",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAC/////////w==",
+              "spanId": "AgICAgICAgI=",
+              "traceState": "ot=th:c,vendor=xyz",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "existing-ot-with-vendor",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
+              "spanId": "AwMDAwMDAwM=",
+              "traceState": "ot=th:0",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "existing-ot-th-zero",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

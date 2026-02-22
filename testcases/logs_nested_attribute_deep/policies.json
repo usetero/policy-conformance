@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-debug",
+      "name": "Drop logs with deeply nested debug flag",
+      "log": {
+        "match": [
+          { "log_attribute": ["context", "internal", "debug"], "exact": "true" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

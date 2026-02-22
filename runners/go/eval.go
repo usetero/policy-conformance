@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/usetero/policy-go"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
 	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
@@ -601,6 +603,62 @@ func setAttribute(attrs *[]*commonpb.KeyValue, key, value string, upsert bool) b
 		Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}},
 	})
 	return true
+}
+
+// ─── Trace transformer ──────────────────────────────────────────────
+
+func OTelTraceTransformer(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
+	if ref.Field == policy.SpanSamplingThreshold().Field {
+		ctx.Span.TraceState = mergeOTTracestate(ctx.Span.TraceState, "th:"+value)
+	}
+}
+
+// mergeOTTracestate merges an OpenTelemetry sub-key (e.g. "th:8000") into a
+// W3C tracestate string under the "ot" vendor key.
+func mergeOTTracestate(tracestate, subkv string) string {
+	subKey := subkv
+	if idx := strings.Index(subkv, ":"); idx >= 0 {
+		subKey = subkv[:idx]
+	}
+
+	var otParts []string
+	var otherVendors []string
+
+	// Parse existing tracestate vendors
+	if tracestate != "" {
+		for _, vendor := range strings.Split(tracestate, ",") {
+			vendor = strings.TrimSpace(vendor)
+			if vendor == "" {
+				continue
+			}
+			if strings.HasPrefix(vendor, "ot=") {
+				// Parse existing ot sub-keys
+				otValue := vendor[3:]
+				for _, part := range strings.Split(otValue, ";") {
+					part = strings.TrimSpace(part)
+					if part == "" {
+						continue
+					}
+					partKey := part
+					if idx := strings.Index(part, ":"); idx >= 0 {
+						partKey = part[:idx]
+					}
+					if partKey != subKey {
+						otParts = append(otParts, part)
+					}
+				}
+			} else {
+				otherVendors = append(otherVendors, vendor)
+			}
+		}
+	}
+
+	otParts = append(otParts, subkv)
+	result := "ot=" + strings.Join(otParts, ";")
+	if len(otherVendors) > 0 {
+		result += "," + strings.Join(otherVendors, ",")
+	}
+	return result
 }
 
 // ─── Datapoint attribute helpers ─────────────────────────────────────

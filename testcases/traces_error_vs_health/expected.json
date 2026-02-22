@@ -6,62 +6,62 @@
         "droppedAttributesCount": 0,
         "entityRefs": []
       },
+      "schemaUrl": "",
       "scopeSpans": [
         {
+          "schemaUrl": "",
           "scope": {
-            "name": "",
-            "version": "",
             "attributes": [],
-            "droppedAttributesCount": 0
+            "droppedAttributesCount": 0,
+            "name": "",
+            "version": ""
           },
           "spans": [
             {
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
-              "spanId": "EjRWeJCrze8=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "POST /api/checkout",
-              "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
               "attributes": [],
               "droppedAttributesCount": 0,
-              "events": [],
               "droppedEventsCount": 0,
-              "links": [],
               "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "POST /api/checkout",
+              "parentSpanId": "",
+              "spanId": "EjRWeJCrze8=",
+              "startTimeUnixNano": 0,
               "status": {
-                "message": "",
-                "code": "STATUS_CODE_ERROR"
-              }
+                "code": "STATUS_CODE_ERROR",
+                "message": ""
+              },
+              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "traceState": "ot=th:0"
             },
             {
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /api/users",
-              "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
               "attributes": [],
               "droppedAttributesCount": 0,
-              "events": [],
               "droppedEventsCount": 0,
-              "links": [],
               "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "GET /api/users",
+              "parentSpanId": "",
+              "spanId": "CYdlQyH+3Lo=",
+              "startTimeUnixNano": 0,
               "status": {
-                "message": "",
-                "code": "STATUS_CODE_OK"
-              }
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
+              "traceState": ""
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

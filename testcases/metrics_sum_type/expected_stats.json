@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-sum-metrics",
+      "hits": 1
+    }
+  ]
+}

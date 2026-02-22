@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "add-scope-attr",
+      "name": "Add processed scope attribute",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "add": [{ "scope_attribute": "processed", "value": "true" }]
+        }
+      }
+    }
+  ]
+}

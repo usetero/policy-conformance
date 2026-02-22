@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "sample-50pct",
+      "name": "50% sampling to test rv/th consistency check",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "hits": 3,
+      "policy_id": "fail-closed-50pct"
+    }
+  ]
+}

@@ -574,9 +574,56 @@ impl Transformable for MutTraceContext<'_> {
         false // not needed for sampling
     }
 
-    fn add_field(&mut self, field: &TraceFieldSelector, _value: &str, _upsert: bool) -> bool {
-        // The engine writes the sampling threshold (th) to the span's tracestate.
-        // For conformance testing we don't need to persist this, but we acknowledge it.
-        matches!(field, TraceFieldSelector::SamplingThreshold)
+    fn add_field(&mut self, field: &TraceFieldSelector, value: &str, _upsert: bool) -> bool {
+        if matches!(field, TraceFieldSelector::SamplingThreshold) {
+            let sub_kv = format!("th:{value}");
+            self.span.trace_state = merge_ot_tracestate(&self.span.trace_state, &sub_kv);
+            true
+        } else {
+            false
+        }
     }
+}
+
+/// Merge an OpenTelemetry sub-key (e.g. "th:8000") into a W3C tracestate
+/// string under the "ot" vendor key.
+fn merge_ot_tracestate(tracestate: &str, sub_kv: &str) -> String {
+    let sub_key = sub_kv.split(':').next().unwrap_or(sub_kv);
+
+    let mut ot_parts: Vec<&str> = Vec::new();
+    let mut other_vendors: Vec<&str> = Vec::new();
+
+    if !tracestate.is_empty() {
+        for vendor in tracestate.split(',') {
+            let vendor = vendor.trim();
+            if vendor.is_empty() {
+                continue;
+            }
+            if let Some(ot_value) = vendor.strip_prefix("ot=") {
+                for part in ot_value.split(';') {
+                    let part = part.trim();
+                    if part.is_empty() {
+                        continue;
+                    }
+                    let part_key = part.split(':').next().unwrap_or(part);
+                    if part_key != sub_key {
+                        ot_parts.push(part);
+                    }
+                }
+            } else {
+                other_vendors.push(vendor);
+            }
+        }
+    }
+
+    let mut result = format!("ot={}", ot_parts.join(";"));
+    if !ot_parts.is_empty() {
+        result.push(';');
+    }
+    result.push_str(sub_kv);
+    if !other_vendors.is_empty() {
+        result.push(',');
+        result.push_str(&other_vendors.join(","));
+    }
+    result
 }

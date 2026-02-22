@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-schema",
+      "name": "Drop spans from old schema URL",
+      "trace": {
+        "match": [
+          { "trace_field": "scope_schema_url", "exact": "https://opentelemetry.io/schemas/1.20.0" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "new.lib",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "new.metric",
+              "description": "Metric from new schema",
+              "unit": "1",
+              "metadata": [],
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": "https://opentelemetry.io/schemas/1.24.0"
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

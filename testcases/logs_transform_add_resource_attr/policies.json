@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "add-resource-attr",
+      "name": "Add processed_by resource attribute",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "add": [{ "resource_attribute": "processed_by", "value": "policy-engine" }]
+        }
+      }
+    }
+  ]
+}

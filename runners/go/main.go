@@ -179,7 +179,7 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 					ResourceSchemaURL: rs.SchemaUrl,
 					ScopeSchemaURL:    ss.SchemaUrl,
 				}
-				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher)
+				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher, policy.WithTraceTransform(OTelTraceTransformer))
 				if result != policy.ResultDrop {
 					kept = append(kept, span)
 				}

@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "redact-scope-secret",
+      "name": "Redact api.secret scope attribute",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "redact": [{ "scope_attribute": "api.secret", "replacement": "[REDACTED]" }]
+        }
+      }
+    }
+  ]
+}

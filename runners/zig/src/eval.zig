@@ -37,9 +37,10 @@ pub const MetricContext = struct {
 };
 
 pub const TraceContext = struct {
-    span: *const Span,
+    span: *Span,
     resource: ?*const Resource,
     scope: ?*const InstrumentationScope,
+    allocator: std.mem.Allocator,
     resource_schema_url: []const u8,
     scope_schema_url: []const u8,
 };
@@ -211,6 +212,75 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
         },
         .event_attribute, .link_trace_id => null,
     };
+}
+
+// ─── Trace field mutator ────────────────────────────────────────────
+
+const TraceMutateOp = policy.TraceMutateOp;
+
+pub fn traceFieldMutator(ctx: *anyopaque, op: TraceMutateOp) bool {
+    const tc: *TraceContext = @ptrCast(@alignCast(ctx));
+    switch (op) {
+        .set => |s| {
+            switch (s.field) {
+                .trace_field => |tf| {
+                    if (tf == .TRACE_FIELD_TRACE_STATE) {
+                        // The engine writes the raw threshold hex value.
+                        // We must merge it into the W3C tracestate as ot=th:VALUE.
+                        tc.span.trace_state = mergeOTTracestate(tc.allocator, tc.span.trace_state, s.value);
+                        return true;
+                    }
+                },
+                else => {},
+            }
+        },
+        else => {},
+    }
+    return false;
+}
+
+fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_value: []const u8) []const u8 {
+    // Build "ot=th:VALUE" or merge into existing tracestate
+    var ot_parts: std.ArrayListUnmanaged(u8) = .empty;
+    var other_vendors: std.ArrayListUnmanaged(u8) = .empty;
+
+    if (tracestate.len > 0) {
+        var vendors = std.mem.splitScalar(u8, tracestate, ',');
+        while (vendors.next()) |vendor_raw| {
+            const vendor = std.mem.trim(u8, vendor_raw, " ");
+            if (vendor.len == 0) continue;
+            if (std.mem.startsWith(u8, vendor, "ot=")) {
+                const ot_value = vendor[3..];
+                var parts = std.mem.splitScalar(u8, ot_value, ';');
+                while (parts.next()) |part_raw| {
+                    const part = std.mem.trim(u8, part_raw, " ");
+                    if (part.len == 0) continue;
+                    // Skip existing th: sub-key
+                    if (std.mem.startsWith(u8, part, "th:")) continue;
+                    if (ot_parts.items.len > 0) ot_parts.appendSlice(allocator, ";") catch {};
+                    ot_parts.appendSlice(allocator, part) catch {};
+                }
+            } else {
+                if (other_vendors.items.len > 0) other_vendors.appendSlice(allocator, ",") catch {};
+                other_vendors.appendSlice(allocator, vendor) catch {};
+            }
+        }
+    }
+
+    // Build result: ot=[existing_subkeys;]th:VALUE[,other_vendors]
+    var result: std.ArrayListUnmanaged(u8) = .empty;
+    result.appendSlice(allocator, "ot=") catch {};
+    if (ot_parts.items.len > 0) {
+        result.appendSlice(allocator, ot_parts.items) catch {};
+        result.appendSlice(allocator, ";") catch {};
+    }
+    result.appendSlice(allocator, "th:") catch {};
+    result.appendSlice(allocator, th_value) catch {};
+    if (other_vendors.items.len > 0) {
+        result.appendSlice(allocator, ",") catch {};
+        result.appendSlice(allocator, other_vendors.items) catch {};
+    }
+    return result.items;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────

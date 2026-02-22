@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-old-schema",
+      "hits": 1
+    }
+  ]
+}

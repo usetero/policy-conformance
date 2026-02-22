@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-non-gauge",
+      "hits": 2
+    }
+  ]
+}

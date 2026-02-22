@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "sample-50pct-failopen",
+      "name": "50% sampling fail_closed=false with mixed tracestate scenarios",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "fail_closed": false
+        }
+      }
+    }
+  ]
+}

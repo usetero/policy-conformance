@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "hits": 6,
+      "policy_id": "proportional-50pct"
+    }
+  ]
+}

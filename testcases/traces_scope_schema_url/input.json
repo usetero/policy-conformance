@@ -1,0 +1,78 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "my.old.lib",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "spanId": "EjRWeJCrze8=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "GET /api/legacy",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ],
+          "schemaUrl": "https://opentelemetry.io/schemas/1.20.0"
+        },
+        {
+          "scope": {
+            "name": "my.new.lib",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
+              "spanId": "q83vEjRWeJA=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "GET /api/users",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ],
+          "schemaUrl": "https://opentelemetry.io/schemas/1.24.0"
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

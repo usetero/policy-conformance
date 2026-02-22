@@ -5,62 +5,70 @@
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "api-server" }
+            "value": {
+              "stringValue": "api-server"
+            }
           }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
       },
+      "schemaUrl": "",
       "scopeSpans": [
         {
+          "schemaUrl": "",
           "scope": {
-            "name": "",
-            "version": "",
             "attributes": [],
-            "droppedAttributesCount": 0
+            "droppedAttributesCount": 0,
+            "name": "",
+            "version": ""
           },
           "spans": [
             {
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
-              "spanId": "AQEBAQEBAQE=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /api/users",
-              "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
               "attributes": [],
               "droppedAttributesCount": 0,
-              "events": [],
               "droppedEventsCount": 0,
-              "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "GET /api/users",
+              "parentSpanId": "",
+              "spanId": "AQEBAQEBAQE=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceState": "ot=th:c"
             },
             {
-              "traceId": "qrvM3QAAAAACwAAAAAAAAA==",
-              "spanId": "AgICAgICAgI=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /api/orders",
-              "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
               "attributes": [],
               "droppedAttributesCount": 0,
-              "events": [],
               "droppedEventsCount": 0,
-              "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "GET /api/orders",
+              "parentSpanId": "",
+              "spanId": "AgICAgICAgI=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAACwAAAAAAAAA==",
+              "traceState": "ot=th:c"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

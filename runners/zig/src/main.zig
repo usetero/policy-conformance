@@ -193,6 +193,10 @@ fn processTraces(allocator: std.mem.Allocator, engine: PolicyEngine, input_data:
     defer parsed.deinit();
     var data = parsed.value;
 
+    // Arena for transform mutations (e.g. tracestate merges). Freed after encoding.
+    var transform_arena = std.heap.ArenaAllocator.init(allocator);
+    defer transform_arena.deinit();
+
     for (data.resource_spans.items) |*rs| {
         const resource = if (rs.resource) |*r| r else null;
         for (rs.scope_spans.items) |*ss| {
@@ -203,11 +207,12 @@ fn processTraces(allocator: std.mem.Allocator, engine: PolicyEngine, input_data:
                     .span = &ss.spans.items[i],
                     .resource = resource,
                     .scope = scope,
+                    .allocator = transform_arena.allocator(),
                     .resource_schema_url = rs.schema_url,
                     .scope_schema_url = ss.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.trace, @ptrCast(&ctx), eval.traceFieldAccessor, null, &policy_id_buf);
+                const result = engine.evaluate(.trace, @ptrCast(&ctx), eval.traceFieldAccessor, eval.traceFieldMutator, &policy_id_buf);
                 if (result.decision == .drop) {
                     _ = ss.spans.orderedRemove(i);
                 } else {

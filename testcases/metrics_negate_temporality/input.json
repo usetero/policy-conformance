@@ -1,0 +1,89 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "http.requests.delta",
+              "description": "HTTP requests (delta)",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
+                "isMonotonic": false
+              }
+            },
+            {
+              "name": "http.requests.cumulative",
+              "description": "HTTP requests (cumulative)",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                "isMonotonic": false
+              }
+            },
+            {
+              "name": "request.duration",
+              "description": "Request duration histogram (delta)",
+              "unit": "ms",
+              "metadata": [],
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "count": 0,
+                    "sum": 0,
+                    "bucketCounts": [0, 0, 0],
+                    "explicitBounds": [10, 100],
+                    "exemplars": [],
+                    "flags": 0,
+                    "min": 0,
+                    "max": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA"
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

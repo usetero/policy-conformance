@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-non-delta",
+      "name": "Drop metrics that do NOT have delta temporality",
+      "metric": {
+        "match": [
+          { "aggregation_temporality": "delta", "negate": true }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

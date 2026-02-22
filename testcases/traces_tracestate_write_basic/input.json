@@ -1,0 +1,117 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "test-svc" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "spanId": "AQEBAQEBAQE=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "kept-at-boundary",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAC/////////w==",
+              "spanId": "AgICAgICAgI=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "kept-at-max",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
+              "spanId": "AwMDAwMDAwM=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "kept-above-boundary",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAEf////////w==",
+              "spanId": "BAQEBAQEBAQ=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "dropped-below-boundary",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAFAAAAAAAAAA==",
+              "spanId": "BQUFBQUFBQU=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "dropped-at-zero",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}
