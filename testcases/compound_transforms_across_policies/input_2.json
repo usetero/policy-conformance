@@ -3,7 +3,7 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "api-server" } }
+          { "key": "service.name", "value": { "stringValue": "worker-service" } }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -22,9 +22,10 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request 1" },
+              "body": { "stringValue": "worker processing" },
               "attributes": [
-                { "key": "tag", "value": { "stringValue": "second" } }
+                { "key": "secret", "value": { "stringValue": "another-secret" } },
+                { "key": "old_name", "value": { "stringValue": "legacy-data" } }
               ],
               "droppedAttributesCount": 0,
               "flags": 0,

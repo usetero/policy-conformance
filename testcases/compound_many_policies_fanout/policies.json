@@ -1,0 +1,654 @@
+{
+  "policies": [
+    {
+      "id": "drop-service-001",
+      "name": "Drop logs from service-001",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-001"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-002",
+      "name": "Drop logs from service-002",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-002"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-003",
+      "name": "Drop logs from service-003",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-003"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-004",
+      "name": "Drop logs from service-004",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-004"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-005",
+      "name": "Drop logs from service-005",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-005"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-006",
+      "name": "Drop logs from service-006",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-006"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-007",
+      "name": "Drop logs from service-007",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-007"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-008",
+      "name": "Drop logs from service-008",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-008"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-009",
+      "name": "Drop logs from service-009",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-009"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-010",
+      "name": "Drop logs from service-010",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-010"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-011",
+      "name": "Drop logs from service-011",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-011"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-012",
+      "name": "Drop logs from service-012",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-012"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-013",
+      "name": "Drop logs from service-013",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-013"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-014",
+      "name": "Drop logs from service-014",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-014"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-015",
+      "name": "Drop logs from service-015",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-015"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-016",
+      "name": "Drop logs from service-016",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-016"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-017",
+      "name": "Drop logs from service-017",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-017"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-018",
+      "name": "Drop logs from service-018",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-018"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-019",
+      "name": "Drop logs from service-019",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-019"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-020",
+      "name": "Drop logs from service-020",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-020"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-021",
+      "name": "Drop logs from service-021",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-021"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-022",
+      "name": "Drop logs from service-022",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-022"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-023",
+      "name": "Drop logs from service-023",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-023"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-024",
+      "name": "Drop logs from service-024",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-024"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-025",
+      "name": "Drop logs from service-025",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-025"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-026",
+      "name": "Drop logs from service-026",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-026"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-027",
+      "name": "Drop logs from service-027",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-027"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-028",
+      "name": "Drop logs from service-028",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-028"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-029",
+      "name": "Drop logs from service-029",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-029"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-030",
+      "name": "Drop logs from service-030",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-030"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-031",
+      "name": "Drop logs from service-031",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-031"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-032",
+      "name": "Drop logs from service-032",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-032"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-033",
+      "name": "Drop logs from service-033",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-033"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-034",
+      "name": "Drop logs from service-034",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-034"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-035",
+      "name": "Drop logs from service-035",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-035"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-036",
+      "name": "Drop logs from service-036",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-036"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-037",
+      "name": "Drop logs from service-037",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-037"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-038",
+      "name": "Drop logs from service-038",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-038"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-039",
+      "name": "Drop logs from service-039",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-039"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-040",
+      "name": "Drop logs from service-040",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-040"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-041",
+      "name": "Drop logs from service-041",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-041"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-042",
+      "name": "Drop logs from service-042",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-042"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-043",
+      "name": "Drop logs from service-043",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-043"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-044",
+      "name": "Drop logs from service-044",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-044"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-045",
+      "name": "Drop logs from service-045",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-045"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-046",
+      "name": "Drop logs from service-046",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-046"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-047",
+      "name": "Drop logs from service-047",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-047"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-048",
+      "name": "Drop logs from service-048",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-048"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-049",
+      "name": "Drop logs from service-049",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-049"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-service-050",
+      "name": "Drop logs from service-050",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "service-050"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

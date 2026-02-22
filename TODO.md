@@ -16,7 +16,7 @@
 - [x] `traces_sampling_equalizing` — equalizing sampling mode
 - [x] `traces_sampling_precision` — custom `sampling_precision` parameter
 - ~~`traces_sampling_hash_seed`~~ — removed; non-zero hash_seed produces different FNV inputs across runners (raw bytes vs hex vs base64)
-- [x] `traces_sampling_fail_closed` — `fail_closed: false` keeps spans without trace ID ⚠ Zig: drops empty trace ID spans even with fail_closed=false
+- [x] `traces_sampling_fail_closed` — `fail_closed: false` keeps spans without trace ID
 
 ## Metrics
 

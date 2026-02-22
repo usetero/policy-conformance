@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-non-errors",
+      "hits": 3
+    },
+    {
+      "policy_id": "keep-non-internal",
+      "hits": 1,
+      "misses": 2
+    }
+  ]
+}

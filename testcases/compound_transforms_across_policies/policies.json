@@ -1,0 +1,79 @@
+{
+  "policies": [
+    {
+      "id": "add-env-tag",
+      "name": "Add environment tag",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "env", "value": "production" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "add-region-tag",
+      "name": "Add region tag",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "region", "value": "us-east-1" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "add-team-tag",
+      "name": "Add team tag",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "team", "value": "platform" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "redact-secrets",
+      "name": "Redact secret attribute",
+      "log": {
+        "match": [
+          { "log_attribute": "secret", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            { "log_attribute": "secret", "replacement": "[REDACTED]" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rename-legacy-attr",
+      "name": "Rename legacy attribute",
+      "log": {
+        "match": [
+          { "log_attribute": "old_name", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "rename": [
+            { "from_log_attribute": "old_name", "to": "new_name", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

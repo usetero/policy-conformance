@@ -2,9 +2,7 @@
   "resourceLogs": [
     {
       "resource": {
-        "attributes": [
-          { "key": "service.name", "value": { "stringValue": "api-server" } }
-        ],
+        "attributes": [],
         "droppedAttributesCount": 0,
         "entityRefs": []
       },
@@ -22,9 +20,9 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request 1" },
+              "body": { "stringValue": "test record" },
               "attributes": [
-                { "key": "tag", "value": { "stringValue": "second" } }
+                { "key": "tag", "value": { "stringValue": "third" } }
               ],
               "droppedAttributesCount": 0,
               "flags": 0,

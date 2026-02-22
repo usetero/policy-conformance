@@ -3,7 +3,7 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "api-server" } }
+          { "key": "service.name", "value": { "stringValue": "worker-service" } }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -22,10 +22,21 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request 1" },
-              "attributes": [
-                { "key": "tag", "value": { "stringValue": "second" } }
-              ],
+              "body": { "stringValue": "worker started" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": { "stringValue": "task failed" },
+              "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
               "traceId": "",

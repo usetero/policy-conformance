@@ -21,11 +21,9 @@
               "timeUnixNano": 0,
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": { "stringValue": "request 1" },
-              "attributes": [
-                { "key": "tag", "value": { "stringValue": "second" } }
-              ],
+              "severityText": "ERROR",
+              "body": { "stringValue": "another test record" },
+              "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
               "traceId": "",

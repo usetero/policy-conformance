@@ -1,0 +1,204 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-service-001",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-002",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-003",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-004",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-005",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-006",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-007",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-008",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-009",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-010",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-011",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-012",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-013",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-014",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-015",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-016",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-017",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-018",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-019",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-020",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-021",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-022",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-023",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-024",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-025",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-026",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-027",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-028",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-029",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-030",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-031",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-032",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-033",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-034",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-035",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-036",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-037",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-038",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-039",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-040",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-041",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-042",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-043",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-044",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-045",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-046",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-047",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-048",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-049",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-service-050",
+      "hits": 2
+    }
+  ]
+}

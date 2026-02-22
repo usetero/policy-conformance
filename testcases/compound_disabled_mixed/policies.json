@@ -1,0 +1,109 @@
+{
+  "policies": [
+    {
+      "id": "active-drop-debug",
+      "name": "Drop DEBUG logs (active)",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "active-keep-errors",
+      "name": "Keep ERROR logs (active)",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "active-tag-api",
+      "name": "Tag API logs (active)",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "processed_by", "value": "active-policy" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "disabled-drop-all",
+      "name": "Drop all logs (DISABLED)",
+      "enabled": false,
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "disabled-tag-everything",
+      "name": "Tag everything (DISABLED)",
+      "enabled": false,
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "should_not_appear", "value": "true" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "disabled-redact-body",
+      "name": "Redact body (DISABLED)",
+      "enabled": false,
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            { "log_field": "body", "replacement": "[HIDDEN]" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "disabled-rename-attr",
+      "name": "Rename attr (DISABLED)",
+      "enabled": false,
+      "log": {
+        "match": [
+          { "log_attribute": "processed_by", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "rename": [
+            { "from_log_attribute": "processed_by", "to": "should_be_renamed", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "disabled-keep-all-metric",
+      "name": "Keep all metrics (DISABLED)",
+      "enabled": false,
+      "metric": {
+        "match": [
+          { "metric_field": "name", "regex": "^.*$" }
+        ],
+        "keep": true
+      }
+    }
+  ]
+}

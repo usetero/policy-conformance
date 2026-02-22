@@ -1,0 +1,68 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-logs",
+      "name": "Drop DEBUG logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-error-logs",
+      "name": "Keep ERROR logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-internal-metrics",
+      "name": "Drop internal metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "internal." }
+        ],
+        "keep": false
+      }
+    },
+    {
+      "id": "keep-http-metrics",
+      "name": "Keep HTTP metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "http." }
+        ],
+        "keep": true
+      }
+    },
+    {
+      "id": "drop-health-spans",
+      "name": "Drop health check spans",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "contains": "health" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    },
+    {
+      "id": "keep-error-spans",
+      "name": "Keep error spans",
+      "trace": {
+        "match": [
+          { "span_status": "SPAN_STATUS_CODE_ERROR", "exists": true }
+        ],
+        "keep": {
+          "percentage": 100.0
+        }
+      }
+    }
+  ]
+}

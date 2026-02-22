@@ -107,40 +107,98 @@ tasks:
         set +e
         # Normalize proto JSON: some encoders emit uint64 as strings, others as numbers
         normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        # Merge stats: sum hits/misses per policy_id across multiple stats files
+        merge_stats='[.[].policies[]] | group_by(.policy_id) | map({policy_id: .[0].policy_id, hits: (map(.hits) | add), misses: (map(.misses // 0) | add)}) | map(if .misses == 0 then del(.misses) else . end) | sort_by(.policy_id) | {policies: .}'
+        # Detect signal type from JSON content
+        detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
+
         PASS=0; FAIL=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
-          # Derive signal from directory name prefix
-          case "$name" in
-            logs_*)    signal=log ;;
-            metrics_*) signal=metric ;;
-            traces_*)  signal=trace ;;
-            *)         echo "  SKIP  $name (unknown signal)"; continue ;;
-          esac
-          ./{{.RUNNER}} \
-            --policies "$tc/policies.json" \
-            --input "$tc/input.json" \
-            --output "$tc/output_{{.LANG}}.json" \
-            --stats "$tc/stats_{{.LANG}}.json" \
-            --signal "$signal"
-          out_ok=true; stats_ok=true
-          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
-                    <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") > /dev/null 2>&1; then
-            out_ok=false
+
+          if [ -f "$tc/input.json" ]; then
+            # ── Simple mode: single input/output ──
+            case "$name" in
+              logs_*)    signal=log ;;
+              metrics_*) signal=metric ;;
+              traces_*)  signal=trace ;;
+              *)         echo "  SKIP  $name (unknown signal)"; continue ;;
+            esac
+            ./{{.RUNNER}} \
+              --policies "$tc/policies.json" \
+              --input "$tc/input.json" \
+              --output "$tc/output_{{.LANG}}.json" \
+              --stats "$tc/stats_{{.LANG}}.json" \
+              --signal "$signal"
+            out_ok=true; stats_ok=true
+            if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                      <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") > /dev/null 2>&1; then
+              out_ok=false
+            fi
+            if ! diff <(jq -S . "$tc/expected_stats.json") \
+                      <(jq -S . "$tc/stats_{{.LANG}}.json") > /dev/null 2>&1; then
+              stats_ok=false
+            fi
+          else
+            # ── Compound mode: multiple input_N/expected_N pairs ──
+            out_ok=true; stats_ok=true
+            STATS_FILES=""
+            for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+              n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+              expected_file="$tc/expected_${n}.json"
+              output_file="$tc/output_${n}_{{.LANG}}.json"
+              stats_file="$tc/stats_${n}_{{.LANG}}.json"
+              signal=$(jq -r "$detect_signal" "$input_file")
+              if [ "$signal" = "unknown" ]; then
+                echo "  SKIP  $name/input_${n}.json (unknown signal)"; continue
+              fi
+              ./{{.RUNNER}} \
+                --policies "$tc/policies.json" \
+                --input "$input_file" \
+                --output "$output_file" \
+                --stats "$stats_file" \
+                --signal "$signal"
+              if [ -f "$expected_file" ]; then
+                if ! diff <(jq -S "$normalize" "$expected_file") \
+                          <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  out_ok=false
+                fi
+              fi
+              STATS_FILES="$STATS_FILES $stats_file"
+            done
+            # Merge all per-batch stats and compare once
+            if [ -n "$STATS_FILES" ]; then
+              jq -s "$merge_stats" $STATS_FILES > "$tc/stats_{{.LANG}}.json"
+              if ! diff <(jq -S . "$tc/expected_stats.json") \
+                        <(jq -S . "$tc/stats_{{.LANG}}.json") > /dev/null 2>&1; then
+                stats_ok=false
+              fi
+            fi
           fi
-          if ! diff <(jq -S . "$tc/expected_stats.json") \
-                    <(jq -S . "$tc/stats_{{.LANG}}.json") > /dev/null 2>&1; then
-            stats_ok=false
-          fi
+
           if $out_ok && $stats_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
           else
             echo "  FAIL  $name"
             if ! $out_ok; then
-              echo "    output diff:"
-              diff <(jq -S "$normalize" "$tc/expected.json") \
-                   <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") || true
+              if [ -f "$tc/input.json" ]; then
+                echo "    output diff:"
+                diff <(jq -S "$normalize" "$tc/expected.json") \
+                     <(jq -S "$normalize" "$tc/output_{{.LANG}}.json") || true
+              else
+                for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+                  n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+                  expected_file="$tc/expected_${n}.json"
+                  output_file="$tc/output_${n}_{{.LANG}}.json"
+                  if [ -f "$expected_file" ] && ! diff <(jq -S "$normalize" "$expected_file") \
+                        <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                    echo "    output diff (batch $n):"
+                    diff <(jq -S "$normalize" "$expected_file") \
+                         <(jq -S "$normalize" "$output_file") || true
+                  fi
+                done
+              fi
             fi
             if ! $stats_ok; then
               echo "    stats diff:"
@@ -342,6 +400,114 @@ tasks:
             -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal"
           echo ""
         done
+
+  # ── Repeat a single test N times ────────────────────────────
+  test:repeat:
+    desc: "Run a single test case N times (e.g. task test:repeat TC=traces_sampling_50pct N=100 R=go)"
+    aliases: [tr]
+    vars:
+      TC: '{{.TC | default ""}}'
+      R: '{{.R | default "all"}}'
+      N: '{{.N | default "10"}}'
+    cmds:
+      - |
+        NAME="{{.TC}}"
+        LANGS="{{.R}}"
+        COUNT="{{.N}}"
+        if [ -z "$NAME" ]; then
+          echo "usage: task test:repeat TC=<testcase> [R=<go|rs|zig|all>] [N=<count>]"
+          exit 1
+        fi
+        tc="testcases/$NAME/"
+        if [ ! -d "$tc" ]; then
+          echo "ERROR: $tc not found"; exit 1
+        fi
+        if [ "$LANGS" = "all" ]; then
+          LANGS="go rs zig"
+        fi
+
+        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        merge_stats='[.[].policies[]] | group_by(.policy_id) | map({policy_id: .[0].policy_id, hits: (map(.hits) | add), misses: (map(.misses // 0) | add)}) | map(if .misses == 0 then del(.misses) else . end) | sort_by(.policy_id) | {policies: .}'
+        detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
+
+        ANY_FAIL=false
+        for _LANG in $LANGS; do
+          case "$_LANG" in
+            go)  RUNNER=runners/go/runner-go ;;
+            rs)  RUNNER=runners/rs/target/release/runner-rs ;;
+            zig) RUNNER=runners/zig/zig-out/bin/runner-zig ;;
+            *)   echo "ERROR: unknown lang $_LANG (use go, rs, zig, all)"; exit 1 ;;
+          esac
+
+          PASS=0; FAIL=0
+          for i in $(seq 1 "$COUNT"); do
+            if [ -f "$tc/input.json" ]; then
+              # ── Simple mode ──
+              case "$NAME" in
+                logs_*)    signal=log ;;
+                metrics_*) signal=metric ;;
+                traces_*)  signal=trace ;;
+                *)         signal=$(jq -r "$detect_signal" "$tc/input.json") ;;
+              esac
+              ./$RUNNER \
+                --policies "$tc/policies.json" \
+                --input "$tc/input.json" \
+                --output "$tc/output_${_LANG}.json" \
+                --stats "$tc/stats_${_LANG}.json" \
+                --signal "$signal"
+              ok=true
+              if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                        <(jq -S "$normalize" "$tc/output_${_LANG}.json") > /dev/null 2>&1; then
+                ok=false
+              fi
+              if ! diff <(jq -S . "$tc/expected_stats.json") \
+                        <(jq -S . "$tc/stats_${_LANG}.json") > /dev/null 2>&1; then
+                ok=false
+              fi
+            else
+              # ── Compound mode ──
+              ok=true
+              STATS_FILES=""
+              for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+                n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+                expected_file="$tc/expected_${n}.json"
+                output_file="$tc/output_${n}_${_LANG}.json"
+                stats_file="$tc/stats_${n}_${_LANG}.json"
+                signal=$(jq -r "$detect_signal" "$input_file")
+                ./$RUNNER \
+                  --policies "$tc/policies.json" \
+                  --input "$input_file" \
+                  --output "$output_file" \
+                  --stats "$stats_file" \
+                  --signal "$signal"
+                if [ -f "$expected_file" ]; then
+                  if ! diff <(jq -S "$normalize" "$expected_file") \
+                            <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                    ok=false
+                  fi
+                fi
+                STATS_FILES="$STATS_FILES $stats_file"
+              done
+              if [ -n "$STATS_FILES" ]; then
+                jq -s "$merge_stats" $STATS_FILES > "$tc/stats_${_LANG}.json"
+                if ! diff <(jq -S . "$tc/expected_stats.json") \
+                          <(jq -S . "$tc/stats_${_LANG}.json") > /dev/null 2>&1; then
+                  ok=false
+                fi
+              fi
+            fi
+
+            if $ok; then
+              PASS=$((PASS + 1))
+            else
+              echo "  FAIL  $_LANG run $i/$COUNT"
+              FAIL=$((FAIL + 1))
+            fi
+          done
+          echo "$NAME ($_LANG): $PASS passed, $FAIL failed out of $COUNT runs"
+          if [ "$FAIL" -gt 0 ]; then ANY_FAIL=true; fi
+        done
+        ! $ANY_FAIL
 
   # ── Utilities ──────────────────────────────────────────────
   clean:
