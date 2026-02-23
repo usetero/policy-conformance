@@ -3,12 +3,12 @@ module github.com/usetero/policy-conformance/runners/go
 go 1.25.0
 
 require (
-	github.com/usetero/policy-go v1.3.9
+	github.com/usetero/policy-go v1.3.10
 	go.opentelemetry.io/proto/otlp v1.9.0
 	google.golang.org/protobuf v1.36.11
 )
 
-replace github.com/usetero/policy-go => ../../../policy-go
+// replace github.com/usetero/policy-go => ../../../policy-go
 
 require (
 	github.com/flier/gohs v1.2.3 // indirect

@@ -404,10 +404,10 @@ both file-based and HTTP modes unless noted otherwise.
 | Test case                                  | Description                                                                      | Go                 | Zig                | Rust               |
 | ------------------------------------------ | -------------------------------------------------------------------------------- | ------------------ | ------------------ | ------------------ |
 | `compound_all_keep_types`                  | All keep types (all/none/sample/rate_limit) in one policy set                    | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| `compound_conflicting_keeps`               | Conflicting keep decisions across policies; most restrictive wins                | :white_check_mark: | :white_check_mark: | :x: ENG-228        |
+| `compound_conflicting_keeps`               | Conflicting keep decisions across policies; most restrictive wins                | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | `compound_datapoint_attr_types`            | Datapoint attribute matching across histogram, summary, gauge                    | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | `compound_disabled_mixed`                  | Mix of enabled and disabled policies; disabled transforms must not fire          | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| `compound_double_negation`                 | `exists: false` + `negate: true` semantics                                       | :x: ENG-229        | :white_check_mark: | :white_check_mark: |
+| `compound_double_negation`                 | `exists: false` + `negate: true` semantics                                       | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | `compound_empty_vs_missing`                | Empty string vs null/absent field behavior across signals                        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | `compound_many_policies_fanout`            | 50+ policies each targeting a different service; verifies no cross-contamination | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | `compound_mixed_signals`                   | Policies spanning logs, metrics, and traces in one set                           | :white_check_mark: | :white_check_mark: | :white_check_mark: |
