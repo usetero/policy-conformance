@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "hits": 3,
+      "policy_id": "drop-internal-metrics"
+    }
+  ]
+}

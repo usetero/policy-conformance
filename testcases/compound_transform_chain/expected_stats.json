@@ -1,0 +1,12 @@
+{
+  "policies": [
+    {
+      "hits": 2,
+      "policy_id": "aaa-add-marker"
+    },
+    {
+      "hits": 1,
+      "policy_id": "ccc-add-second-marker"
+    }
+  ]
+}

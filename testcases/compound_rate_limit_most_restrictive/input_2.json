@@ -1,0 +1,63 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "api-server" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": "1000000000",
+              "observedTimeUnixNano": "1000000000",
+              "severityNumber": "SEVERITY_NUMBER_INFO",
+              "severityText": "INFO",
+              "body": { "stringValue": "info 5" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": ""
+            },
+            {
+              "timeUnixNano": "1000000000",
+              "observedTimeUnixNano": "1000000000",
+              "severityNumber": "SEVERITY_NUMBER_WARN",
+              "severityText": "WARN",
+              "body": { "stringValue": "warn 5" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": ""
+            },
+            {
+              "timeUnixNano": "1000000000",
+              "observedTimeUnixNano": "1000000000",
+              "severityNumber": "SEVERITY_NUMBER_FATAL",
+              "severityText": "CRITICAL",
+              "body": { "stringValue": "critical 3" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

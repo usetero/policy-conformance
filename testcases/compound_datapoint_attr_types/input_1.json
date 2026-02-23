@@ -1,0 +1,125 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "metrics-svc" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "request.duration",
+              "description": "Request duration histogram",
+              "unit": "ms",
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "source", "value": { "stringValue": "internal" } }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "count": "100",
+                    "sum": 5000,
+                    "bucketCounts": ["10", "20", "30", "25", "15"],
+                    "explicitBounds": [10, 50, 100, 500]
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
+              }
+            },
+            {
+              "name": "request.size",
+              "description": "Request size histogram",
+              "unit": "bytes",
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "source", "value": { "stringValue": "external" } }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "count": "50",
+                    "sum": 25000,
+                    "bucketCounts": ["5", "15", "20", "10"],
+                    "explicitBounds": [100, 1000, 10000]
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
+              }
+            },
+            {
+              "name": "gc.duration",
+              "description": "GC summary",
+              "unit": "ms",
+              "summary": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "source", "value": { "stringValue": "internal" } }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "count": "200",
+                    "sum": 800,
+                    "quantileValues": [
+                      { "quantile": 0.5, "value": 3.0 },
+                      { "quantile": 0.99, "value": 15.0 }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "memory.usage",
+              "description": "Memory gauge",
+              "unit": "bytes",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "source", "value": { "stringValue": "internal" } }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "asDouble": 1073741824
+                  }
+                ]
+              }
+            },
+            {
+              "name": "cpu.usage",
+              "description": "CPU gauge",
+              "unit": "percent",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "source", "value": { "stringValue": "external" } }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "asDouble": 45.2
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-nested-metric-attr",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-nested-resource-attr",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-nested-trace-attr",
+      "hits": 1
+    }
+  ]
+}

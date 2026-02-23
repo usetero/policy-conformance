@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-metrics",
+      "name": "Drop metrics with source=internal datapoint attr",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": "source", "exact": "internal" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "policies": [
+    {
+      "id": "add-resource-attr-to-errors",
+      "name": "Add processed=true resource attr to ERROR logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "resource_attribute": "processed", "value": "true", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "add-scope-attr-to-warn",
+      "name": "Add scope attr to WARN logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "WARN" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "scope_attribute": "touched", "value": "yes", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rename-resource-attr-info",
+      "name": "Rename env to environment on resource for INFO logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "all",
+        "transform": {
+          "rename": [
+            { "from_resource_attribute": "env", "to": "environment", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

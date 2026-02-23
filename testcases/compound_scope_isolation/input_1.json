@@ -1,0 +1,91 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "web" } },
+          { "key": "env", "value": { "stringValue": "prod" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "logger",
+            "version": "1.0",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": { "stringValue": "error in scope 1" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "info in scope 1" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        },
+        {
+          "scope": {
+            "name": "metrics",
+            "version": "2.0",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "WARN",
+              "body": { "stringValue": "warn in scope 2" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "info in scope 2" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

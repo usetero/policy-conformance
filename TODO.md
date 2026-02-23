@@ -1,52 +1,35 @@
 # Missing Conformance Tests
 
-## Traces
+## Traces (blocked — all runners unimplemented)
 
-- [x] `traces_span_status_error` — drop spans with ERROR status (standalone)
-- [x] `traces_parent_span_id` — match on `parent_span_id` field
-- [x] `traces_trace_state` — match on `trace_state` field
-- [x] `traces_negate_span_kind` — negated span_kind matcher
-- [x] `traces_negate_span_status` — negated span_status matcher
-- [x] `traces_scope_version` — match on `scope_version` field
-- [x] `traces_scope_schema_url` — match on `scope_schema_url` field
-- [x] `traces_multiple_resources` — multiple resources/scopes in input
-- [ ] `traces_event_attribute` — match on span event attributes (Go only; Rust/Zig not evaluated)
-- [ ] `traces_link_trace_id` — match spans by linked trace ID (Go only; Rust/Zig not evaluated)
-- [x] `traces_sampling_proportional` — proportional sampling mode
-- [x] `traces_sampling_equalizing` — equalizing sampling mode
-- [x] `traces_sampling_precision` — custom `sampling_precision` parameter
-- ~~`traces_sampling_hash_seed`~~ — removed; non-zero hash_seed produces different FNV inputs across runners (raw bytes vs hex vs base64)
-- [x] `traces_sampling_fail_closed` — `fail_closed: false` keeps spans without trace ID
+- [ ] `traces_event_attribute` — match on span event attributes (all runners return nil for `event_attribute`)
+- [ ] `traces_link_trace_id` — match spans by linked trace ID (all runners return nil for `link_trace_id`)
 
-## Metrics
+## Compound tests
 
-- [x] `metrics_scope_name` — match on `scope_name` field
-- [x] `metrics_scope_version` — match on `scope_version` field
-- [x] `metrics_scope_schema_url` — match on `scope_schema_url` field
-- [x] `metrics_sum_type` — drop sum metrics
-- [x] `metrics_cumulative_temporality` — filter by cumulative aggregation temporality
-- [x] `metrics_negate_type` — negated metric_type matcher
-- [x] `metrics_negate_temporality` — negated aggregation_temporality matcher
-- [x] `metrics_multiple_resources` — multiple resources/scopes in input
+### Keep type interactions
+- [x] `compound_all_keep_types` — all/none/sample/rate_limit(N/s)/rate_limit(N/m) under one policy set
+- [x] `compound_rate_limit_most_restrictive` — rate_limit vs none precedence; confirms none > rate_limit
 
-## Logs
+### Sampling
+- [x] `compound_sampling_interactions` — trace sampling with fail_closed contrast, drop (0%) overriding sampling, mixed fail_closed=true/false with missing trace_id
 
-- [x] `logs_scope_schema_url` — match on `scope_schema_url` field
-- [x] `logs_nested_attribute_deep` — 3+ level nested attribute path
-- [x] `logs_sample_key_resource_attr` — sample_key targeting resource_attribute
-- [x] `logs_sample_key_scope_attr` — sample_key targeting scope_attribute
-- [x] `logs_transform_rename_resource_attr` — rename a resource attribute
-- [x] `logs_transform_rename_scope_attr` — rename a scope attribute
-- [x] `logs_transform_add_resource_attr` — add a resource attribute
-- [x] `logs_transform_add_scope_attr` — add a scope attribute
-- [x] `logs_transform_redact_resource_attr` — redact a resource attribute
-- [x] `logs_transform_redact_scope_attr` — redact a scope attribute
-- [x] `logs_transform_add_body` — add/set body field via transform
-- [x] `logs_enabled_false_with_transforms` — disabled policy skips transforms
+### Matching edge cases
+- [x] `compound_regex_edge_cases` — character classes, anchoring, alternation, UUID patterns, escaped brackets, case-insensitive regex
+- [x] `compound_double_negation` — `exists: false` + `negate: true` (FAILS Go — ENG-229)
+- [x] `compound_empty_vs_missing` — empty string vs null/absent field behavior
+- [x] `compound_nested_attributes` — nested attribute paths across all signal types
 
-## Cross-cutting
+### Transform edge cases
+- [x] `compound_transform_chain` — cross-policy transform visibility (confirmed: transforms applied after all matching)
+- [x] `compound_scope_isolation` — resource/scope attribute transform isolation
 
-- [x] `logs_empty_input` — zero records in input
-- [x] `metrics_empty_input` — zero records in input
-- [x] `traces_empty_input` — zero records in input
+### Metric-specific
+- [x] `compound_datapoint_attr_types` — datapoint attribute matching across histogram, summary, gauge
+
+## Known issues
+
+- ~~`traces_sampling_hash_seed`~~ — removed; non-zero hash_seed produces different FNV inputs across runners
 - ~~`*_no_matchers`~~ — removed; `match: []` is not a valid policy
+- ENG-228: Rust evaluates policies in array order instead of alphanumeric (fails `compound_conflicting_keeps`)
+- ENG-229: Go ignores `negate` flag on existence checks — `exists: false, negate: true` should mean "field exists" but Go treats it as "field absent" (fails `compound_double_negation`)
