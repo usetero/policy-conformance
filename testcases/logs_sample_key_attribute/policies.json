@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "sample-by-request-id",
+      "name": "Sample 0% by request ID attribute",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "0%",
+        "sample_key": { "log_attribute": "request_id" }
+      }
+    }
+  ]
+}

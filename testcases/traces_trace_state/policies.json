@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-tracestate",
+      "name": "Drop spans with debug flag in tracestate",
+      "trace": {
+        "match": [
+          { "trace_field": "trace_state", "contains": "debug=true" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

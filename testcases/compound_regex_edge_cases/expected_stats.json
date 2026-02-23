@@ -1,0 +1,33 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-digits-only",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-dot-star-anchored",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-non-alpha-severity",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-pipe-alternation",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-special-chars-body",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-uuid-pattern",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-word-boundary-like",
+      "hits": 2,
+      "misses": 2
+    }
+  ]
+}

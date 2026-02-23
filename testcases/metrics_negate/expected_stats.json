@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-non-http",
+      "hits": 1
+    }
+  ]
+}

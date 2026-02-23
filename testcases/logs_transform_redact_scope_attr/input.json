@@ -1,0 +1,47 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "my-lib",
+            "version": "",
+            "attributes": [
+              {
+                "key": "api.secret",
+                "value": {
+                  "stringValue": "super-secret-key"
+                }
+              }
+            ],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": {
+                "stringValue": "request processed"
+              },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

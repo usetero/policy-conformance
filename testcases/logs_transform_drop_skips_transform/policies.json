@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "drop-with-transform",
+      "name": "Drop policy with transform (transform should NOT apply)",
+      "log": {
+        "match": [
+          { "log_field": "body", "exact": "drop me" }
+        ],
+        "keep": "none",
+        "transform": {
+          "add": [
+            { "log_attribute": "should_not_exist", "value": "true" }
+          ]
+        }
+      }
+    }
+  ]
+}

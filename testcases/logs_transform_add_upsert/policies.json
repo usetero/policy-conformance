@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "add-env-upsert",
+      "name": "Add env=production with upsert (overwrites existing)",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "env", "value": "production", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

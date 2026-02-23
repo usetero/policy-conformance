@@ -38,6 +38,12 @@ struct StatsOutput {
 struct PolicyHit {
     policy_id: String,
     hits: u64,
+    #[serde(skip_serializing_if = "is_zero")]
+    misses: u64,
+}
+
+fn is_zero(v: &u64) -> bool {
+    *v == 0
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────
@@ -47,10 +53,11 @@ fn write_stats(path: &str, registry: &PolicyRegistry) {
     let mut policies = Vec::new();
     for entry in snapshot.iter() {
         let stats = entry.stats.reset_all();
-        if stats.match_hits > 0 {
+        if stats.match_hits > 0 || stats.match_misses > 0 {
             policies.push(PolicyHit {
                 policy_id: entry.policy.id().to_string(),
                 hits: stats.match_hits,
+                misses: stats.match_misses,
             });
         }
     }
@@ -81,17 +88,28 @@ async fn process_logs(
     for rl in &mut data.resource_logs {
         for sl in &mut rl.scope_logs {
             let mut kept = Vec::new();
-            for rec in &sl.log_records {
-                let ctx = eval::LogContext {
+            for rec in sl.log_records.iter_mut() {
+                let mut ctx = eval::MutLogContext {
                     record: rec,
-                    resource: rl.resource.as_ref(),
-                    scope: sl.scope.as_ref(),
+                    resource: rl.resource.as_mut(),
+                    scope: sl.scope.as_mut(),
+                    resource_schema_url: &rl.schema_url,
+                    scope_schema_url: &sl.schema_url,
                 };
-                let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
-                    eprintln!("evaluation error: {e}");
-                    process::exit(1);
-                });
-                if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
+                let result = engine
+                    .evaluate_and_transform(snapshot, &mut ctx)
+                    .await
+                    .unwrap_or_else(|e| {
+                        eprintln!("evaluation error: {e}");
+                        process::exit(1);
+                    });
+                let should_keep = match &result {
+                    policy_rs::EvaluateResult::Drop { .. } => false,
+                    policy_rs::EvaluateResult::Sample { keep, .. } => *keep,
+                    policy_rs::EvaluateResult::RateLimit { allowed, .. } => *allowed,
+                    _ => true,
+                };
+                if should_keep {
                     kept.push(rec.clone());
                 }
             }
@@ -131,6 +149,8 @@ async fn process_metrics(
                     datapoint_attributes: dp_attrs,
                     resource: rm.resource.as_ref(),
                     scope: sm.scope.as_ref(),
+                    resource_schema_url: &rm.schema_url,
+                    scope_schema_url: &sm.schema_url,
                 };
                 let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
                     eprintln!("evaluation error: {e}");
@@ -166,17 +186,27 @@ async fn process_traces(
     for rs in &mut data.resource_spans {
         for ss in &mut rs.scope_spans {
             let mut kept = Vec::new();
-            for span in &ss.spans {
-                let ctx = eval::TraceContext {
-                    span: span,
+            for span in &mut ss.spans {
+                let mut ctx = eval::MutTraceContext {
+                    span,
                     resource: rs.resource.as_ref(),
                     scope: ss.scope.as_ref(),
+                    resource_schema_url: &rs.schema_url,
+                    scope_schema_url: &ss.schema_url,
                 };
-                let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
-                    eprintln!("evaluation error: {e}");
-                    process::exit(1);
-                });
-                if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
+                let result = engine
+                    .evaluate_trace(snapshot, &mut ctx)
+                    .await
+                    .unwrap_or_else(|e| {
+                        eprintln!("evaluation error: {e}");
+                        process::exit(1);
+                    });
+                let should_keep = match &result {
+                    policy_rs::EvaluateResult::Drop { .. } => false,
+                    policy_rs::EvaluateResult::Sample { keep, .. } => *keep,
+                    _ => true,
+                };
+                if should_keep {
                     kept.push(span.clone());
                 }
             }

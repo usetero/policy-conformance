@@ -1,1 +1,67 @@
-{"resourceSpans":[{"resource":{"attributes":[],"droppedAttributesCount":0,"entityRefs":[]},"scopeSpans":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"spans":[{"traceId":"q83vEjRWeJCrze8SNFZ4kA==","spanId":"EjRWeJCrze8=","traceState":"","parentSpanId":"","flags":0,"name":"POST /api/checkout","kind":"SPAN_KIND_SERVER","startTimeUnixNano":0,"endTimeUnixNano":0,"attributes":[],"droppedAttributesCount":0,"events":[],"droppedEventsCount":0,"links":[],"droppedLinksCount":0,"status":{"message":"","code":"STATUS_CODE_ERROR"}},{"traceId":"EjRWeJCrze8SNFZ4kKvN7w==","spanId":"q83vEjRWeJA=","traceState":"","parentSpanId":"","flags":0,"name":"GET /api/users","kind":"SPAN_KIND_SERVER","startTimeUnixNano":0,"endTimeUnixNano":0,"attributes":[],"droppedAttributesCount":0,"events":[],"droppedEventsCount":0,"links":[],"droppedLinksCount":0,"status":{"message":"","code":"STATUS_CODE_OK"}}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "schemaUrl": "",
+      "scopeSpans": [
+        {
+          "schemaUrl": "",
+          "scope": {
+            "attributes": [],
+            "droppedAttributesCount": 0,
+            "name": "",
+            "version": ""
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "POST /api/checkout",
+              "parentSpanId": "",
+              "spanId": "EjRWeJCrze8=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_ERROR",
+                "message": ""
+              },
+              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "traceState": "ot=th:0"
+            },
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "GET /api/users",
+              "parentSpanId": "",
+              "spanId": "q83vEjRWeJA=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
+              "traceState": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

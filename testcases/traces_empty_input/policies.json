@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-server-spans",
+      "name": "Drop server spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_SERVER", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

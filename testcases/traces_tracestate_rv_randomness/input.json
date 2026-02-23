@@ -1,0 +1,117 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "test-svc" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "qrvM3QAAAAABEAAAAAAAAA==",
+              "spanId": "AQEBAQEBAQE=",
+              "traceState": "ot=rv:ffffffffffffff",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "low-traceid-high-rv-kept",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAC8AAAAAAAAA==",
+              "spanId": "AgICAgICAgI=",
+              "traceState": "ot=rv:10000000000000",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "high-traceid-low-rv-dropped",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAADEAAAAAAAAA==",
+              "spanId": "AwMDAwMDAwM=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "low-traceid-no-rv-dropped",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAAE8AAAAAAAAA==",
+              "spanId": "BAQEBAQEBAQ=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "high-traceid-no-rv-kept",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "spanId": "BQUFBQUFBQU=",
+              "traceState": "ot=rv:ffffffffffffff,vendor=keep-me",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "rv-with-vendor-kept",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "message": "", "code": "STATUS_CODE_OK" }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

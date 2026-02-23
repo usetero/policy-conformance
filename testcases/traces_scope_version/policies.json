@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-scope-version",
+      "name": "Drop spans from old scope version",
+      "trace": {
+        "match": [
+          { "trace_field": "scope_version", "exact": "0.1.0" }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

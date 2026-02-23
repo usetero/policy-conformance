@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "remove-internal-id",
+      "hits": 1
+    }
+  ]
+}

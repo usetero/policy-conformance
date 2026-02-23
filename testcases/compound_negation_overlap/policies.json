@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "keep-non-internal",
+      "name": "Keep all logs NOT from internal service",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "internal-service", "negate": true }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-non-errors",
+      "name": "Drop all logs that are NOT errors",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR", "negate": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

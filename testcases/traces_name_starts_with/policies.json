@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-prefix",
+      "name": "Drop spans starting with internal.",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "starts_with": "internal." }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

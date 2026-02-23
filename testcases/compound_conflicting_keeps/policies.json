@@ -1,0 +1,84 @@
+{
+  "policies": [
+    {
+      "id": "keep-all-api",
+      "name": "Keep all API logs",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop DEBUG logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-all-errors",
+      "name": "Keep all ERROR logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-health-body",
+      "name": "Drop health check logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "health" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-all-payments",
+      "name": "Keep all payment service logs",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "payment-service" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-verbose",
+      "name": "Drop verbose logs",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "verbose" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-all-auth",
+      "name": "Keep all auth service logs",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "auth-service" }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-trace-logs",
+      "name": "Drop TRACE severity logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "TRACE" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

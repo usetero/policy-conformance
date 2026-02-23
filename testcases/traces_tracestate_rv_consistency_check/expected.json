@@ -1,0 +1,116 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "test-svc"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "schemaUrl": "",
+      "scopeSpans": [
+        {
+          "schemaUrl": "",
+          "scope": {
+            "attributes": [],
+            "droppedAttributesCount": 0,
+            "name": "",
+            "version": ""
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "inconsistent-rv-lt-th-kept",
+              "parentSpanId": "",
+              "spanId": "AQEBAQEBAQE=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAAAAQAAAAAAAA==",
+              "traceState": "ot=rv:10000000000000;th:8"
+            },
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "consistent-rv-eq-th-kept",
+              "parentSpanId": "",
+              "spanId": "AgICAgICAgI=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAAAAgAAAAAAAA==",
+              "traceState": "ot=rv:80000000000000;th:8"
+            },
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "consistent-rv-gt-th-kept",
+              "parentSpanId": "",
+              "spanId": "AwMDAwMDAwM=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAAAAwAAAAAAAA==",
+              "traceState": "ot=rv:90000000000000;th:8"
+            },
+            {
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "droppedEventsCount": 0,
+              "droppedLinksCount": 0,
+              "endTimeUnixNano": 0,
+              "events": [],
+              "flags": 0,
+              "kind": "SPAN_KIND_SERVER",
+              "links": [],
+              "name": "inconsistent-with-vendor-kept",
+              "parentSpanId": "",
+              "spanId": "BQUFBQUFBQU=",
+              "startTimeUnixNano": 0,
+              "status": {
+                "code": "STATUS_CODE_OK",
+                "message": ""
+              },
+              "traceId": "qrvM3QAAAAAAAQAAAAAAAA==",
+              "traceState": "ot=rv:10000000000000;th:8,vendor=keep-me"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

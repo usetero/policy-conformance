@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-has-db-attr",
+      "name": "Drop spans with db.system attribute",
+      "trace": {
+        "match": [
+          { "span_attribute": "db.system", "exists": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

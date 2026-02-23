@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "keep-all-gauges",
+      "name": "Keep all gauge metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "gauge" }
+        ],
+        "keep": true
+      }
+    },
+    {
+      "id": "drop-system",
+      "name": "Drop metrics starting with system",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "system." }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

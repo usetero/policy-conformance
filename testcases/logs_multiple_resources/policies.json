@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "drop-api-debug",
+      "name": "Drop debug from api-server",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" },
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

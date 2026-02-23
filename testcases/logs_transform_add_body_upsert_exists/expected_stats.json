@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "add-body-upsert-exists",
+      "hits": 1
+    }
+  ]
+}

@@ -24,16 +24,18 @@ type StatsOutput struct {
 type PolicyHit struct {
 	PolicyID string `json:"policy_id"`
 	Hits     uint64 `json:"hits"`
+	Misses   uint64 `json:"misses,omitempty"`
 }
 
 func writeStats(path string, registry *policy.PolicyRegistry) error {
 	stats := registry.CollectStats()
 	var output StatsOutput
 	for _, s := range stats {
-		if s.Hits > 0 {
+		if s.MatchHits > 0 || s.MatchMisses > 0 {
 			output.Policies = append(output.Policies, PolicyHit{
 				PolicyID: s.PolicyID,
-				Hits:     s.Hits,
+				Hits:     s.MatchHits,
+				Misses:   s.MatchMisses,
 			})
 		}
 	}
@@ -70,11 +72,13 @@ func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inpu
 			kept := sl.LogRecords[:0]
 			for _, rec := range sl.LogRecords {
 				ctx := &LogContext{
-					Record:   rec,
-					Resource: rl.Resource,
-					Scope:    sl.Scope,
+					Record:            rec,
+					Resource:          rl.Resource,
+					Scope:             sl.Scope,
+					ResourceSchemaURL: rl.SchemaUrl,
+					ScopeSchemaURL:    sl.SchemaUrl,
 				}
-				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher)
+				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher, policy.WithLogTransform(OTelLogTransformer))
 				if result != policy.ResultDrop {
 					kept = append(kept, rec)
 				}
@@ -123,6 +127,8 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 					DatapointAttributes: getDatapointAttrs(m),
 					Resource:            rm.Resource,
 					Scope:               sm.Scope,
+					ResourceSchemaURL:   rm.SchemaUrl,
+					ScopeSchemaURL:      sm.SchemaUrl,
 				}
 				result := policy.EvaluateMetric(eng, ctx, OTelMetricMatcher)
 				if result != policy.ResultDrop {
@@ -167,11 +173,13 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 			kept := ss.Spans[:0]
 			for _, span := range ss.Spans {
 				ctx := &TraceContext{
-					Span:     span,
-					Resource: rs.Resource,
-					Scope:    ss.Scope,
+					Span:              span,
+					Resource:          rs.Resource,
+					Scope:             ss.Scope,
+					ResourceSchemaURL: rs.SchemaUrl,
+					ScopeSchemaURL:    ss.SchemaUrl,
 				}
-				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher)
+				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher, policy.WithTraceTransform(OTelTraceTransformer))
 				if result != policy.ResultDrop {
 					kept = append(kept, span)
 				}
@@ -302,7 +310,7 @@ func collectMatchedPolicies(registry *policy.PolicyRegistry) []string {
 	stats := registry.CollectStats()
 	var matched []string
 	for _, s := range stats {
-		if s.Hits > 0 {
+		if s.MatchHits > 0 {
 			matched = append(matched, s.PolicyID)
 		}
 	}

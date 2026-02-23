@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "sample-by-service",
+      "name": "Sample 0% by service.name resource attribute",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "0%",
+        "sample_key": { "resource_attribute": "service.name" }
+      }
+    }
+  ]
+}

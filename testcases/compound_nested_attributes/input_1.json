@@ -1,0 +1,79 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "api" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "http.request.duration",
+              "description": "",
+              "unit": "ms",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "http",
+                        "value": {
+                          "kvlistValue": {
+                            "values": [
+                              { "key": "method", "value": { "stringValue": "GET" } }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "asDouble": 42.5
+                  }
+                ]
+              }
+            },
+            {
+              "name": "http.request.count",
+              "description": "",
+              "unit": "1",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "http",
+                        "value": {
+                          "kvlistValue": {
+                            "values": [
+                              { "key": "method", "value": { "stringValue": "POST" } }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000",
+                    "asDouble": 10
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

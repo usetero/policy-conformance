@@ -1,0 +1,83 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "test" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "info with body" },
+              "attributes": [
+                { "key": "tag", "value": { "stringValue": "important" } }
+              ],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "WARN",
+              "body": { "stringValue": "warn with body" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "info no tag" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": { "stringValue": "error with tag" },
+              "attributes": [
+                { "key": "tag", "value": { "stringValue": "critical" } }
+              ],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "policies": [
+    {
+      "policy_id": "add-tag1",
+      "hits": 1
+    },
+    {
+      "policy_id": "add-tag2",
+      "hits": 1
+    }
+  ]
+}

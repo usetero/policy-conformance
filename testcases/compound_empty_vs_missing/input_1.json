@@ -1,0 +1,94 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "test" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "has body" },
+              "attributes": [
+                { "key": "optional_tag", "value": { "stringValue": "present" } }
+              ],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "has body no tag" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "has body and trace" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "0af7651916cd43dd8448eb211c80319c",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": "my.event"
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "INFO",
+              "body": { "stringValue": "has event name" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": "test.event"
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-summaries",
+      "name": "Drop summary metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "summary" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

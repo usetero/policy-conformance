@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "remove-nonexistent",
+      "name": "Remove nonexistent attribute (no-op)",
+      "log": {
+        "match": [
+          { "log_field": "body", "exact": "hello" }
+        ],
+        "keep": "all",
+        "transform": {
+          "remove": [
+            { "log_attribute": "nonexistent" }
+          ]
+        }
+      }
+    }
+  ]
+}

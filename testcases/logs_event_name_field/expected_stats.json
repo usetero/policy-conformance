@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-by-event-name",
+      "hits": 1
+    }
+  ]
+}

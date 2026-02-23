@@ -1,0 +1,65 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "gc.pause",
+              "description": "GC pause duration",
+              "unit": "ms",
+              "metadata": [],
+              "summary": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "count": 0,
+                    "sum": 0,
+                    "quantileValues": [
+                      { "quantile": 0.5, "value": 0 },
+                      { "quantile": 0.99, "value": 0 }
+                    ],
+                    "flags": 0
+                  }
+                ]
+              }
+            },
+            {
+              "name": "cpu.idle",
+              "description": "CPU idle percentage",
+              "unit": "1",
+              "metadata": [],
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

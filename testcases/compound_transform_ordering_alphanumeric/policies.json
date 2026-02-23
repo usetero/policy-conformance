@@ -1,0 +1,49 @@
+{
+  "policies": [
+    {
+      "id": "zzz-third-alpha-last",
+      "name": "Alphabetically last, array-first: sets tag=third",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "third", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "aaa-first-alpha-first",
+      "name": "Alphabetically first, array-second: sets tag=first",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "first", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mmm-second-alpha-middle",
+      "name": "Alphabetically middle, array-third: sets tag=second",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "second", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

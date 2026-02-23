@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "rename-missing",
+      "name": "Rename nonexistent attribute (no-op)",
+      "log": {
+        "match": [{ "log_field": "body", "exact": "test" }],
+        "keep": "all",
+        "transform": {
+          "rename": [{ "from_log_attribute": "missing", "to": "found" }]
+        }
+      }
+    }
+  ]
+}

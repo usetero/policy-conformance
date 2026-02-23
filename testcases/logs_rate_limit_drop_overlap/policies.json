@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "id": "rate-limit-api",
+      "name": "Rate limit API logs",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "3/s"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop DEBUG logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

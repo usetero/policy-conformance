@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "policy_id": "aaa-first-alpha-first",
+      "hits": 2
+    },
+    {
+      "policy_id": "mmm-second-alpha-middle",
+      "hits": 2
+    },
+    {
+      "policy_id": "zzz-third-alpha-last",
+      "hits": 2
+    }
+  ]
+}

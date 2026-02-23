@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-debug",
+      "hits": 3
+    },
+    {
+      "policy_id": "rate-limit-api",
+      "hits": 0,
+      "misses": 3
+    }
+  ]
+}

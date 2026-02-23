@@ -1,0 +1,34 @@
+{
+  "policies": [
+    {
+      "id": "drop-exists-false-negated",
+      "name": "Drop logs where body does NOT not-exist (i.e., body exists)",
+      "log": {
+        "match": [
+          { "log_field": "body", "exists": false, "negate": true }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-attr-exists-false-negated",
+      "name": "Keep logs where tag attribute does NOT not-exist (i.e., tag exists)",
+      "log": {
+        "match": [
+          { "log_attribute": "tag", "exists": false, "negate": true }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-negate-exact",
+      "name": "Drop logs where severity is NOT INFO",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO", "negate": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

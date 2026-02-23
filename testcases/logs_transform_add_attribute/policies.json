@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "add-processed-by",
+      "name": "Add processed_by attribute",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "processed" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "processed_by", "value": "policy-engine" }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "policies": [
+    {
+      "id": "zzz-add-second",
+      "name": "Add tag=second (listed first in JSON array)",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "second", "upsert": true }
+          ]
+        }
+      }
+    },
+    {
+      "id": "aaa-add-first",
+      "name": "Add tag=first (listed second in JSON array)",
+      "log": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "tag", "value": "first", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "policies": [
+    {
+      "id": "drop-body-exists",
+      "name": "Drop logs where body exists",
+      "log": {
+        "match": [
+          { "log_field": "body", "exists": true }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-event-name-exists",
+      "name": "Drop logs where event_name exists",
+      "log": {
+        "match": [
+          { "log_field": "event_name", "exists": true }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-trace-id-exists",
+      "name": "Drop logs where trace_id exists",
+      "log": {
+        "match": [
+          { "log_field": "trace_id", "exists": true }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-attr-missing",
+      "name": "Keep logs where optional_tag does NOT exist",
+      "log": {
+        "match": [
+          { "log_attribute": "optional_tag", "exists": false }
+        ],
+        "keep": "all"
+      }
+    }
+  ]
+}

@@ -1075,9 +1075,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "policy-rs"
-version = "1.4.4"
-source = "git+https://github.com/usetero/policy-rs.git?tag=v1.4.4#4b480bb74bbd9d0b6fe8187aac56afad6b172cee"
+version = "1.4.10"
 dependencies = [
+ "fnv",
  "notify",
  "pbjson",
  "pbjson-build",
@@ -1405,6 +1405,7 @@ dependencies = [
 name = "runner-rs"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "clap",
  "policy-rs",
  "serde",

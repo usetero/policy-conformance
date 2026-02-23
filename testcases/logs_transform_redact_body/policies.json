@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "redact-error-body",
+      "name": "Redact body of ERROR logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "ERROR" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            { "log_field": "body", "replacement": "[ERROR REDACTED]" }
+          ]
+        }
+      }
+    }
+  ]
+}

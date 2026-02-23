@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "policy_id": "active-drop-debug",
+      "hits": 1
+    },
+    {
+      "policy_id": "active-keep-errors",
+      "hits": 2
+    },
+    {
+      "policy_id": "active-tag-api",
+      "hits": 2,
+      "misses": 1
+    }
+  ]
+}

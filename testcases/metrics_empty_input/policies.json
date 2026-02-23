@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-gauge",
+      "name": "Drop gauge metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "gauge" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

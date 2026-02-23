@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-schema",
+      "name": "Drop logs from old scope schema URL",
+      "log": {
+        "match": [
+          { "log_field": "scope_schema_url", "exact": "https://opentelemetry.io/schemas/1.20.0" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

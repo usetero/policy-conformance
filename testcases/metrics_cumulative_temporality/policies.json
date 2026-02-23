@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-cumulative",
+      "name": "Drop metrics with cumulative aggregation temporality",
+      "metric": {
+        "match": [
+          { "aggregation_temporality": "cumulative" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

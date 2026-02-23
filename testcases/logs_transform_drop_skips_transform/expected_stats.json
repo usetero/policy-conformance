@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-with-transform",
+      "hits": 1
+    }
+  ]
+}

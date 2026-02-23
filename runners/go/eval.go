@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/usetero/policy-go"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
 	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
@@ -12,9 +14,11 @@ import (
 // ─── Context types ───────────────────────────────────────────────────
 
 type LogContext struct {
-	Record   *logspb.LogRecord
-	Resource *resourcepb.Resource
-	Scope    *commonpb.InstrumentationScope
+	Record            *logspb.LogRecord
+	Resource          *resourcepb.Resource
+	Scope             *commonpb.InstrumentationScope
+	ResourceSchemaURL string
+	ScopeSchemaURL    string
 }
 
 type MetricContext struct {
@@ -22,12 +26,16 @@ type MetricContext struct {
 	DatapointAttributes []*commonpb.KeyValue
 	Resource            *resourcepb.Resource
 	Scope               *commonpb.InstrumentationScope
+	ResourceSchemaURL   string
+	ScopeSchemaURL      string
 }
 
 type TraceContext struct {
-	Span     *tracepb.Span
-	Resource *resourcepb.Resource
-	Scope    *commonpb.InstrumentationScope
+	Span              *tracepb.Span
+	Resource          *resourcepb.Resource
+	Scope             *commonpb.InstrumentationScope
+	ResourceSchemaURL string
+	ScopeSchemaURL    string
 }
 
 // ─── Attribute helpers ───────────────────────────────────────────────
@@ -37,6 +45,28 @@ func findAttribute(attrs []*commonpb.KeyValue, key string) []byte {
 		if kv.Key == key {
 			return anyValueBytes(kv.Value)
 		}
+	}
+	return nil
+}
+
+func findAttributePath(attrs []*commonpb.KeyValue, path []string) []byte {
+	if len(path) == 0 {
+		return nil
+	}
+	for _, kv := range attrs {
+		if kv.Key != path[0] {
+			continue
+		}
+		if len(path) == 1 {
+			return anyValueBytes(kv.Value)
+		}
+		// Traverse into nested kvlist
+		if kv.Value != nil {
+			if kvl, ok := kv.Value.Value.(*commonpb.AnyValue_KvlistValue); ok && kvl.KvlistValue != nil {
+				return findAttributePath(kvl.KvlistValue.Values, path[1:])
+			}
+		}
+		return nil
 	}
 	return nil
 }
@@ -113,6 +143,21 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 				return nil
 			}
 			return ctx.Record.SpanId
+		case policy.LogFieldEventName:
+			if ctx.Record.EventName == "" {
+				return nil
+			}
+			return []byte(ctx.Record.EventName)
+		case policy.LogFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.LogFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}
@@ -129,11 +174,7 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := attrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 // ─── Metric matcher ──────────────────────────────────────────────────
@@ -160,6 +201,26 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 			return []byte(metricType(ctx.Metric))
 		case policy.MetricFieldAggregationTemporality:
 			return []byte(aggregationTemporality(ctx.Metric))
+		case policy.MetricFieldScopeName:
+			if ctx.Scope == nil || ctx.Scope.Name == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Name)
+		case policy.MetricFieldScopeVersion:
+			if ctx.Scope == nil || ctx.Scope.Version == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Version)
+		case policy.MetricFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.MetricFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}
@@ -176,11 +237,7 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := metricAttrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 func metricType(m *metricspb.Metric) string {
@@ -261,6 +318,33 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 				return nil
 			}
 			return []byte(statusCodeString(ctx.Span.Status.Code))
+		case policy.TraceFieldEventName:
+			for _, evt := range ctx.Span.Events {
+				if evt.Name != "" {
+					return []byte(evt.Name)
+				}
+			}
+			return nil
+		case policy.TraceFieldScopeName:
+			if ctx.Scope == nil || ctx.Scope.Name == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Name)
+		case policy.TraceFieldScopeVersion:
+			if ctx.Scope == nil || ctx.Scope.Version == "" {
+				return nil
+			}
+			return []byte(ctx.Scope.Version)
+		case policy.TraceFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ResourceSchemaURL)
+		case policy.TraceFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return nil
+			}
+			return []byte(ctx.ScopeSchemaURL)
 		default:
 			return nil
 		}
@@ -277,11 +361,7 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 	default:
 		return nil
 	}
-	key := traceAttrPath(ref)
-	if key == "" {
-		return nil
-	}
-	return findAttribute(attrs, key)
+	return findAttributePath(attrs, ref.AttrPath)
 }
 
 func spanKindString(k tracepb.Span_SpanKind) string {
@@ -312,6 +392,273 @@ func statusCodeString(c tracepb.Status_StatusCode) string {
 	default:
 		return ""
 	}
+}
+
+// ─── Log transformer ─────────────────────────────────────────────────
+
+func OTelLogTransformer(ctx *LogContext, op policy.TransformOp) bool {
+	switch op.Kind {
+	case policy.TransformRemove:
+		return otelLogRemove(ctx, op.Ref)
+	case policy.TransformRedact:
+		return otelLogRedact(ctx, op.Ref, op.Value)
+	case policy.TransformRename:
+		return otelLogRename(ctx, op.Ref, op.To, op.Upsert)
+	case policy.TransformAdd:
+		return otelLogAdd(ctx, op.Ref, op.Value, op.Upsert)
+	}
+	return false
+}
+
+func otelLogRemove(ctx *LogContext, ref policy.LogFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			hit := ctx.Record.Body != nil
+			ctx.Record.Body = nil
+			return hit
+		case policy.LogFieldSeverityText:
+			hit := ctx.Record.SeverityText != ""
+			ctx.Record.SeverityText = ""
+			return hit
+		case policy.LogFieldTraceID:
+			hit := len(ctx.Record.TraceId) > 0
+			ctx.Record.TraceId = nil
+			return hit
+		case policy.LogFieldSpanID:
+			hit := len(ctx.Record.SpanId) > 0
+			ctx.Record.SpanId = nil
+			return hit
+		case policy.LogFieldEventName:
+			hit := ctx.Record.EventName != ""
+			ctx.Record.EventName = ""
+			return hit
+		}
+		return false
+	}
+	return removeAttribute(otelLogAttrs(ctx, ref), attrPath(ref))
+}
+
+func otelLogRedact(ctx *LogContext, ref policy.LogFieldRef, replacement string) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			hit := ctx.Record.Body != nil
+			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
+			return hit
+		case policy.LogFieldSeverityText:
+			hit := ctx.Record.SeverityText != ""
+			ctx.Record.SeverityText = replacement
+			return hit
+		case policy.LogFieldTraceID:
+			hit := len(ctx.Record.TraceId) > 0
+			ctx.Record.TraceId = []byte(replacement)
+			return hit
+		case policy.LogFieldSpanID:
+			hit := len(ctx.Record.SpanId) > 0
+			ctx.Record.SpanId = []byte(replacement)
+			return hit
+		case policy.LogFieldEventName:
+			hit := ctx.Record.EventName != ""
+			ctx.Record.EventName = replacement
+			return hit
+		}
+		return false
+	}
+	attrs := otelLogAttrs(ctx, ref)
+	key := attrPath(ref)
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
+	return true
+}
+
+func otelLogRename(ctx *LogContext, ref policy.LogFieldRef, to string, upsert bool) bool {
+	if ref.IsField() {
+		return false // renaming fixed fields not supported
+	}
+	attrs := otelLogAttrs(ctx, ref)
+	key := attrPath(ref)
+	if key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	val := anyValueBytes((*attrs)[idx].Value)
+	if !upsert {
+		if findAttributeIndex(*attrs, to) >= 0 {
+			return true // source existed but target blocked
+		}
+	}
+	// Remove source
+	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
+	// Set target
+	if val != nil {
+		setAttribute(attrs, to, string(val), true)
+	} else {
+		setAttribute(attrs, to, "", true)
+	}
+	return true
+}
+
+func otelLogAdd(ctx *LogContext, ref policy.LogFieldRef, value string, upsert bool) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			if !upsert && ctx.Record.Body != nil {
+				return true
+			}
+			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+			return true
+		case policy.LogFieldSeverityText:
+			if !upsert && ctx.Record.SeverityText != "" {
+				return true
+			}
+			ctx.Record.SeverityText = value
+			return true
+		case policy.LogFieldTraceID:
+			if !upsert && len(ctx.Record.TraceId) > 0 {
+				return true
+			}
+			ctx.Record.TraceId = []byte(value)
+			return true
+		case policy.LogFieldSpanID:
+			if !upsert && len(ctx.Record.SpanId) > 0 {
+				return true
+			}
+			ctx.Record.SpanId = []byte(value)
+			return true
+		case policy.LogFieldEventName:
+			if !upsert && ctx.Record.EventName != "" {
+				return true
+			}
+			ctx.Record.EventName = value
+			return true
+		}
+		return false
+	}
+	return setAttribute(otelLogAttrs(ctx, ref), attrPath(ref), value, upsert)
+}
+
+func otelLogAttrs(ctx *LogContext, ref policy.LogFieldRef) *[]*commonpb.KeyValue {
+	switch {
+	case ref.IsRecordAttr():
+		return &ctx.Record.Attributes
+	case ref.IsResourceAttr():
+		if ctx.Resource == nil {
+			return nil
+		}
+		return &ctx.Resource.Attributes
+	case ref.IsScopeAttr():
+		if ctx.Scope == nil {
+			return nil
+		}
+		return &ctx.Scope.Attributes
+	}
+	return nil
+}
+
+func findAttributeIndex(attrs []*commonpb.KeyValue, key string) int {
+	for i, kv := range attrs {
+		if kv.Key == key {
+			return i
+		}
+	}
+	return -1
+}
+
+func removeAttribute(attrs *[]*commonpb.KeyValue, key string) bool {
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx < 0 {
+		return false
+	}
+	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
+	return true
+}
+
+func setAttribute(attrs *[]*commonpb.KeyValue, key, value string, upsert bool) bool {
+	if attrs == nil || key == "" {
+		return false
+	}
+	idx := findAttributeIndex(*attrs, key)
+	if idx >= 0 {
+		if !upsert {
+			return true // exists but not overwriting
+		}
+		(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+		return true
+	}
+	*attrs = append(*attrs, &commonpb.KeyValue{
+		Key:   key,
+		Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}},
+	})
+	return true
+}
+
+// ─── Trace transformer ──────────────────────────────────────────────
+
+func OTelTraceTransformer(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
+	if ref.Field == policy.SpanSamplingThreshold().Field {
+		ctx.Span.TraceState = mergeOTTracestate(ctx.Span.TraceState, "th:"+value)
+	}
+}
+
+// mergeOTTracestate merges an OpenTelemetry sub-key (e.g. "th:8000") into a
+// W3C tracestate string under the "ot" vendor key.
+func mergeOTTracestate(tracestate, subkv string) string {
+	subKey := subkv
+	if idx := strings.Index(subkv, ":"); idx >= 0 {
+		subKey = subkv[:idx]
+	}
+
+	var otParts []string
+	var otherVendors []string
+
+	// Parse existing tracestate vendors
+	if tracestate != "" {
+		for _, vendor := range strings.Split(tracestate, ",") {
+			vendor = strings.TrimSpace(vendor)
+			if vendor == "" {
+				continue
+			}
+			if strings.HasPrefix(vendor, "ot=") {
+				// Parse existing ot sub-keys
+				otValue := vendor[3:]
+				for _, part := range strings.Split(otValue, ";") {
+					part = strings.TrimSpace(part)
+					if part == "" {
+						continue
+					}
+					partKey := part
+					if idx := strings.Index(part, ":"); idx >= 0 {
+						partKey = part[:idx]
+					}
+					if partKey != subKey {
+						otParts = append(otParts, part)
+					}
+				}
+			} else {
+				otherVendors = append(otherVendors, vendor)
+			}
+		}
+	}
+
+	otParts = append(otParts, subkv)
+	result := "ot=" + strings.Join(otParts, ";")
+	if len(otherVendors) > 0 {
+		result += "," + strings.Join(otherVendors, ",")
+	}
+	return result
 }
 
 // ─── Datapoint attribute helpers ─────────────────────────────────────

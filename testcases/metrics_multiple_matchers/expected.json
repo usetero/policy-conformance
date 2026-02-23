@@ -1,0 +1,52 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "staging"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "http.requests",
+              "description": "Total HTTP requests",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                "isMonotonic": false
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

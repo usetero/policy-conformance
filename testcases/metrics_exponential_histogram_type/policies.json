@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-exp-histograms",
+      "name": "Drop exponential histogram metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "exponential_histogram" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

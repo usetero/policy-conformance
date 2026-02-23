@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-sum-metrics",
+      "name": "Drop all sum metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "sum" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

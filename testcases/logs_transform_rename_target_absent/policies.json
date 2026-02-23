@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rename-target-absent",
+      "name": "Rename attribute when target does not exist (normal rename)",
+      "log": {
+        "match": [{ "log_field": "severity_text", "exact": "INFO" }],
+        "keep": "all",
+        "transform": {
+          "rename": [
+            { "from_log_attribute": "temp_id", "to": "user_id", "upsert": false }
+          ]
+        }
+      }
+    }
+  ]
+}

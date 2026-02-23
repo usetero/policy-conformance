@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug-desc",
+      "name": "Drop metrics with debug in description",
+      "metric": {
+        "match": [
+          { "metric_field": "description", "contains": "debug" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

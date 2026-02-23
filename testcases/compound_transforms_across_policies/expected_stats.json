@@ -1,0 +1,24 @@
+{
+  "policies": [
+    {
+      "policy_id": "add-env-tag",
+      "hits": 4
+    },
+    {
+      "policy_id": "add-region-tag",
+      "hits": 4
+    },
+    {
+      "policy_id": "add-team-tag",
+      "hits": 3
+    },
+    {
+      "policy_id": "redact-secrets",
+      "hits": 2
+    },
+    {
+      "policy_id": "rename-legacy-attr",
+      "hits": 2
+    }
+  ]
+}

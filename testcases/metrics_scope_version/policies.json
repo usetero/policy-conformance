@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-scope",
+      "name": "Drop metrics from old scope version",
+      "metric": {
+        "match": [
+          { "metric_field": "scope_version", "exact": "0.1.0" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

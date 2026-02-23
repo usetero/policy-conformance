@@ -1,0 +1,115 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "web-service" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "DEBUG",
+              "body": { "stringValue": "debug from web" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "WARN",
+              "body": { "stringValue": "warn from web" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": { "stringValue": "error from web" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    },
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "api-service" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "DEBUG",
+              "body": { "stringValue": "debug from api" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            },
+            {
+              "timeUnixNano": 0,
+              "observedTimeUnixNano": 0,
+              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "severityText": "ERROR",
+              "body": { "stringValue": "error from api" },
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "flags": 0,
+              "traceId": "",
+              "spanId": "",
+              "eventName": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

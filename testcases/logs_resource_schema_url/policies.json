@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-schema",
+      "name": "Drop logs from old schema version",
+      "log": {
+        "match": [
+          { "log_field": "resource_schema_url", "contains": "v1.0.0" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

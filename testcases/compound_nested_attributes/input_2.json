@@ -1,0 +1,85 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "api" } }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "0af7651916cd43dd8448eb211c80319c",
+              "spanId": "00f067aa0ba902b7",
+              "parentSpanId": "",
+              "name": "db.query",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1000000000",
+              "endTimeUnixNano": "2000000000",
+              "attributes": [
+                {
+                  "key": "db",
+                  "value": {
+                    "kvlistValue": {
+                      "values": [
+                        { "key": "statement", "value": { "stringValue": "SELECT" } }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "code": "STATUS_CODE_OK" },
+              "flags": 1,
+              "traceState": ""
+            },
+            {
+              "traceId": "0af7651916cd43dd8448eb211c80319c",
+              "spanId": "00f067aa0ba902b8",
+              "parentSpanId": "",
+              "name": "db.query",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": "1000000000",
+              "endTimeUnixNano": "2000000000",
+              "attributes": [
+                {
+                  "key": "db",
+                  "value": {
+                    "kvlistValue": {
+                      "values": [
+                        { "key": "statement", "value": { "stringValue": "INSERT" } }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": { "code": "STATUS_CODE_OK" },
+              "flags": 1,
+              "traceState": ""
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

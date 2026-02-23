@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-warn-regex",
+      "name": "Drop warning logs (case insensitive regex)",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^warning:", "case_insensitive": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

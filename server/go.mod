@@ -3,10 +3,12 @@ module github.com/usetero/policy-conformance/server
 go 1.24.0
 
 require (
-	github.com/usetero/policy-go v1.3.4
+	github.com/usetero/policy-go v1.3.5
 	google.golang.org/grpc v1.79.1
 	google.golang.org/protobuf v1.36.11
 )
+
+replace github.com/usetero/policy-go => ../../policy-go
 
 require (
 	github.com/flier/gohs v1.2.3 // indirect

@@ -1,0 +1,129 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "staging"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "staging.metrics",
+            "version": "1.0.0",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "http.requests",
+              "description": "HTTP requests",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                "isMonotonic": false
+              }
+            }
+          ],
+          "schemaUrl": ""
+        },
+        {
+          "scope": {
+            "name": "staging.system",
+            "version": "1.0.0",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "system.cpu.load",
+              "description": "CPU load",
+              "unit": "1",
+              "metadata": [],
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "deployment.environment",
+            "value": {
+              "stringValue": "production"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "prod.metrics",
+            "version": "2.0.0",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "http.requests",
+              "description": "HTTP requests",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                "isMonotonic": false
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

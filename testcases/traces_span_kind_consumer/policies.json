@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-consumer-spans",
+      "name": "Drop consumer spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_CONSUMER", "exists": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

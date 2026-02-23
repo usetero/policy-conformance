@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-system-ci",
+      "name": "Drop metrics containing SYSTEM (case insensitive)",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "contains": "SYSTEM", "case_insensitive": true }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

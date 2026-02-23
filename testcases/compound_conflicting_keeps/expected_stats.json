@@ -1,0 +1,41 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-debug",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-health-body",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-trace-logs",
+      "hits": 2
+    },
+    {
+      "policy_id": "drop-verbose",
+      "hits": 0,
+      "misses": 2
+    },
+    {
+      "policy_id": "keep-all-api",
+      "hits": 2,
+      "misses": 3
+    },
+    {
+      "policy_id": "keep-all-auth",
+      "hits": 1,
+      "misses": 2
+    },
+    {
+      "policy_id": "keep-all-errors",
+      "hits": 2,
+      "misses": 1
+    },
+    {
+      "policy_id": "keep-all-payments",
+      "hits": 2,
+      "misses": 1
+    }
+  ]
+}

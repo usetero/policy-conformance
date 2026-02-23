@@ -1,0 +1,72 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "metrics": [
+            {
+              "name": "request.latency",
+              "description": "Request latency distribution",
+              "unit": "ms",
+              "metadata": [],
+              "exponentialHistogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "count": 0,
+                    "sum": 0,
+                    "scale": 0,
+                    "zeroCount": 0,
+                    "positive": { "offset": 0, "bucketCounts": [] },
+                    "negative": { "offset": 0, "bucketCounts": [] },
+                    "exemplars": [],
+                    "flags": 0,
+                    "min": 0,
+                    "max": 0,
+                    "zeroThreshold": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
+              }
+            },
+            {
+              "name": "request.count",
+              "description": "Total request count",
+              "unit": "1",
+              "metadata": [],
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [],
+                    "startTimeUnixNano": 0,
+                    "timeUnixNano": 0,
+                    "exemplars": [],
+                    "flags": 0,
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                "isMonotonic": false
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "disabled-transform",
+      "name": "Disabled policy with transforms should be skipped",
+      "enabled": false,
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "add": [{ "log_attribute": "should_not_appear", "value": "true" }],
+          "redact": [{ "log_attribute": "secret", "replacement": "[REDACTED]" }]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-error-spans",
+      "name": "Drop all spans with ERROR status",
+      "trace": {
+        "match": [
+          { "span_status": "SPAN_STATUS_CODE_ERROR", "exists": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

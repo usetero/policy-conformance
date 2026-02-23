@@ -1,14 +1,13 @@
 .{
     .name = .runner_zig,
     .version = "0.1.0",
-    .fingerprint = 0xc320c559d1fd6c72,
-    .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .policy_zig = .{
-            .url = "https://github.com/usetero/policy-zig/archive/v0.1.8.tar.gz",
-            .hash = "policy_zig-0.1.7-5_dp3nx1DgBI1Wsfk8ubLM0ChMTVfvc_92C03KKmUcjz",
+            .path = "../../../policy-zig",
         },
     },
+    .fingerprint = 0xc320c559d1fd6c72,
+    .minimum_zig_version = "0.15.1",
     .paths = .{
         "build.zig",
         "build.zig.zon",

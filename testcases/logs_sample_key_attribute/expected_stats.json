@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "sample-by-request-id",
+      "hits": 3
+    }
+  ]
+}

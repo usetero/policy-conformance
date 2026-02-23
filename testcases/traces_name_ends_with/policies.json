@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-retry-suffix",
+      "name": "Drop retry spans",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "ends_with": ".retry" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

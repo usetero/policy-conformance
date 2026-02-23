@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "rename-usr",
+      "name": "Rename usr to user_id",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "rename": [{ "from_log_attribute": "usr", "to": "user_id" }]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "policies": [
+    {
+      "id": "aaa-add-marker",
+      "name": "Add marker attribute to all INFO logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "marker", "value": "tagged", "upsert": false }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bbb-drop-marked",
+      "name": "Drop logs that have marker=tagged",
+      "log": {
+        "match": [
+          { "log_attribute": "marker", "exact": "tagged" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "ccc-add-second-marker",
+      "name": "Add second marker to WARN logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "WARN" }
+        ],
+        "keep": "all",
+        "transform": {
+          "add": [
+            { "log_attribute": "marker", "value": "warn-tagged", "upsert": false }
+          ]
+        }
+      }
+    }
+  ]
+}

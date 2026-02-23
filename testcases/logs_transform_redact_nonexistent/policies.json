@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "redact-missing",
+      "name": "Redact nonexistent attribute (no-op)",
+      "log": {
+        "match": [
+          { "log_field": "body", "exact": "test" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            { "log_attribute": "missing", "replacement": "[REDACTED]" }
+          ]
+        }
+      }
+    }
+  ]
+}

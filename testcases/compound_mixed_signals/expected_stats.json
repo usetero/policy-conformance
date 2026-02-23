@@ -1,0 +1,28 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-debug-logs",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-health-spans",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-internal-metrics",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-error-logs",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-error-spans",
+      "hits": 1
+    },
+    {
+      "policy_id": "keep-http-metrics",
+      "hits": 1
+    }
+  ]
+}

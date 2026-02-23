@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "redact-resource-token",
+      "name": "Redact auth.token resource attribute",
+      "log": {
+        "match": [{ "log_field": "body", "regex": "^.*$" }],
+        "keep": "all",
+        "transform": {
+          "redact": [{ "resource_attribute": "auth.token", "replacement": "[REDACTED]" }]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "drop-staging-gauges",
+      "name": "Drop gauge metrics from staging",
+      "metric": {
+        "match": [
+          { "metric_type": "gauge" },
+          { "resource_attribute": "deployment.environment", "exact": "staging" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

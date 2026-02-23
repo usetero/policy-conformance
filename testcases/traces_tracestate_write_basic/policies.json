@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "sample-50pct",
+      "name": "Sample at 50% to verify tracestate write",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0
+        }
+      }
+    }
+  ]
+}

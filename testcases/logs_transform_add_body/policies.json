@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "add-body",
+      "name": "Add body to logs without one",
+      "log": {
+        "match": [{ "log_field": "severity_text", "exact": "INFO" }],
+        "keep": "all",
+        "transform": {
+          "add": [{ "log_field": "body", "value": "[no body provided]" }]
+        }
+      }
+    }
+  ]
+}

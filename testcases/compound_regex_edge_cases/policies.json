@@ -1,0 +1,84 @@
+{
+  "policies": [
+    {
+      "id": "drop-digits-only",
+      "name": "Drop logs where body is all digits",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^[0-9]+$" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-non-alpha-severity",
+      "name": "Drop logs with non-alpha chars in severity",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "regex": "[^A-Za-z]" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-special-chars-body",
+      "name": "Drop logs with parens or brackets in body",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "[()\\[\\]]" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-uuid-pattern",
+      "name": "Drop logs with UUID-like patterns in body",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-dot-star-anchored",
+      "name": "Drop logs starting with ERROR and ending with timeout",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^ERROR.*timeout$" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-pipe-alternation",
+      "name": "Drop DEBUG or TRACE severity using pipe alternation",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "regex": "^(DEBUG|TRACE)$" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "keep-word-boundary-like",
+      "name": "Keep logs where body contains standalone word 'error'",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "(^|\\s)error(\\s|$)", "case_insensitive": true }
+        ],
+        "keep": "all"
+      }
+    },
+    {
+      "id": "drop-empty-body-regex",
+      "name": "Drop logs matching empty anchor pattern",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^$" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-non-client",
+      "name": "Drop spans that are NOT client spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_CLIENT", "exists": true, "negate": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

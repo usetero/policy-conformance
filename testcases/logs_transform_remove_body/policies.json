@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": "remove-debug-body",
+      "name": "Remove body from debug logs",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "DEBUG" }
+        ],
+        "keep": "all",
+        "transform": {
+          "remove": [
+            { "log_field": "body" }
+          ]
+        }
+      }
+    }
+  ]
+}

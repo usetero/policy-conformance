@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "sample-api-spans",
+      "name": "Sample API spans at 50%",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": {
+          "percentage": 50.0
+        }
+      }
+    }
+  ]
+}

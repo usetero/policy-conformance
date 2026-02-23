@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "hits": 1,
+      "policy_id": "add-resource-attr-to-errors"
+    },
+    {
+      "hits": 1,
+      "policy_id": "add-scope-attr-to-warn"
+    },
+    {
+      "hits": 2,
+      "policy_id": "rename-resource-attr-info"
+    }
+  ]
+}

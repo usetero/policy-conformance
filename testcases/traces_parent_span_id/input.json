@@ -1,0 +1,88 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [],
+        "droppedAttributesCount": 0,
+        "entityRefs": []
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
+            "attributes": [],
+            "droppedAttributesCount": 0
+          },
+          "spans": [
+            {
+              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "spanId": "EjRWeJCrze8=",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "GET /api/users",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "spanId": "q83vEjRWeJA=",
+              "traceState": "",
+              "parentSpanId": "EjRWeJCrze8=",
+              "flags": 0,
+              "name": "db.query SELECT users",
+              "kind": "SPAN_KIND_CLIENT",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
+              "spanId": "CYdlQyH+3Lo=",
+              "traceState": "",
+              "parentSpanId": "/ty6CYdlQyA=",
+              "flags": 0,
+              "name": "cache.lookup",
+              "kind": "SPAN_KIND_INTERNAL",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}

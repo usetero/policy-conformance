@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "fail-closed-50pct",
+      "name": "50% sampling with fail_closed true",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "test-svc" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "fail_closed": true
+        }
+      }
+    }
+  ]
+}

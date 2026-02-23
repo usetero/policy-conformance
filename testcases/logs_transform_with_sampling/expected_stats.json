@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "sample-and-transform",
+      "hits": 2
+    }
+  ]
+}

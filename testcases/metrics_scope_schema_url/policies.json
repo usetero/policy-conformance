@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-old-schema",
+      "name": "Drop metrics from old scope schema URL",
+      "metric": {
+        "match": [
+          { "metric_field": "scope_schema_url", "exact": "https://opentelemetry.io/schemas/1.20.0" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

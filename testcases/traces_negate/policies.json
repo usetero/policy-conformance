@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "drop-non-server",
+      "name": "Drop spans that are NOT server spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_SERVER", "exists": true, "negate": true }
+        ],
+        "keep": {
+          "percentage": 0.0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-no-team-attr",
+      "name": "Drop metrics without team attribute",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": "team", "exists": false }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

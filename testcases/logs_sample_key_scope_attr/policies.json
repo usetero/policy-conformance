@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "sample-by-scope-attr",
+      "name": "Sample 0% by scope library.name attribute",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "0%",
+        "sample_key": { "scope_attribute": "library.name" }
+      }
+    }
+  ]
+}

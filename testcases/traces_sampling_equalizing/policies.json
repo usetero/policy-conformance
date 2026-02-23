@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "equalizing-50pct",
+      "name": "Equalizing sampling at 50%",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "api-server" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "mode": "SAMPLING_MODE_EQUALIZING"
+        }
+      }
+    }
+  ]
+}

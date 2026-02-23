@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-has-env",
+      "name": "Drop logs where env attribute exists",
+      "log": {
+        "match": [
+          { "log_attribute": "env", "exists": true }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

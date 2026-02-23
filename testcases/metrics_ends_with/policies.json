@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-total-suffix",
+      "name": "Drop metrics ending with .total",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "ends_with": ".total" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

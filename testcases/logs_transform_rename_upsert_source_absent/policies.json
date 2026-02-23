@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rename-upsert-source-absent",
+      "name": "Rename non-existent source with upsert (still no-op)",
+      "log": {
+        "match": [{ "log_field": "severity_text", "exact": "INFO" }],
+        "keep": "all",
+        "transform": {
+          "rename": [
+            { "from_log_attribute": "nonexistent", "to": "new_name", "upsert": true }
+          ]
+        }
+      }
+    }
+  ]
+}

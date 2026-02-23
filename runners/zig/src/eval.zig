@@ -19,9 +19,12 @@ const Resource = proto.resource.Resource;
 // resource_attributes and scope_attributes from the parent containers.
 
 pub const LogContext = struct {
-    record: *const LogRecord,
-    resource: ?*const Resource,
-    scope: ?*const InstrumentationScope,
+    record: *LogRecord,
+    resource: ?*Resource,
+    scope: ?*InstrumentationScope,
+    allocator: std.mem.Allocator,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 pub const MetricContext = struct {
@@ -29,12 +32,17 @@ pub const MetricContext = struct {
     datapoint_attributes: []const KeyValue,
     resource: ?*const Resource,
     scope: ?*const InstrumentationScope,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 pub const TraceContext = struct {
-    span: *const Span,
+    span: *Span,
     resource: ?*const Resource,
     scope: ?*const InstrumentationScope,
+    allocator: std.mem.Allocator,
+    resource_schema_url: []const u8,
+    scope_schema_url: []const u8,
 };
 
 // ─── Attribute helpers ───────────────────────────────────────────────
@@ -43,6 +51,24 @@ fn findAttribute(attrs: []const KeyValue, key: []const u8) ?[]const u8 {
     for (attrs) |kv| {
         if (std.mem.eql(u8, kv.key, key)) {
             return anyValueString(kv.value);
+        }
+    }
+    return null;
+}
+
+fn findAttributePath(attrs: []const KeyValue, path: []const []const u8) ?[]const u8 {
+    if (path.len == 0) return null;
+    for (attrs) |kv| {
+        if (!std.mem.eql(u8, kv.key, path[0])) continue;
+        if (path.len == 1) {
+            return anyValueString(kv.value);
+        }
+        // Traverse into nested kvlist
+        const av = kv.value orelse return null;
+        const inner = av.value orelse return null;
+        switch (inner) {
+            .kvlist_value => |kvlist| return findAttributePath(kvlist.values.items, path[1..]),
+            else => return null,
         }
     }
     return null;
@@ -88,20 +114,14 @@ pub fn logFieldAccessor(ctx: *const anyopaque, field: FieldRef) ?[]const u8 {
             .LOG_FIELD_SEVERITY_TEXT => nonEmpty(lc.record.severity_text),
             .LOG_FIELD_TRACE_ID => nonEmpty(lc.record.trace_id),
             .LOG_FIELD_SPAN_ID => nonEmpty(lc.record.span_id),
+            .LOG_FIELD_EVENT_NAME => nonEmpty(lc.record.event_name),
+            .LOG_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(lc.resource_schema_url),
+            .LOG_FIELD_SCOPE_SCHEMA_URL => nonEmpty(lc.scope_schema_url),
             else => null,
         },
-        .log_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(lc.record.attributes.items, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(lc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(lc.scope), key);
-        },
+        .log_attribute => |attr| findAttributePath(lc.record.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(lc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(lc.scope), attr.path.items),
     };
 }
 
@@ -114,20 +134,15 @@ pub fn metricFieldAccessor(ctx: *const anyopaque, field: MetricFieldRef) ?[]cons
             .METRIC_FIELD_NAME => nonEmpty(mc.metric.name),
             .METRIC_FIELD_DESCRIPTION => nonEmpty(mc.metric.description),
             .METRIC_FIELD_UNIT => nonEmpty(mc.metric.unit),
+            .METRIC_FIELD_SCOPE_NAME => if (mc.scope) |s| nonEmpty(s.name) else null,
+            .METRIC_FIELD_SCOPE_VERSION => if (mc.scope) |s| nonEmpty(s.version) else null,
+            .METRIC_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(mc.resource_schema_url),
+            .METRIC_FIELD_SCOPE_SCHEMA_URL => nonEmpty(mc.scope_schema_url),
             else => null,
         },
-        .datapoint_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(mc.datapoint_attributes, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(mc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(mc.scope), key);
-        },
+        .datapoint_attribute => |attr| findAttributePath(mc.datapoint_attributes, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(mc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(mc.scope), attr.path.items),
         .metric_type => |requested_type| blk: {
             const data = mc.metric.data orelse break :blk null;
             const actual_type: @TypeOf(requested_type) = switch (data) {
@@ -163,20 +178,15 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
             .TRACE_FIELD_SPAN_ID => nonEmpty(tc.span.span_id),
             .TRACE_FIELD_PARENT_SPAN_ID => nonEmpty(tc.span.parent_span_id),
             .TRACE_FIELD_TRACE_STATE => nonEmpty(tc.span.trace_state),
+            .TRACE_FIELD_SCOPE_NAME => if (tc.scope) |s| nonEmpty(s.name) else null,
+            .TRACE_FIELD_SCOPE_VERSION => if (tc.scope) |s| nonEmpty(s.version) else null,
+            .TRACE_FIELD_RESOURCE_SCHEMA_URL => nonEmpty(tc.resource_schema_url),
+            .TRACE_FIELD_SCOPE_SCHEMA_URL => nonEmpty(tc.scope_schema_url),
             else => null,
         },
-        .span_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(tc.span.attributes.items, key);
-        },
-        .resource_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(resourceAttrs(tc.resource), key);
-        },
-        .scope_attribute => |attr| blk: {
-            const key = attrKey(attr) orelse break :blk null;
-            break :blk findAttribute(scopeAttrs(tc.scope), key);
-        },
+        .span_attribute => |attr| findAttributePath(tc.span.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePath(resourceAttrs(tc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePath(scopeAttrs(tc.scope), attr.path.items),
         .span_kind => |requested_kind| blk: {
             // Compare by integer value — OTel SpanKind and policy SpanKind share values
             break :blk if (@intFromEnum(tc.span.kind) == @intFromEnum(requested_kind))
@@ -192,12 +202,250 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
             else
                 null;
         },
-        .event_name, .event_attribute, .link_trace_id => null,
+        .event_name => |requested_name| blk: {
+            for (tc.span.events.items) |evt| {
+                if (evt.name.len > 0 and std.mem.eql(u8, evt.name, requested_name)) {
+                    break :blk evt.name;
+                }
+            }
+            break :blk null;
+        },
+        .event_attribute, .link_trace_id => null,
     };
+}
+
+// ─── Trace field mutator ────────────────────────────────────────────
+
+const TraceMutateOp = policy.TraceMutateOp;
+
+pub fn traceFieldMutator(ctx: *anyopaque, op: TraceMutateOp) bool {
+    const tc: *TraceContext = @ptrCast(@alignCast(ctx));
+    switch (op) {
+        .set => |s| {
+            switch (s.field) {
+                .trace_field => |tf| {
+                    if (tf == .TRACE_FIELD_TRACE_STATE) {
+                        // The engine writes the raw threshold hex value.
+                        // We must merge it into the W3C tracestate as ot=th:VALUE.
+                        tc.span.trace_state = mergeOTTracestate(tc.allocator, tc.span.trace_state, s.value);
+                        return true;
+                    }
+                },
+                else => {},
+            }
+        },
+        else => {},
+    }
+    return false;
+}
+
+fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_value: []const u8) []const u8 {
+    // Build "ot=th:VALUE" or merge into existing tracestate
+    var ot_parts: std.ArrayListUnmanaged(u8) = .empty;
+    var other_vendors: std.ArrayListUnmanaged(u8) = .empty;
+
+    if (tracestate.len > 0) {
+        var vendors = std.mem.splitScalar(u8, tracestate, ',');
+        while (vendors.next()) |vendor_raw| {
+            const vendor = std.mem.trim(u8, vendor_raw, " ");
+            if (vendor.len == 0) continue;
+            if (std.mem.startsWith(u8, vendor, "ot=")) {
+                const ot_value = vendor[3..];
+                var parts = std.mem.splitScalar(u8, ot_value, ';');
+                while (parts.next()) |part_raw| {
+                    const part = std.mem.trim(u8, part_raw, " ");
+                    if (part.len == 0) continue;
+                    // Skip existing th: sub-key
+                    if (std.mem.startsWith(u8, part, "th:")) continue;
+                    if (ot_parts.items.len > 0) ot_parts.appendSlice(allocator, ";") catch {};
+                    ot_parts.appendSlice(allocator, part) catch {};
+                }
+            } else {
+                if (other_vendors.items.len > 0) other_vendors.appendSlice(allocator, ",") catch {};
+                other_vendors.appendSlice(allocator, vendor) catch {};
+            }
+        }
+    }
+
+    // Build result: ot=[existing_subkeys;]th:VALUE[,other_vendors]
+    var result: std.ArrayListUnmanaged(u8) = .empty;
+    result.appendSlice(allocator, "ot=") catch {};
+    if (ot_parts.items.len > 0) {
+        result.appendSlice(allocator, ot_parts.items) catch {};
+        result.appendSlice(allocator, ";") catch {};
+    }
+    result.appendSlice(allocator, "th:") catch {};
+    result.appendSlice(allocator, th_value) catch {};
+    if (other_vendors.items.len > 0) {
+        result.appendSlice(allocator, ",") catch {};
+        result.appendSlice(allocator, other_vendors.items) catch {};
+    }
+    return result.items;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 fn nonEmpty(s: []const u8) ?[]const u8 {
     return if (s.len == 0) null else s;
+}
+
+// ─── Log field mutator ───────────────────────────────────────────────
+
+const MutateOp = policy.MutateOp;
+
+pub fn logFieldMutator(ctx: *anyopaque, op: MutateOp) bool {
+    const lc: *LogContext = @ptrCast(@alignCast(ctx));
+    switch (op) {
+        .remove => |field| return mutRemove(lc, field),
+        .set => |s| return mutSet(lc, s.field, s.value, s.upsert),
+        .rename => |r| return mutRename(lc, r.from, r.to, r.upsert),
+    }
+}
+
+fn mutRemove(lc: *LogContext, field: FieldRef) bool {
+    switch (field) {
+        .log_field => |lf| {
+            switch (lf) {
+                .LOG_FIELD_BODY => {
+                    const hit = lc.record.body != null;
+                    lc.record.body = null;
+                    return hit;
+                },
+                .LOG_FIELD_SEVERITY_TEXT => {
+                    const hit = lc.record.severity_text.len > 0;
+                    lc.record.severity_text = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_TRACE_ID => {
+                    const hit = lc.record.trace_id.len > 0;
+                    lc.record.trace_id = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_SPAN_ID => {
+                    const hit = lc.record.span_id.len > 0;
+                    lc.record.span_id = &.{};
+                    return hit;
+                },
+                .LOG_FIELD_EVENT_NAME => {
+                    const hit = lc.record.event_name.len > 0;
+                    lc.record.event_name = &.{};
+                    return hit;
+                },
+                else => return false,
+            }
+        },
+        .log_attribute => |attr| return removeAttr(&lc.record.attributes, attrKey(attr)),
+        .resource_attribute => |attr| {
+            if (lc.resource) |r| return removeAttr(&r.attributes, attrKey(attr));
+            return false;
+        },
+        .scope_attribute => |attr| {
+            if (lc.scope) |s| return removeAttr(&s.attributes, attrKey(attr));
+            return false;
+        },
+    }
+}
+
+fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, _: bool) bool {
+    switch (field) {
+        .log_field => |lf| {
+            switch (lf) {
+                .LOG_FIELD_BODY => {
+                    lc.record.body = .{ .value = .{ .string_value = value } };
+                    return true;
+                },
+                .LOG_FIELD_SEVERITY_TEXT => {
+                    lc.record.severity_text = value;
+                    return true;
+                },
+                .LOG_FIELD_TRACE_ID => {
+                    lc.record.trace_id = value;
+                    return true;
+                },
+                .LOG_FIELD_SPAN_ID => {
+                    lc.record.span_id = value;
+                    return true;
+                },
+                .LOG_FIELD_EVENT_NAME => {
+                    lc.record.event_name = value;
+                    return true;
+                },
+                else => return false,
+            }
+        },
+        .log_attribute => |attr| return setAttr(lc.allocator, &lc.record.attributes, attrKey(attr), value),
+        .resource_attribute => |attr| {
+            if (lc.resource) |r| return setAttr(lc.allocator, &r.attributes, attrKey(attr), value);
+            return false;
+        },
+        .scope_attribute => |attr| {
+            if (lc.scope) |s| return setAttr(lc.allocator, &s.attributes, attrKey(attr), value);
+            return false;
+        },
+    }
+}
+
+fn mutRename(lc: *LogContext, from: FieldRef, to: []const u8, upsert: bool) bool {
+    const attrs = switch (from) {
+        .log_attribute => &lc.record.attributes,
+        .resource_attribute => if (lc.resource) |r| &r.attributes else return false,
+        .scope_attribute => if (lc.scope) |s| &s.attributes else return false,
+        .log_field => return false, // renaming fixed fields not supported
+    };
+    const key = switch (from) {
+        .log_attribute => |attr| attrKey(attr),
+        .resource_attribute => |attr| attrKey(attr),
+        .scope_attribute => |attr| attrKey(attr),
+        .log_field => return false,
+    };
+    const k = key orelse return false;
+
+    // Find and remove source
+    const src_idx = findAttrIndex(attrs.items, k) orelse return false;
+    const src_val = attrs.items[src_idx].value;
+
+    // Check if target exists
+    if (!upsert) {
+        if (findAttrIndex(attrs.items, to) != null) return true; // blocked
+    }
+
+    // Remove source
+    _ = attrs.orderedRemove(src_idx);
+
+    // Remove existing target if upsert
+    if (upsert) {
+        if (findAttrIndex(attrs.items, to)) |ti| {
+            _ = attrs.orderedRemove(ti);
+        }
+    }
+
+    // Add renamed entry
+    attrs.append(lc.allocator, .{ .key = to, .value = src_val }) catch return false;
+    return true;
+}
+
+fn removeAttr(attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8) bool {
+    const k = key orelse return false;
+    const idx = findAttrIndex(attrs.items, k) orelse return false;
+    _ = attrs.orderedRemove(idx);
+    return true;
+}
+
+fn setAttr(allocator: std.mem.Allocator, attrs: *std.ArrayListUnmanaged(KeyValue), key: ?[]const u8, value: []const u8) bool {
+    const k = key orelse return false;
+    if (findAttrIndex(attrs.items, k)) |idx| {
+        // Always overwrite when key exists. The engine handles "don't overwrite"
+        // checks (e.g. add with upsert=false) before calling the mutator.
+        attrs.items[idx].value = .{ .value = .{ .string_value = value } };
+        return true;
+    }
+    attrs.append(allocator, .{ .key = k, .value = .{ .value = .{ .string_value = value } } }) catch return false;
+    return true;
+}
+
+fn findAttrIndex(attrs: []const KeyValue, key: []const u8) ?usize {
+    for (attrs, 0..) |kv, i| {
+        if (std.mem.eql(u8, kv.key, key)) return i;
+    }
+    return null;
 }

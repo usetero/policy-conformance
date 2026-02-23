@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-histograms",
+      "name": "Drop histogram metrics",
+      "metric": {
+        "match": [
+          { "metric_type": "histogram" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

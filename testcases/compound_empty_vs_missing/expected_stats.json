@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-body-exists",
+      "hits": 5
+    },
+    {
+      "policy_id": "drop-event-name-exists",
+      "hits": 1,
+      "misses": 1
+    },
+    {
+      "policy_id": "drop-trace-id-exists",
+      "hits": 0,
+      "misses": 1
+    },
+    {
+      "policy_id": "keep-attr-missing",
+      "hits": 1,
+      "misses": 4
+    }
+  ]
+}

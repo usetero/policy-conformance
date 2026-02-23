@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-health-regex",
+      "name": "Drop health check spans by regex",
+      "trace": {
+        "match": [
+          { "trace_field": "TRACE_FIELD_NAME", "regex": "^(GET|HEAD) /health" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

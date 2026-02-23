@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-byte-metrics",
+      "name": "Drop metrics with byte unit",
+      "metric": {
+        "match": [
+          { "metric_field": "unit", "exact": "By" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

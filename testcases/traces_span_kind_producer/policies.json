@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-producer-spans",
+      "name": "Drop producer spans",
+      "trace": {
+        "match": [
+          { "span_kind": "SPAN_KIND_PRODUCER", "exists": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

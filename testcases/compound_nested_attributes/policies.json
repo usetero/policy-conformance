@@ -1,0 +1,34 @@
+{
+  "policies": [
+    {
+      "id": "drop-nested-metric-attr",
+      "name": "Drop metrics with nested http.method = GET",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": ["http", "method"], "exact": "GET" }
+        ],
+        "keep": false
+      }
+    },
+    {
+      "id": "drop-nested-trace-attr",
+      "name": "Drop spans with nested db.statement = SELECT",
+      "trace": {
+        "match": [
+          { "span_attribute": ["db", "statement"], "exact": "SELECT" }
+        ],
+        "keep": { "percentage": 0 }
+      }
+    },
+    {
+      "id": "drop-nested-resource-attr",
+      "name": "Drop logs with nested cloud.region = us-east-1",
+      "log": {
+        "match": [
+          { "resource_attribute": ["cloud", "region"], "exact": "us-east-1" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}
