@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "rename-upsert-source-absent",
+      "hits": 1
+    }
+  ]
+}

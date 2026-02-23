@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "id": "add-attr-upsert-absent",
+      "name": "Add attribute with upsert when field does not exist (insert)",
+      "log": {
+        "match": [{ "log_field": "severity_text", "exact": "INFO" }],
+        "keep": "all",
+        "transform": {
+          "add": [{ "log_attribute": "env", "value": "production", "upsert": true }]
+        }
+      }
+    }
+  ]
+}

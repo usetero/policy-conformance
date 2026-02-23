@@ -8,6 +8,8 @@ require (
 	google.golang.org/protobuf v1.36.11
 )
 
+replace github.com/usetero/policy-go => ../../policy-go
+
 require (
 	github.com/flier/gohs v1.2.3 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect

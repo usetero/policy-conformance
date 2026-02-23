@@ -289,25 +289,29 @@ tasks:
       - |
         set +e
         normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
+        # Normalize expected stats for HTTP comparison: server only reports {policy_id, hits} for policies with hits > 0
+        normalize_http_stats='{policies: [.policies[] | del(.misses) | select(.hits > 0)] | sort_by(.policy_id)}'
         PASS=0; FAIL=0; ERRORS=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
-          case "$name" in
-            logs_*)    signal=log ;;
-            metrics_*) signal=metric ;;
-            traces_*)  signal=trace ;;
-            *)         echo "  SKIP  $name (unknown signal)"; continue ;;
-          esac
 
-          # Start conformance server, capture port output
-          PORT_FILE=$(mktemp)
-          ./server/conformance-server --policies "$tc/policies.json" --http-port 0 --grpc-port 0 > "$PORT_FILE" 2>/dev/null &
+          # Start conformance server; read port lines from stdout via pipe (no sleeps)
+          PORT_FIFO=$(mktemp -u)
+          mkfifo "$PORT_FIFO"
+          ./server/conformance-server --policies "$tc/policies.json" --http-port 0 --grpc-port 0 > "$PORT_FIFO" 2>/dev/null &
           SERVER_PID=$!
-          sleep 0.3
 
-          HTTP_PORT=$(grep '^HTTP_PORT=' "$PORT_FILE" | cut -d= -f2)
-          GRPC_PORT=$(grep '^GRPC_PORT=' "$PORT_FILE" | cut -d= -f2)
-          rm -f "$PORT_FILE"
+          # Read exactly two lines (blocks until server writes them)
+          HTTP_PORT=""; GRPC_PORT=""
+          while IFS= read -r line; do
+            case "$line" in
+              HTTP_PORT=*) HTTP_PORT="${line#HTTP_PORT=}" ;;
+              GRPC_PORT=*) GRPC_PORT="${line#GRPC_PORT=}" ;;
+            esac
+            if [ -n "$HTTP_PORT" ] && [ -n "$GRPC_PORT" ]; then break; fi
+          done < "$PORT_FIFO"
+          rm -f "$PORT_FIFO"
 
           if [ -z "$HTTP_PORT" ]; then
             echo "  ERROR $name (server failed to start)"
@@ -323,52 +327,114 @@ tasks:
             PROVIDER_ADDR="http://localhost:$HTTP_PORT/v1/policy/sync"
           fi
 
-          # Run runner
-          ./{{.RUNNER}} \
-            {{.PROVIDER_FLAG}} "$PROVIDER_ADDR" \
-            --input "$tc/input.json" \
-            --output "$tc/output_{{.LANG}}_http.json" \
-            --signal "$signal" 2>/dev/null
-          RUNNER_EXIT=$?
+          out_ok=true; stats_ok=true
+          runner_error=false
 
-          if [ $RUNNER_EXIT -ne 0 ]; then
-            echo "  ERROR $name (runner exited $RUNNER_EXIT)"
-            curl -s "http://localhost:$HTTP_PORT/shutdown" > /dev/null 2>&1
-            wait $SERVER_PID 2>/dev/null
-            ERRORS=$((ERRORS + 1))
-            continue
+          if [ -f "$tc/input.json" ]; then
+            # ── Simple mode: single input/output ──
+            case "$name" in
+              logs_*)    signal=log ;;
+              metrics_*) signal=metric ;;
+              traces_*)  signal=trace ;;
+              *)         signal=$(jq -r "$detect_signal" "$tc/input.json") ;;
+            esac
+
+            ./{{.RUNNER}} \
+              {{.PROVIDER_FLAG}} "$PROVIDER_ADDR" \
+              --input "$tc/input.json" \
+              --output "$tc/output_{{.LANG}}_http.json" \
+              --signal "$signal" 2>/dev/null
+            RUNNER_EXIT=$?
+
+            if [ $RUNNER_EXIT -ne 0 ]; then
+              runner_error=true
+            else
+              # Fetch stats from server
+              curl -s "http://localhost:$HTTP_PORT/stats" > "$tc/stats_{{.LANG}}_http.json" 2>/dev/null
+
+              if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                        <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") > /dev/null 2>&1; then
+                out_ok=false
+              fi
+              if ! diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
+                        <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
+                stats_ok=false
+              fi
+            fi
+          else
+            # ── Compound mode: multiple input_N/expected_N pairs ──
+            for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+              n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+              expected_file="$tc/expected_${n}.json"
+              output_file="$tc/output_${n}_{{.LANG}}_http.json"
+              signal=$(jq -r "$detect_signal" "$input_file")
+              if [ "$signal" = "unknown" ]; then
+                echo "  SKIP  $name/input_${n}.json (unknown signal)"; continue
+              fi
+
+              ./{{.RUNNER}} \
+                {{.PROVIDER_FLAG}} "$PROVIDER_ADDR" \
+                --input "$input_file" \
+                --output "$output_file" \
+                --signal "$signal" 2>/dev/null
+              RUNNER_EXIT=$?
+
+              if [ $RUNNER_EXIT -ne 0 ]; then
+                runner_error=true; break
+              fi
+
+              if [ -f "$expected_file" ]; then
+                if ! diff <(jq -S "$normalize" "$expected_file") \
+                          <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  out_ok=false
+                fi
+              fi
+            done
+
+            if ! $runner_error; then
+              # Fetch accumulated stats from server (single fetch after all batches)
+              curl -s "http://localhost:$HTTP_PORT/stats" > "$tc/stats_{{.LANG}}_http.json" 2>/dev/null
+              if ! diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
+                        <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
+                stats_ok=false
+              fi
+            fi
           fi
-
-          # Fetch stats from server
-          curl -s "http://localhost:$HTTP_PORT/stats" > "$tc/stats_{{.LANG}}_http.json" 2>/dev/null
 
           # Shutdown server
           curl -s "http://localhost:$HTTP_PORT/shutdown" > /dev/null 2>&1
           wait $SERVER_PID 2>/dev/null
 
-          # Compare output and stats
-          out_ok=true; stats_ok=true
-          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
-                    <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") > /dev/null 2>&1; then
-            out_ok=false
-          fi
-          if ! diff <(jq -S . "$tc/expected_stats.json") \
-                    <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
-            stats_ok=false
-          fi
-          if $out_ok && $stats_ok; then
+          if $runner_error; then
+            echo "  ERROR $name (runner exited $RUNNER_EXIT)"
+            ERRORS=$((ERRORS + 1))
+          elif $out_ok && $stats_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
           else
             echo "  FAIL  $name"
             if ! $out_ok; then
-              echo "    output diff:"
-              diff <(jq -S "$normalize" "$tc/expected.json") \
-                   <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") || true
+              if [ -f "$tc/input.json" ]; then
+                echo "    output diff:"
+                diff <(jq -S "$normalize" "$tc/expected.json") \
+                     <(jq -S "$normalize" "$tc/output_{{.LANG}}_http.json") || true
+              else
+                for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+                  n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+                  expected_file="$tc/expected_${n}.json"
+                  output_file="$tc/output_${n}_{{.LANG}}_http.json"
+                  if [ -f "$expected_file" ] && ! diff <(jq -S "$normalize" "$expected_file") \
+                        <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                    echo "    output diff (batch $n):"
+                    diff <(jq -S "$normalize" "$expected_file") \
+                         <(jq -S "$normalize" "$output_file") || true
+                  fi
+                done
+              fi
             fi
             if ! $stats_ok; then
               echo "    stats diff:"
-              diff <(jq -S . "$tc/expected_stats.json") \
+              diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
                    <(jq -S . "$tc/stats_{{.LANG}}_http.json") || true
             fi
             FAIL=$((FAIL + 1))

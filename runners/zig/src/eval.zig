@@ -346,32 +346,27 @@ fn mutRemove(lc: *LogContext, field: FieldRef) bool {
     }
 }
 
-fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, upsert: bool) bool {
+fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, _: bool) bool {
     switch (field) {
         .log_field => |lf| {
             switch (lf) {
                 .LOG_FIELD_BODY => {
-                    if (!upsert and lc.record.body == null) return false;
                     lc.record.body = .{ .value = .{ .string_value = value } };
                     return true;
                 },
                 .LOG_FIELD_SEVERITY_TEXT => {
-                    if (!upsert and lc.record.severity_text.len == 0) return false;
                     lc.record.severity_text = value;
                     return true;
                 },
                 .LOG_FIELD_TRACE_ID => {
-                    if (!upsert and lc.record.trace_id.len == 0) return false;
                     lc.record.trace_id = value;
                     return true;
                 },
                 .LOG_FIELD_SPAN_ID => {
-                    if (!upsert and lc.record.span_id.len == 0) return false;
                     lc.record.span_id = value;
                     return true;
                 },
                 .LOG_FIELD_EVENT_NAME => {
-                    if (!upsert and lc.record.event_name.len == 0) return false;
                     lc.record.event_name = value;
                     return true;
                 },
