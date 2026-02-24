@@ -17,7 +17,7 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "empty-traceid-failopen-no-threshold",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               }
@@ -25,7 +25,7 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "empty-traceid-with-vendor-tracestate",
-              "spanId": "AgICAgICAgI=",
+              "spanId": "0202020202020202",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
@@ -34,31 +34,31 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "kept-empty-tracestate",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "kept-with-vendor-tracestate",
-              "spanId": "BAQEBAQEBAQ=",
+              "spanId": "0404040404040404",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAC/////////w==",
+              "traceId": "aabbccdd0000000002ffffffffffffff",
               "traceState": "ot=th:8,vendor=existing"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "kept-overwrite-existing-ot",
-              "spanId": "BQUFBQUFBQU=",
+              "spanId": "0505050505050505",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
+              "traceId": "aabbccdd000000000380000000000001",
               "traceState": "ot=th:8,vendor=existing"
             }
           ]

@@ -7,11 +7,11 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/users",
-              "spanId": "EjRWeJCrze8=",
+              "spanId": "1234567890abcdef",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA=="
+              "traceId": "abcdef1234567890abcdef1234567890"
             }
           ]
         }

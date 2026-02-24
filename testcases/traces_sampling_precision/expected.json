@@ -17,31 +17,31 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/users",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
               "traceState": "ot=th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/orders",
-              "spanId": "AgICAgICAgI=",
+              "spanId": "0202020202020202",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAACwAAAAAAAAA==",
+              "traceId": "aabbccdd0000000002c0000000000000",
               "traceState": "ot=th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/products",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000380000000000000",
               "traceState": "ot=th:8"
             }
           ]

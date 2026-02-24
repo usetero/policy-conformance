@@ -1,5 +1,6 @@
 # Build artifacts
 runners/go/runner-go
+runners/go/go
 runners/rs/target/
 runners/zig/zig-out/
 runners/zig/.zig-cache/
@@ -15,6 +16,7 @@ implementations/edge/edge-*
 # Test outputs
 testcases/*/output_*.json
 testcases/*/stats_*.json
+output.txt
 
 # OS
 .DS_Store

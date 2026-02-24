@@ -7,17 +7,17 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/users",
-              "spanId": "EjRWeJCrze8=",
+              "spanId": "1234567890abcdef",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA=="
+              "traceId": "abcdef1234567890abcdef1234567890"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /health",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
+              "spanId": "0987654321fedcba",
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
           ]
         }

@@ -17,11 +17,11 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/users",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
               "traceState": "ot=th:e666"
             }
           ]

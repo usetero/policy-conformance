@@ -17,31 +17,31 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "single-vendor",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=th:0,vendor1=abc"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "multiple-vendors",
-              "spanId": "AgICAgICAgI=",
+              "spanId": "0202020202020202",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAC/////////w==",
+              "traceId": "aabbccdd0000000002ffffffffffffff",
               "traceState": "ot=th:0,vendor1=abc,vendor2=xyz"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "empty-tracestate",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
+              "traceId": "aabbccdd000000000380000000000001",
               "traceState": "ot=th:0"
             }
           ]

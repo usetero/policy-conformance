@@ -21,11 +21,11 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "POST /api/users",
-              "spanId": "CYdlQyH+3Lo=",
+              "spanId": "0987654321fedcba",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
           ]
         }
@@ -52,11 +52,11 @@
             {
               "kind": "SPAN_KIND_CONSUMER",
               "name": "process.job",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "AQEBAQEBAQEBAQEBAQEBAQ=="
+              "traceId": "01010101010101010101010101010101"
             }
           ]
         }

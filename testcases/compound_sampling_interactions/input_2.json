@@ -3,7 +3,12 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "svc-a" } }
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "svc-a"
+            }
+          }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -19,7 +24,7 @@
           "spans": [
             {
               "traceId": "",
-              "spanId": "CAgICAgICAg=",
+              "spanId": "0808080808080808",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -33,11 +38,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAADgAAAAAAAAA==",
-              "spanId": "CQkJCQkJCQk=",
+              "traceId": "aabbccdd000000000380000000000000",
+              "spanId": "0909090909090909",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -51,7 +59,10 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             }
           ],
           "schemaUrl": ""
@@ -62,7 +73,12 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "svc-b" } }
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "svc-b"
+            }
+          }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -78,7 +94,7 @@
           "spans": [
             {
               "traceId": "",
-              "spanId": "CgoKCgoKCgo=",
+              "spanId": "0a0a0a0a0a0a0a0a",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -92,7 +108,10 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             }
           ],
           "schemaUrl": ""

@@ -17,31 +17,31 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "low-traceid-high-rv-kept",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABEAAAAAAAAA==",
+              "traceId": "aabbccdd000000000110000000000000",
               "traceState": "ot=rv:ffffffffffffff;th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "high-traceid-no-rv-kept",
-              "spanId": "BAQEBAQEBAQ=",
+              "spanId": "0404040404040404",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAE8AAAAAAAAA==",
+              "traceId": "aabbccdd0000000004f0000000000000",
               "traceState": "ot=th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "rv-with-vendor-kept",
-              "spanId": "BQUFBQUFBQU=",
+              "spanId": "0505050505050505",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=rv:ffffffffffffff;th:8,vendor=keep-me"
             }
           ]

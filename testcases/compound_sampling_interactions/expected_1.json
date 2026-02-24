@@ -18,24 +18,24 @@
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/users",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
               "traceState": "ot=th:8"
             },
             {
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api/products",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000380000000000000",
               "traceState": "ot=th:8"
             }
           ]
@@ -60,19 +60,19 @@
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_INTERNAL",
               "name": "process-job",
-              "spanId": "BgYGBgYGBgY=",
+              "spanId": "0606060606060606",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
               "traceState": "ot=th:8"
             },
             {
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_INTERNAL",
               "name": "orphan-span",
-              "spanId": "BwcHBwcHBwc=",
+              "spanId": "0707070707070707",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"

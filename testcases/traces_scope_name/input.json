@@ -16,8 +16,8 @@
           },
           "spans": [
             {
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
-              "spanId": "EjRWeJCrze8=",
+              "traceId": "abcdef1234567890abcdef1234567890",
+              "spanId": "1234567890abcdef",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -48,8 +48,8 @@
           },
           "spans": [
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "q83vEjRWeJA=",
+              "traceId": "1234567890abcdef1234567890abcdef",
+              "spanId": "abcdef1234567890",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,

@@ -7,20 +7,20 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "handle request",
-              "spanId": "AgICAgICAgI=",
+              "spanId": "0202020202020202",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "AQEBAQEBAQEBAQEBAQEBAQ=="
+              "traceId": "01010101010101010101010101010101"
             },
             {
               "kind": "SPAN_KIND_PRODUCER",
               "name": "send message",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "AgICAgICAgICAgICAgICAg=="
+              "traceId": "02020202020202020202020202020202"
             }
           ]
         }

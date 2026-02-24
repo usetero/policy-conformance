@@ -15,11 +15,11 @@
               ],
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /api",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "AAAAAAAAAAAAAAAAAAAAAA=="
+              "traceId": "00000000000000000000000000000000"
             }
           ]
         }

@@ -7,11 +7,11 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "important",
-              "spanId": "q83vEjRWeJA=",
+              "spanId": "abcdef1234567890",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
+              "traceId": "1234567890abcdef1234567890abcdef"
             }
           ]
         }

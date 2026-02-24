@@ -5,7 +5,9 @@
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "api-server" }
+            "value": {
+              "stringValue": "api-server"
+            }
           }
         ],
         "droppedAttributesCount": 0,
@@ -25,11 +27,13 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/users" },
+              "body": {
+                "stringValue": "request handled: GET /api/users"
+              },
               "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
               "spanId": "",
               "eventName": ""
             },
@@ -38,11 +42,13 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/orders" },
+              "body": {
+                "stringValue": "request handled: GET /api/orders"
+              },
               "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
-              "traceId": "qrvM3QAAAAACwAAAAAAAAA==",
+              "traceId": "aabbccdd0000000002c0000000000000",
               "spanId": "",
               "eventName": ""
             },
@@ -51,11 +57,13 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/products" },
+              "body": {
+                "stringValue": "request handled: GET /api/products"
+              },
               "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
-              "traceId": "qrvM3QAAAAADgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000380000000000000",
               "spanId": "",
               "eventName": ""
             },
@@ -64,11 +72,13 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/inventory" },
+              "body": {
+                "stringValue": "request handled: GET /api/inventory"
+              },
               "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
-              "traceId": "qrvM3QAAAAAEQAAAAAAAAA==",
+              "traceId": "aabbccdd000000000440000000000000",
               "spanId": "",
               "eventName": ""
             },
@@ -77,11 +87,13 @@
               "observedTimeUnixNano": 0,
               "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/settings" },
+              "body": {
+                "stringValue": "request handled: GET /api/settings"
+              },
               "attributes": [],
               "droppedAttributesCount": 0,
               "flags": 0,
-              "traceId": "qrvM3QAAAAAFDMzMzMzMzQ==",
+              "traceId": "aabbccdd00000000050ccccccccccccd",
               "spanId": "",
               "eventName": ""
             }

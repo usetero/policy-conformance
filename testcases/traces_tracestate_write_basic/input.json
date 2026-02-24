@@ -3,7 +3,12 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "test-svc" } }
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "test-svc"
+            }
+          }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -18,8 +23,8 @@
           },
           "spans": [
             {
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
-              "spanId": "AQEBAQEBAQE=",
+              "traceId": "aabbccdd000000000180000000000000",
+              "spanId": "0101010101010101",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -33,11 +38,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAAC/////////w==",
-              "spanId": "AgICAgICAgI=",
+              "traceId": "aabbccdd0000000002ffffffffffffff",
+              "spanId": "0202020202020202",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -51,11 +59,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
-              "spanId": "AwMDAwMDAwM=",
+              "traceId": "aabbccdd000000000380000000000001",
+              "spanId": "0303030303030303",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -69,11 +80,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAAEf////////w==",
-              "spanId": "BAQEBAQEBAQ=",
+              "traceId": "aabbccdd00000000047fffffffffffff",
+              "spanId": "0404040404040404",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -87,11 +101,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAAFAAAAAAAAAA==",
-              "spanId": "BQUFBQUFBQU=",
+              "traceId": "aabbccdd000000000500000000000000",
+              "spanId": "0505050505050505",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -105,7 +122,10 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             }
           ],
           "schemaUrl": ""

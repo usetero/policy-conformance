@@ -17,11 +17,11 @@
             {
               "kind": "SPAN_KIND_CLIENT",
               "name": "GET /api/data",
-              "spanId": "q83vEjRWeJA=",
+              "spanId": "abcdef1234567890",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
+              "traceId": "1234567890abcdef1234567890abcdef"
             }
           ]
         }
@@ -44,11 +44,11 @@
             {
               "kind": "SPAN_KIND_INTERNAL",
               "name": "db-query",
-              "spanId": "CYdlQyH+3Lo=",
+              "spanId": "0987654321fedcba",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
           ]
         }

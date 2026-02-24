@@ -17,41 +17,41 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "inconsistent-rv-lt-th-kept",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAAAQAAAAAAAA==",
+              "traceId": "aabbccdd000000000001000000000000",
               "traceState": "ot=rv:10000000000000;th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "consistent-rv-eq-th-kept",
-              "spanId": "AgICAgICAgI=",
+              "spanId": "0202020202020202",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAAAgAAAAAAAA==",
+              "traceId": "aabbccdd000000000002000000000000",
               "traceState": "ot=rv:80000000000000;th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "consistent-rv-gt-th-kept",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAAAwAAAAAAAA==",
+              "traceId": "aabbccdd000000000003000000000000",
               "traceState": "ot=rv:90000000000000;th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "inconsistent-with-vendor-kept",
-              "spanId": "BQUFBQUFBQU=",
+              "spanId": "0505050505050505",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAAAQAAAAAAAA==",
+              "traceId": "aabbccdd000000000001000000000000",
               "traceState": "ot=rv:10000000000000;th:8,vendor=keep-me"
             }
           ]

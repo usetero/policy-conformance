@@ -7,18 +7,18 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "POST /api/checkout",
-              "spanId": "q83vEjRWeJA=",
+              "spanId": "abcdef1234567890",
               "status": {
                 "code": "STATUS_CODE_ERROR",
                 "message": "internal error"
               },
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
+              "traceId": "1234567890abcdef1234567890abcdef"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "GET /health",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
+              "spanId": "0987654321fedcba",
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
           ]
         }

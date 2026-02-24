@@ -18,12 +18,12 @@
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_INTERNAL",
               "name": "svc-a-with-traceid",
-              "spanId": "CQkJCQkJCQk=",
+              "spanId": "0909090909090909",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000380000000000000",
               "traceState": "ot=th:8"
             }
           ]
@@ -48,7 +48,7 @@
               "endTimeUnixNano": 2000000000,
               "kind": "SPAN_KIND_INTERNAL",
               "name": "svc-b-no-traceid",
-              "spanId": "CgoKCgoKCgo=",
+              "spanId": "0a0a0a0a0a0a0a0a",
               "startTimeUnixNano": 1000000000,
               "status": {
                 "code": "STATUS_CODE_OK"

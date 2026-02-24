@@ -7,12 +7,12 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "POST /api/checkout",
-              "spanId": "q83vEjRWeJA=",
+              "spanId": "abcdef1234567890",
               "status": {
                 "code": "STATUS_CODE_ERROR",
                 "message": "payment failed"
               },
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
+              "traceId": "1234567890abcdef1234567890abcdef"
             }
           ]
         }

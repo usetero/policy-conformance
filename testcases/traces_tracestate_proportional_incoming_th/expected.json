@@ -17,41 +17,41 @@
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "incoming-50pct-kept-at-boundary",
-              "spanId": "AQEBAQEBAQE=",
+              "spanId": "0101010101010101",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAQwAAAAAAAAA==",
+              "traceId": "aabbccdd0000000010c0000000000000",
               "traceState": "ot=th:c"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "incoming-50pct-kept-at-max",
-              "spanId": "AwMDAwMDAwM=",
+              "spanId": "0303030303030303",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAS/////////w==",
+              "traceId": "aabbccdd0000000012ffffffffffffff",
               "traceState": "ot=th:c"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "incoming-100pct-kept-at-50pct-boundary",
-              "spanId": "BAQEBAQEBAQ=",
+              "spanId": "0404040404040404",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAATgAAAAAAAAA==",
+              "traceId": "aabbccdd000000001380000000000000",
               "traceState": "ot=th:8"
             },
             {
               "kind": "SPAN_KIND_SERVER",
               "name": "no-incoming-th-kept",
-              "spanId": "BgYGBgYGBgY=",
+              "spanId": "0606060606060606",
               "status": {
                 "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=th:8"
             }
           ]
