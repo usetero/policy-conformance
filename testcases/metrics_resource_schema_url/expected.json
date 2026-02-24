@@ -1,45 +1,24 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
+      "schemaUrl": "https://opentelemetry.io/schemas/v2.0.0",
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "cpu.usage",
               "description": "CPU usage",
-              "unit": "1",
-              "metadata": [],
+              "name": "cpu.usage",
               "sum": {
-                "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
-                ],
                 "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                "isMonotonic": false
-              }
+                "dataPoints": [
+                  {}
+                ]
+              },
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": "https://opentelemetry.io/schemas/v2.0.0"
+      ]
     }
   ]
 }

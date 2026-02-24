@@ -1,1 +1,134 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"frontend"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"frontend log"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""},{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"gateway"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"gateway log"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""},{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"cache"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"cache log"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""},{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"queue"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"queue log"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""},{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"scheduler"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"scheduler log"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "frontend"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "frontend log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "gateway"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "gateway log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "cache"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "cache log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "queue"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "queue log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "scheduler"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "scheduler log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

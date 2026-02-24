@@ -56,6 +56,7 @@ func writeStats(path string, registry *policy.PolicyRegistry) error {
 
 var marshaler = protojson.MarshalOptions{
 	EmitUnpopulated: true,
+	UseEnumNumbers:  true,
 }
 
 func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {

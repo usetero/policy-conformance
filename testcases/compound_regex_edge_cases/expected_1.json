@@ -1,1 +1,46 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"regex-test"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"abc123"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"no special chars here"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"no uuid here just text"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "regex-test"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "abc123"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "body": {
+                "stringValue": "no special chars here"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "body": {
+                "stringValue": "no uuid here just text"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

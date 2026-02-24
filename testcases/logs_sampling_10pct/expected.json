@@ -5,39 +5,25 @@
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "api-server" }
+            "value": {
+              "stringValue": "api-server"
+            }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "body": {
+                "stringValue": "request handled: GET /api/users"
+              },
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/users" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
-              "spanId": "",
-              "eventName": ""
+              "traceId": "qrvM3QAAAAAB/XCj1wo9cA=="
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "listen_address": "127.0.0.1",
+  "listen_port": ${RECEIVER_PORT},
+  "upstream_url": "http://localhost:${SINK_PORT}",
+  "log_level": "warn",
+  "max_body_size": 10485760,
+  "policy_providers": [
+    {
+      "id": "file",
+      "type": "file",
+      "path": "${POLICIES_PATH}"
+    }
+  ]
+}

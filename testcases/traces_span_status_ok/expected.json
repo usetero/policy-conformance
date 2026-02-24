@@ -1,67 +1,28 @@
 {
   "resourceSpans": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeSpans": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "spans": [
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "q83vEjRWeJA=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "POST /api/checkout",
               "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "POST /api/checkout",
+              "spanId": "q83vEjRWeJA=",
               "status": {
-                "message": "internal error",
-                "code": "STATUS_CODE_ERROR"
-              }
+                "code": "STATUS_CODE_ERROR",
+                "message": "internal error"
+              },
+              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
             },
             {
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /health",
               "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
-              "status": {
-                "message": "",
-                "code": "STATUS_CODE_UNSET"
-              }
+              "name": "GET /health",
+              "spanId": "CYdlQyH+3Lo=",
+              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

@@ -15,39 +15,20 @@
               "stringValue": "production"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
               "body": {
                 "stringValue": "payment processed"
               },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     },
     {
       "resource": {
@@ -64,39 +45,20 @@
               "stringValue": "staging"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "ERROR",
               "body": {
                 "stringValue": "payment failed in staging"
               },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "severityText": "ERROR"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     },
     {
       "resource": {
@@ -113,39 +75,20 @@
               "stringValue": "production"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "ERROR",
               "body": {
                 "stringValue": "auth error"
               },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "severityText": "ERROR"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

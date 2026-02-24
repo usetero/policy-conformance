@@ -1,1 +1,78 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"chain-test"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"info record one"},"attributes":[{"key":"marker","value":{"stringValue":"tagged"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"WARN","body":{"stringValue":"warn record"},"attributes":[{"key":"marker","value":{"stringValue":"warn-tagged"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"info record two"},"attributes":[{"key":"marker","value":{"stringValue":"pre-existing"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"ERROR","body":{"stringValue":"error record"},"attributes":[],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "chain-test"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "marker",
+                  "value": {
+                    "stringValue": "tagged"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "info record one"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "marker",
+                  "value": {
+                    "stringValue": "warn-tagged"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "warn record"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "WARN",
+              "timeUnixNano": "0"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "marker",
+                  "value": {
+                    "stringValue": "pre-existing"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "info record two"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "body": {
+                "stringValue": "error record"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "ERROR",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

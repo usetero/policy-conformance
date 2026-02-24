@@ -1,28 +1,10 @@
 {
   "resourceLogs": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": {
-                "stringValue": "GET /api/users"
-              },
               "attributes": [
                 {
                   "key": "http",
@@ -40,17 +22,14 @@
                   }
                 }
               ],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "GET /api/users"
+              },
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

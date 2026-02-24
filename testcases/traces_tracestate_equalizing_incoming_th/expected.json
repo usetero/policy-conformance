@@ -9,80 +9,37 @@
               "stringValue": "test-svc"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
-      "schemaUrl": "",
       "scopeSpans": [
         {
-          "schemaUrl": "",
-          "scope": {
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "name": "",
-            "version": ""
-          },
           "spans": [
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "incoming-25pct-more-restrictive-passthrough",
-              "parentSpanId": "",
               "spanId": "AQEBAQEBAQE=",
-              "startTimeUnixNano": 0,
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
               "traceId": "qrvM3QAAAAAgEAAAAAAAAA==",
               "traceState": "ot=th:c"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "incoming-75pct-less-restrictive-kept",
-              "parentSpanId": "",
               "spanId": "AgICAgICAgI=",
-              "startTimeUnixNano": 0,
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
               "traceId": "qrvM3QAAAAAhgAAAAAAAAA==",
               "traceState": "ot=th:8"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "no-incoming-th-kept",
-              "parentSpanId": "",
               "spanId": "BAQEBAQEBAQ=",
-              "startTimeUnixNano": 0,
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
               "traceId": "qrvM3QAAAAAjgAAAAAAAAA==",
               "traceState": "ot=th:8"

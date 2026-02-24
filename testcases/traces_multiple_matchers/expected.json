@@ -9,45 +9,23 @@
               "stringValue": "frontend"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeSpans": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "spans": [
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "q83vEjRWeJA=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /api/data",
               "kind": "SPAN_KIND_CLIENT",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "GET /api/data",
+              "spanId": "q83vEjRWeJA=",
               "status": {
-                "message": "",
                 "code": "STATUS_CODE_OK"
-              }
+              },
+              "traceId": "EjRWeJCrze8SNFZ4kKvN7w=="
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     },
     {
       "resource": {
@@ -58,45 +36,23 @@
               "stringValue": "backend"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeSpans": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "spans": [
             {
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "db-query",
               "kind": "SPAN_KIND_INTERNAL",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "db-query",
+              "spanId": "CYdlQyH+3Lo=",
               "status": {
-                "message": "",
                 "code": "STATUS_CODE_OK"
-              }
+              },
+              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ=="
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

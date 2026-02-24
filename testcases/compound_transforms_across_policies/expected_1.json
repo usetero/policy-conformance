@@ -1,1 +1,118 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"api-server"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"normal log"},"attributes":[{"key":"env","value":{"stringValue":"production"}},{"key":"region","value":{"stringValue":"us-east-1"}},{"key":"team","value":{"stringValue":"platform"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"log with secret"},"attributes":[{"key":"secret","value":{"stringValue":"[REDACTED]"}},{"key":"env","value":{"stringValue":"production"}},{"key":"region","value":{"stringValue":"us-east-1"}},{"key":"team","value":{"stringValue":"platform"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""},{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"log with legacy attr"},"attributes":[{"key":"env","value":{"stringValue":"production"}},{"key":"region","value":{"stringValue":"us-east-1"}},{"key":"team","value":{"stringValue":"platform"}},{"key":"new_name","value":{"stringValue":"important-value"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-server"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "env",
+                  "value": {
+                    "stringValue": "production"
+                  }
+                },
+                {
+                  "key": "region",
+                  "value": {
+                    "stringValue": "us-east-1"
+                  }
+                },
+                {
+                  "key": "team",
+                  "value": {
+                    "stringValue": "platform"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "normal log"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "secret",
+                  "value": {
+                    "stringValue": "[REDACTED]"
+                  }
+                },
+                {
+                  "key": "env",
+                  "value": {
+                    "stringValue": "production"
+                  }
+                },
+                {
+                  "key": "region",
+                  "value": {
+                    "stringValue": "us-east-1"
+                  }
+                },
+                {
+                  "key": "team",
+                  "value": {
+                    "stringValue": "platform"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "log with secret"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "env",
+                  "value": {
+                    "stringValue": "production"
+                  }
+                },
+                {
+                  "key": "region",
+                  "value": {
+                    "stringValue": "us-east-1"
+                  }
+                },
+                {
+                  "key": "team",
+                  "value": {
+                    "stringValue": "platform"
+                  }
+                },
+                {
+                  "key": "new_name",
+                  "value": {
+                    "stringValue": "important-value"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "log with legacy attr"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,65 +1,34 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "http.requests",
               "description": "Total HTTP requests",
-              "unit": "1",
-              "metadata": [],
+              "name": "http.requests",
               "sum": {
-                "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
-                ],
                 "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                "isMonotonic": false
-              }
+                "dataPoints": [
+                  {}
+                ]
+              },
+              "unit": "1"
             },
             {
-              "name": "grpc.calls",
               "description": "Total gRPC calls",
-              "unit": "1",
-              "metadata": [],
+              "name": "grpc.calls",
               "sum": {
-                "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
-                ],
                 "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                "isMonotonic": false
-              }
+                "dataPoints": [
+                  {}
+                ]
+              },
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

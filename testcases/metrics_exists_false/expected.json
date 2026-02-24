@@ -1,25 +1,10 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "http.requests",
-              "description": "",
-              "unit": "1",
-              "metadata": [],
               "gauge": {
                 "dataPoints": [
                   {
@@ -30,21 +15,16 @@
                           "stringValue": "backend"
                         }
                       }
-                    ],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
+                    ]
                   }
                 ]
-              }
+              },
+              "name": "http.requests",
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

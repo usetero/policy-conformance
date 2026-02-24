@@ -1,1 +1,52 @@
-{"resourceMetrics":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"api"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeMetrics":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"metrics":[{"name":"http.request.count","description":"","unit":"1","gauge":{"dataPoints":[{"attributes":[{"key":"http","value":{"kvlistValue":{"values":[{"key":"method","value":{"stringValue":"POST"}}]}}}],"startTimeUnixNano":"1000000000","timeUnixNano":"2000000000","asDouble":10,"exemplars":[],"flags":0}]},"metadata":[]}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api"
+            }
+          }
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "metrics": [
+            {
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "asDouble": 10,
+                    "attributes": [
+                      {
+                        "key": "http",
+                        "value": {
+                          "kvlistValue": {
+                            "values": [
+                              {
+                                "key": "method",
+                                "value": {
+                                  "stringValue": "POST"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1000000000",
+                    "timeUnixNano": "2000000000"
+                  }
+                ]
+              },
+              "name": "http.request.count",
+              "unit": "1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

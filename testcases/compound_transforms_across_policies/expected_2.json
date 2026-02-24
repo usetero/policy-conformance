@@ -1,1 +1,56 @@
-{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"worker-service"}}],"droppedAttributesCount":0,"entityRefs":[]},"scopeLogs":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"logRecords":[{"timeUnixNano":"0","observedTimeUnixNano":"0","severityNumber":"SEVERITY_NUMBER_UNSPECIFIED","severityText":"INFO","body":{"stringValue":"worker processing"},"attributes":[{"key":"secret","value":{"stringValue":"[REDACTED]"}},{"key":"env","value":{"stringValue":"production"}},{"key":"region","value":{"stringValue":"us-east-1"}},{"key":"new_name","value":{"stringValue":"legacy-data"}}],"droppedAttributesCount":0,"flags":0,"traceId":"","spanId":"","eventName":""}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "worker-service"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "secret",
+                  "value": {
+                    "stringValue": "[REDACTED]"
+                  }
+                },
+                {
+                  "key": "env",
+                  "value": {
+                    "stringValue": "production"
+                  }
+                },
+                {
+                  "key": "region",
+                  "value": {
+                    "stringValue": "us-east-1"
+                  }
+                },
+                {
+                  "key": "new_name",
+                  "value": {
+                    "stringValue": "legacy-data"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "worker processing"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "INFO",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,12 @@ runners/zig/.zig-cache/
 server/server
 server/conformance-server
 
+# Implementation binaries and build artifacts
+implementations/sink/sink-server
+implementations/tero-collector-distro/tero-collector
+implementations/edge/edge
+implementations/edge/edge-*
+
 # Test outputs
 testcases/*/output_*.json
 testcases/*/stats_*.json

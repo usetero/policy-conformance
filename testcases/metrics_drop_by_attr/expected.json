@@ -1,26 +1,13 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
               "name": "telemetry.count",
-              "description": "",
-              "unit": "1",
-              "metadata": [],
               "sum": {
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
                 "dataPoints": [
                   {
                     "attributes": [
@@ -30,23 +17,15 @@
                           "stringValue": "metrics"
                         }
                       }
-                    ],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
+                    ]
                   }
-                ],
-                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                "isMonotonic": false
-              }
+                ]
+              },
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

@@ -1,63 +1,33 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "http.requests.delta",
               "description": "HTTP requests (delta)",
-              "unit": "1",
-              "metadata": [],
+              "name": "http.requests.delta",
               "sum": {
-                "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
-                ],
                 "aggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
-                "isMonotonic": false
-              }
+                "dataPoints": [
+                  {}
+                ]
+              },
+              "unit": "1"
             },
             {
-              "name": "system.cpu.load",
               "description": "CPU load gauge",
-              "unit": "1",
-              "metadata": [],
               "gauge": {
                 "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
+                  {}
                 ]
-              }
+              },
+              "name": "system.cpu.load",
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }
