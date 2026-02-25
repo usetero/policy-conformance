@@ -329,6 +329,7 @@ pub fn main() !void {
     // Use standard protobuf JSON mapping (oneof fields emitted without wrapper)
     proto.protobuf.json.pb_options.emit_oneof_field_name = false;
     // OTel JSON uses lowercase hex for bytes fields (traceId, spanId, etc.)
+    // Uncomment when policy-zig publishes a version with bytes_as_hex support:
     proto.protobuf.json.pb_options.bytes_as_hex = true;
 
     const args = try std.process.argsAlloc(allocator);
