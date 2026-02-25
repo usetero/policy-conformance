@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-policy-rs = { version = "1.4.11", features = ["http", "grpc"] }
+policy-rs = { version = "1.4.12", features = ["http", "grpc"] }
 # policy-rs = { path = "../../../policy-rs", features = ["http", "grpc"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
