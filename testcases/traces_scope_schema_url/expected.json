@@ -1,46 +1,25 @@
 {
   "resourceSpans": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeSpans": [
         {
+          "schemaUrl": "https://opentelemetry.io/schemas/1.24.0",
           "scope": {
-            "name": "my.new.lib",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
+            "name": "my.new.lib"
           },
           "spans": [
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "q83vEjRWeJA=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "GET /api/users",
               "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "GET /api/users",
+              "spanId": "abcdef1234567890",
               "status": {
-                "message": "",
                 "code": "STATUS_CODE_OK"
-              }
+              },
+              "traceId": "1234567890abcdef1234567890abcdef"
             }
-          ],
-          "schemaUrl": "https://opentelemetry.io/schemas/1.24.0"
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

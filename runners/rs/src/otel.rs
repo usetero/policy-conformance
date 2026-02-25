@@ -3,7 +3,7 @@
 //! These match the JSON format produced by the Zig protobuf encoder (which is
 //! the canonical format for test case input/expected files). Key differences
 //! from the `opentelemetry-proto` crate:
-//! - trace_id/span_id are base64 strings (not hex)
+//! - trace_id/span_id are hex strings
 //! - span kind and status code are string enums (not integers)
 //! - timestamps are numbers (not strings)
 //! - severity_number is a string enum

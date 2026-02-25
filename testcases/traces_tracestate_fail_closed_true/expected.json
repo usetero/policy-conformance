@@ -9,40 +9,19 @@
               "stringValue": "test-svc"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
-      "schemaUrl": "",
       "scopeSpans": [
         {
-          "schemaUrl": "",
-          "scope": {
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "name": "",
-            "version": ""
-          },
           "spans": [
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "valid-traceid-kept",
-              "parentSpanId": "",
-              "spanId": "AgICAgICAgI=",
-              "startTimeUnixNano": 0,
+              "spanId": "0202020202020202",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=th:8"
             }
           ]

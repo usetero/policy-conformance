@@ -1,0 +1,39 @@
+{
+  "policies": [
+    {
+      "id": "drop-error-spans",
+      "name": "Drop all error spans (none overrides sampling)",
+      "trace": {
+        "match": [
+          { "span_status": "SPAN_STATUS_CODE_ERROR", "exists": true }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    },
+    {
+      "id": "sample-50-svc-a",
+      "name": "Sample svc-a spans at 50%",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "svc-a" }
+        ],
+        "keep": {
+          "percentage": 50.0
+        }
+      }
+    },
+    {
+      "id": "sample-50-svc-b-failopen",
+      "name": "Sample svc-b spans at 50% fail-open",
+      "trace": {
+        "match": [
+          { "resource_attribute": "service.name", "exact": "svc-b" }
+        ],
+        "keep": {
+          "percentage": 50.0,
+          "fail_closed": false
+        }
+      }
+    }
+  ]
+}

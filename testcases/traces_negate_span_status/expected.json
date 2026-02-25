@@ -1,46 +1,22 @@
 {
   "resourceSpans": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeSpans": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "spans": [
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "q83vEjRWeJA=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "POST /api/checkout",
               "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "POST /api/checkout",
+              "spanId": "abcdef1234567890",
               "status": {
-                "message": "payment failed",
-                "code": "STATUS_CODE_ERROR"
-              }
+                "code": "STATUS_CODE_ERROR",
+                "message": "payment failed"
+              },
+              "traceId": "1234567890abcdef1234567890abcdef"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

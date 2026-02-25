@@ -1,0 +1,86 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "svc-a"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "endTimeUnixNano": 2000000000,
+              "kind": "SPAN_KIND_SERVER",
+              "name": "GET /api/users",
+              "spanId": "0101010101010101",
+              "startTimeUnixNano": 1000000000,
+              "status": {
+                "code": "STATUS_CODE_OK"
+              },
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
+              "traceState": "ot=th:8"
+            },
+            {
+              "endTimeUnixNano": 2000000000,
+              "kind": "SPAN_KIND_SERVER",
+              "name": "GET /api/products",
+              "spanId": "0303030303030303",
+              "startTimeUnixNano": 1000000000,
+              "status": {
+                "code": "STATUS_CODE_OK"
+              },
+              "traceId": "aabbccdd000000000380000000000000",
+              "traceState": "ot=th:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "svc-b"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "endTimeUnixNano": 2000000000,
+              "kind": "SPAN_KIND_INTERNAL",
+              "name": "process-job",
+              "spanId": "0606060606060606",
+              "startTimeUnixNano": 1000000000,
+              "status": {
+                "code": "STATUS_CODE_OK"
+              },
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70",
+              "traceState": "ot=th:8"
+            },
+            {
+              "endTimeUnixNano": 2000000000,
+              "kind": "SPAN_KIND_INTERNAL",
+              "name": "orphan-span",
+              "spanId": "0707070707070707",
+              "startTimeUnixNano": 1000000000,
+              "status": {
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,82 +9,39 @@
               "stringValue": "test-svc"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
-      "schemaUrl": "",
       "scopeSpans": [
         {
-          "schemaUrl": "",
-          "scope": {
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "name": "",
-            "version": ""
-          },
           "spans": [
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "kept-at-boundary",
-              "parentSpanId": "",
-              "spanId": "AQEBAQEBAQE=",
-              "startTimeUnixNano": 0,
+              "spanId": "0101010101010101",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
+              "traceId": "aabbccdd000000000180000000000000",
               "traceState": "ot=th:8"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "kept-at-max",
-              "parentSpanId": "",
-              "spanId": "AgICAgICAgI=",
-              "startTimeUnixNano": 0,
+              "spanId": "0202020202020202",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAC/////////w==",
+              "traceId": "aabbccdd0000000002ffffffffffffff",
               "traceState": "ot=th:8"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "kept-above-boundary",
-              "parentSpanId": "",
-              "spanId": "AwMDAwMDAwM=",
-              "startTimeUnixNano": 0,
+              "spanId": "0303030303030303",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
+              "traceId": "aabbccdd000000000380000000000001",
               "traceState": "ot=th:8"
             }
           ]

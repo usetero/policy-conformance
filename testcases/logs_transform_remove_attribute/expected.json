@@ -1,28 +1,10 @@
 {
   "resourceLogs": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": {
-                "stringValue": "auth login successful"
-              },
               "attributes": [
                 {
                   "key": "user",
@@ -31,20 +13,12 @@
                   }
                 }
               ],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "auth login successful"
+              },
+              "severityText": "INFO"
             },
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": {
-                "stringValue": "request handled"
-              },
               "attributes": [
                 {
                   "key": "method",
@@ -53,17 +27,14 @@
                   }
                 }
               ],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "request handled"
+              },
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

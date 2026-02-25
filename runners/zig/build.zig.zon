@@ -3,8 +3,8 @@
     .version = "0.1.0",
     .dependencies = .{
         .policy_zig = .{
-            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.1.13.tar.gz",
-            .hash = "policy_zig-0.1.7-5_dp3qZKDwA6u9dalhv9Z7bksGhRM9ZHYKUMyiSKu-oC",
+            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.1.16.tar.gz",
+            .hash = "policy_zig-0.1.7-5_dp3g9nDwBvBQaPHxiU4nuz9rmVzZVf-fVmI-_zoh70",
             // .path = "../../../policy-zig",
         },
     },

@@ -1,1 +1,21 @@
-{"resourceSpans":[{"resource":{"attributes":[],"droppedAttributesCount":0,"entityRefs":[]},"scopeSpans":[{"scope":{"name":"","version":"","attributes":[],"droppedAttributesCount":0},"spans":[{"traceId":"AQEBAQEBAQEBAQEBAQEBAQ==","spanId":"AgICAgICAgI=","traceState":"","parentSpanId":"","flags":0,"name":"process data","kind":"SPAN_KIND_INTERNAL","startTimeUnixNano":0,"endTimeUnixNano":0,"attributes":[],"droppedAttributesCount":0,"events":[],"droppedEventsCount":0,"links":[],"droppedLinksCount":0,"status":{"message":"","code":"STATUS_CODE_OK"}}],"schemaUrl":""}],"schemaUrl":""}]}
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "kind": "SPAN_KIND_INTERNAL",
+              "name": "process data",
+              "spanId": "0202020202020202",
+              "status": {
+                "code": "STATUS_CODE_OK"
+              },
+              "traceId": "01010101010101010101010101010101"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

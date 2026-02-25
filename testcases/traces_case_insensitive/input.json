@@ -6,71 +6,82 @@
         "droppedAttributesCount": 0,
         "entityRefs": []
       },
-      "scopeSpans": [{
-        "scope": {
-          "name": "",
-          "version": "",
-          "attributes": [],
-          "droppedAttributesCount": 0
-        },
-        "spans": [
-          {
-            "traceId": "AAAAAAAAAAAAAAAAAAAAAA==",
-            "spanId": "AQEBAQEBAQE=",
-            "traceState": "",
-            "parentSpanId": "",
-            "flags": 0,
-            "name": "GET /Health/Ready",
-            "kind": "SPAN_KIND_SERVER",
-            "startTimeUnixNano": 0,
-            "endTimeUnixNano": 0,
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "",
+            "version": "",
             "attributes": [],
-            "droppedAttributesCount": 0,
-            "events": [],
-            "droppedEventsCount": 0,
-            "links": [],
-            "droppedLinksCount": 0,
-            "status": { "message": "", "code": "STATUS_CODE_OK" }
+            "droppedAttributesCount": 0
           },
-          {
-            "traceId": "AQEBAQEBAQEBAQEBAQEBAQ==",
-            "spanId": "AgICAgICAgI=",
-            "traceState": "",
-            "parentSpanId": "",
-            "flags": 0,
-            "name": "get /health",
-            "kind": "SPAN_KIND_SERVER",
-            "startTimeUnixNano": 0,
-            "endTimeUnixNano": 0,
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "events": [],
-            "droppedEventsCount": 0,
-            "links": [],
-            "droppedLinksCount": 0,
-            "status": { "message": "", "code": "STATUS_CODE_OK" }
-          },
-          {
-            "traceId": "AgICAgICAgICAgICAgICAg==",
-            "spanId": "AwMDAwMDAwM=",
-            "traceState": "",
-            "parentSpanId": "",
-            "flags": 0,
-            "name": "POST /api/data",
-            "kind": "SPAN_KIND_SERVER",
-            "startTimeUnixNano": 0,
-            "endTimeUnixNano": 0,
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "events": [],
-            "droppedEventsCount": 0,
-            "links": [],
-            "droppedLinksCount": 0,
-            "status": { "message": "", "code": "STATUS_CODE_OK" }
-          }
-        ],
-        "schemaUrl": ""
-      }],
+          "spans": [
+            {
+              "traceId": "00000000000000000000000000000000",
+              "spanId": "0101010101010101",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "GET /Health/Ready",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "01010101010101010101010101010101",
+              "spanId": "0202020202020202",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "get /health",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            },
+            {
+              "traceId": "02020202020202020202020202020202",
+              "spanId": "0303030303030303",
+              "traceState": "",
+              "parentSpanId": "",
+              "flags": 0,
+              "name": "POST /api/data",
+              "kind": "SPAN_KIND_SERVER",
+              "startTimeUnixNano": 0,
+              "endTimeUnixNano": 0,
+              "attributes": [],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "links": [],
+              "droppedLinksCount": 0,
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
       "schemaUrl": ""
     }
   ]

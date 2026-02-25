@@ -1,63 +1,33 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "http.duration",
               "description": "HTTP duration (cumulative)",
-              "unit": "ms",
-              "metadata": [],
+              "name": "http.duration",
               "sum": {
-                "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
-                ],
                 "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                "isMonotonic": false
-              }
+                "dataPoints": [
+                  {}
+                ]
+              },
+              "unit": "ms"
             },
             {
-              "name": "system.cpu",
               "description": "CPU usage gauge",
-              "unit": "1",
-              "metadata": [],
               "gauge": {
                 "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
+                  {}
                 ]
-              }
+              },
+              "name": "system.cpu",
+              "unit": "1"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

@@ -47,15 +47,6 @@ pub const TraceContext = struct {
 
 // ─── Attribute helpers ───────────────────────────────────────────────
 
-fn findAttribute(attrs: []const KeyValue, key: []const u8) ?[]const u8 {
-    for (attrs) |kv| {
-        if (std.mem.eql(u8, kv.key, key)) {
-            return anyValueString(kv.value);
-        }
-    }
-    return null;
-}
-
 fn findAttributePath(attrs: []const KeyValue, path: []const []const u8) ?[]const u8 {
     if (path.len == 0) return null;
     for (attrs) |kv| {

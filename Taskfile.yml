@@ -106,15 +106,21 @@ tasks:
       - |
         set +e
         # Normalize proto JSON: some encoders emit uint64 as strings, others as numbers
-        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         # Merge stats: sum hits/misses per policy_id across multiple stats files
         merge_stats='[.[].policies[]] | group_by(.policy_id) | map({policy_id: .[0].policy_id, hits: (map(.hits) | add), misses: (map(.misses // 0) | add)}) | map(if .misses == 0 then del(.misses) else . end) | sort_by(.policy_id) | {policies: .}'
         # Detect signal type from JSON content
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
 
+        TC_FILTER="{{.TC}}"
         PASS=0; FAIL=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
+
+          # If TC filter is set, only run that test case
+          if [ -n "$TC_FILTER" ] && [ "$name" != "$TC_FILTER" ]; then
+            continue
+          fi
 
           if [ -f "$tc/input.json" ]; then
             # ── Simple mode: single input/output ──
@@ -288,7 +294,7 @@ tasks:
     cmds:
       - |
         set +e
-        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
         # Normalize expected stats for HTTP comparison: server only reports {policy_id, hits} for policies with hits > 0
         normalize_http_stats='{policies: [.policies[] | del(.misses) | select(.hits > 0)] | sort_by(.policy_id)}'
@@ -492,7 +498,7 @@ tasks:
           LANGS="go rs zig"
         fi
 
-        normalize='walk(if type == "object" then with_entries(select(.value != null)) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         merge_stats='[.[].policies[]] | group_by(.policy_id) | map({policy_id: .[0].policy_id, hits: (map(.hits) | add), misses: (map(.misses // 0) | add)}) | map(if .misses == 0 then del(.misses) else . end) | sort_by(.policy_id) | {policies: .}'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
 
@@ -586,6 +592,271 @@ tasks:
       - rm -f testcases/*/stats_*.json
       - cd runners/rs && cargo clean
       - cd runners/zig && rm -rf zig-out .zig-cache
+
+  # ── Implementation tests ────────────────────────────────────
+  build:sink:
+    desc: Build sink server for implementation tests
+    dir: implementations/sink
+    cmds:
+      - go build -o sink-server .
+
+  test:impl:collector:
+    desc: Run implementation conformance tests for tero-collector-distro
+    aliases: [tic]
+    deps: [build:sink]
+    cmds:
+      - task: conformance:impl
+        vars:
+          IMPL: tero-collector-distro
+          IMPL_NAME: collector
+          IMPL_BIN: implementations/tero-collector-distro/tero-collector
+          IMPL_START_CMD: "--config"
+          CONFIG_TEMPLATE: implementations/tero-collector-distro/config.template.yaml
+          CONFIG_EXT: yaml
+
+  test:impl:edge:
+    desc: Run implementation conformance tests for edge
+    aliases: [tie]
+    deps: [build:sink]
+    cmds:
+      - task: conformance:impl
+        vars:
+          IMPL: edge
+          IMPL_NAME: edge
+          IMPL_BIN: implementations/edge/edge
+          IMPL_START_CMD: ""
+          CONFIG_TEMPLATE: implementations/edge/config.template.json
+          CONFIG_EXT: json
+
+  test:impl:
+    desc: Run implementation conformance tests for all implementations
+    aliases: [ti]
+    cmds:
+      - task: test:impl:collector
+      - task: test:impl:edge
+
+  conformance:impl:
+    desc: Run test cases against a single implementation
+    internal: true
+    cmds:
+      - |
+        set +e
+
+        IMPL_BIN="{{.IMPL_BIN}}"
+        if [ ! -x "$IMPL_BIN" ]; then
+          echo "SKIP: $IMPL_BIN not found (place the binary and chmod +x)"
+          exit 0
+        fi
+
+        # Normalize: strip proto defaults (0, "", [], {}, false, null, unspecified enums)
+        # and coerce string-encoded numbers. Same filter as the runner conformance tasks.
+        normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
+
+        IMPL_PID=""; SINK_PID=""
+        kill_servers() {
+          [ -n "$IMPL_PID" ] && kill -9 "$IMPL_PID" 2>/dev/null; IMPL_PID=""
+          [ -n "$SINK_PID" ] && kill -9 "$SINK_PID" 2>/dev/null; SINK_PID=""
+        }
+        trap kill_servers EXIT
+
+        TC_FILTER="{{.TC}}"
+        PASS=0; FAIL=0; SKIP=0; ERRORS=0
+
+        for tc in testcases/*/; do
+          name=$(basename "$tc")
+
+          # If TC filter is set, only run that test case
+          if [ -n "$TC_FILTER" ] && [ "$name" != "$TC_FILTER" ]; then
+            continue
+          fi
+
+          # ── Determine signal and endpoint ──
+          signal_to_endpoint() {
+            case "$1" in
+              log)    echo "/v1/logs" ;;
+              metric) echo "/v1/metrics" ;;
+              trace)  echo "/v1/traces" ;;
+              *)      echo "" ;;
+            esac
+          }
+
+          # Skip stateful compound tests (rate limiting/sampling state persists
+          # across batches in long-running implementations, unlike per-invocation runners)
+          case "$name" in
+            compound_stateful_*) SKIP=$((SKIP + 1)); continue ;;
+          esac
+
+          IS_COMPOUND=false
+          if [ -f "$tc/input.json" ]; then
+            case "$name" in
+              logs_*)    ENDPOINT="/v1/logs" ;;
+              metrics_*) ENDPOINT="/v1/metrics" ;;
+              traces_*)  ENDPOINT="/v1/traces" ;;
+              *)         SKIP=$((SKIP + 1)); continue ;;
+            esac
+          elif ls "$tc"/input_*.json > /dev/null 2>&1; then
+            IS_COMPOUND=true
+            # Use /v1/logs for readiness probe (any OTLP endpoint works)
+            ENDPOINT="/v1/logs"
+          else
+            SKIP=$((SKIP + 1))
+            continue
+          fi
+
+          # ── Pick a free port for the receiver ──
+          RECEIVER_PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); print(s.getsockname()[1]); s.close()")
+
+          # ── Start sink server (FIFO handshake) ──
+          SINK_FIFO=$(mktemp -u)
+          mkfifo "$SINK_FIFO"
+          ./implementations/sink/sink-server --port 0 > "$SINK_FIFO" 2>/dev/null &
+          SINK_PID=$!
+
+          SINK_PORT=""
+          while IFS= read -r line; do
+            case "$line" in
+              SINK_PORT=*) SINK_PORT="${line#SINK_PORT=}" ;;
+            esac
+            if [ -n "$SINK_PORT" ]; then break; fi
+          done < "$SINK_FIFO"
+          rm -f "$SINK_FIFO"
+
+          if [ -z "$SINK_PORT" ]; then
+            echo "  ERROR $name (sink failed to start)"
+            kill_servers
+            ERRORS=$((ERRORS + 1))
+            continue
+          fi
+
+          # ── Generate runtime config ──
+          POLICIES_PATH="$(pwd)/$tc/policies.json"
+          export RECEIVER_PORT SINK_PORT POLICIES_PATH
+          CONFIG_FILE=$(mktemp).{{.CONFIG_EXT}}
+          envsubst < "{{.CONFIG_TEMPLATE}}" > "$CONFIG_FILE"
+
+          # ── Start implementation ──
+          if [ -n "{{.IMPL_START_CMD}}" ]; then
+            ./$IMPL_BIN {{.IMPL_START_CMD}} "$CONFIG_FILE" > /dev/null 2>&1 &
+          else
+            ./$IMPL_BIN "$CONFIG_FILE" > /dev/null 2>&1 &
+          fi
+          IMPL_PID=$!
+
+          # ── Wait for readiness (poll receiver) ──
+          READY=false
+          for i in $(seq 1 50); do
+            if curl -sf -o /dev/null -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
+                 -H "Content-Type: application/json" -d '{}' 2>/dev/null; then
+              READY=true
+              break
+            fi
+            sleep 0.1
+          done
+
+          # Reset sink after readiness probe (may have forwarded empty data)
+          curl -s "http://localhost:$SINK_PORT/reset" > /dev/null 2>&1
+
+          if ! $READY; then
+            echo "  ERROR $name (implementation not ready after 5s)"
+            kill_servers
+            rm -f "$CONFIG_FILE"
+            ERRORS=$((ERRORS + 1))
+            continue
+          fi
+
+          out_ok=true
+          if ! $IS_COMPOUND; then
+            # ── Simple mode: single input/output ──
+            curl -s -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
+              -H "Content-Type: application/json" \
+              -d @"$tc/input.json" > /dev/null 2>&1
+
+            for i in $(seq 1 20); do
+              if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
+                break
+              fi
+              sleep 0.1
+            done
+            sleep 0.1
+            curl -s "http://localhost:$SINK_PORT/output" > "$tc/output_{{.IMPL_NAME}}.json" 2>/dev/null
+
+            if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                      <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") > /dev/null 2>&1; then
+              out_ok=false
+            fi
+          else
+            # ── Compound mode: multiple input_N/expected_N pairs ──
+            for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+              n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+              expected_file="$tc/expected_${n}.json"
+              output_file="$tc/output_${n}_{{.IMPL_NAME}}.json"
+
+              # Reset sink before each batch
+              curl -s "http://localhost:$SINK_PORT/reset" > /dev/null 2>&1
+
+              # Detect signal and endpoint for this batch
+              batch_signal=$(jq -r "$detect_signal" "$input_file")
+              BATCH_ENDPOINT=$(signal_to_endpoint "$batch_signal")
+              if [ -z "$BATCH_ENDPOINT" ]; then
+                echo "  SKIP  $name/input_${n}.json (unknown signal)"; continue
+              fi
+
+              curl -s -X POST "http://localhost:$RECEIVER_PORT$BATCH_ENDPOINT" \
+                -H "Content-Type: application/json" \
+                -d @"$input_file" > /dev/null 2>&1
+
+              for i in $(seq 1 20); do
+                if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
+                  break
+                fi
+                sleep 0.1
+              done
+              sleep 0.1
+              curl -s "http://localhost:$SINK_PORT/output" > "$output_file" 2>/dev/null
+
+              if [ -f "$expected_file" ]; then
+                if ! diff <(jq -S "$normalize" "$expected_file") \
+                          <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  out_ok=false
+                fi
+              fi
+            done
+          fi
+
+          # ── Shutdown ──
+          kill_servers
+          rm -f "$CONFIG_FILE"
+
+          # ── Report result ──
+          if $out_ok; then
+            echo "  PASS  $name"
+            PASS=$((PASS + 1))
+          else
+            echo "  FAIL  $name"
+            if ! $IS_COMPOUND; then
+              echo "    output diff:"
+              diff <(jq -S "$normalize" "$tc/expected.json") \
+                   <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") || true
+            else
+              for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+                n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+                expected_file="$tc/expected_${n}.json"
+                output_file="$tc/output_${n}_{{.IMPL_NAME}}.json"
+                if [ -f "$expected_file" ] && ! diff <(jq -S "$normalize" "$expected_file") \
+                      <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  echo "    output diff (batch $n):"
+                  diff <(jq -S "$normalize" "$expected_file") \
+                       <(jq -S "$normalize" "$output_file") || true
+                fi
+              done
+            fi
+            FAIL=$((FAIL + 1))
+          fi
+        done
+        echo ""
+        echo "{{.IMPL_NAME}}: $PASS passed, $FAIL failed, $ERRORS errors, $SKIP skipped"
+        [ "$FAIL" -eq 0 ] && [ "$ERRORS" -eq 0 ]
 
   ci:setup:
     desc: Install CI dependencies (hyperscan/vectorscan)

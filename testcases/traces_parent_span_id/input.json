@@ -16,8 +16,8 @@
           },
           "spans": [
             {
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
-              "spanId": "EjRWeJCrze8=",
+              "traceId": "abcdef1234567890abcdef1234567890",
+              "spanId": "1234567890abcdef",
               "traceState": "",
               "parentSpanId": "",
               "flags": 0,
@@ -37,10 +37,10 @@
               }
             },
             {
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
-              "spanId": "q83vEjRWeJA=",
+              "traceId": "abcdef1234567890abcdef1234567890",
+              "spanId": "abcdef1234567890",
               "traceState": "",
-              "parentSpanId": "EjRWeJCrze8=",
+              "parentSpanId": "1234567890abcdef",
               "flags": 0,
               "name": "db.query SELECT users",
               "kind": "SPAN_KIND_CLIENT",
@@ -58,10 +58,10 @@
               }
             },
             {
-              "traceId": "EjRWeJCrze8SNFZ4kKvN7w==",
-              "spanId": "CYdlQyH+3Lo=",
+              "traceId": "1234567890abcdef1234567890abcdef",
+              "spanId": "0987654321fedcba",
               "traceState": "",
-              "parentSpanId": "/ty6CYdlQyA=",
+              "parentSpanId": "fedcba0987654320",
               "flags": 0,
               "name": "cache.lookup",
               "kind": "SPAN_KIND_INTERNAL",

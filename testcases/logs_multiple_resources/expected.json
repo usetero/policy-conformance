@@ -5,91 +5,54 @@
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "api-server" }
+            "value": {
+              "stringValue": "api-server"
+            }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": { "stringValue": "info msg" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "info msg"
+              },
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     },
     {
       "resource": {
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "web-server" }
+            "value": {
+              "stringValue": "web-server"
+            }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "DEBUG",
-              "body": { "stringValue": "web debug" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "web debug"
+              },
+              "severityText": "DEBUG"
             },
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": { "stringValue": "web info" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "web info"
+              },
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

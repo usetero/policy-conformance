@@ -1,0 +1,42 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:${RECEIVER_PORT}
+
+processors:
+  policy:
+    providers:
+      - type: file
+        id: local
+        path: ${POLICIES_PATH}
+
+exporters:
+  otlp_http:
+    endpoint: http://localhost:${SINK_PORT}
+    encoding: json
+    compression: none
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: false
+
+service:
+  telemetry:
+    logs:
+      level: warn
+    metrics:
+      level: none
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [policy]
+      exporters: [otlp_http]
+    metrics:
+      receivers: [otlp]
+      processors: [policy]
+      exporters: [otlp_http]
+    traces:
+      receivers: [otlp]
+      processors: [policy]
+      exporters: [otlp_http]

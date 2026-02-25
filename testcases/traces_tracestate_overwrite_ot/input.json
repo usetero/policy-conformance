@@ -3,7 +3,12 @@
     {
       "resource": {
         "attributes": [
-          { "key": "service.name", "value": { "stringValue": "test-svc" } }
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "test-svc"
+            }
+          }
         ],
         "droppedAttributesCount": 0,
         "entityRefs": []
@@ -18,8 +23,8 @@
           },
           "spans": [
             {
-              "traceId": "qrvM3QAAAAABgAAAAAAAAA==",
-              "spanId": "AQEBAQEBAQE=",
+              "traceId": "aabbccdd000000000180000000000000",
+              "spanId": "0101010101010101",
               "traceState": "ot=th:4;rv:abc123",
               "parentSpanId": "",
               "flags": 0,
@@ -33,11 +38,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAAC/////////w==",
-              "spanId": "AgICAgICAgI=",
+              "traceId": "aabbccdd0000000002ffffffffffffff",
+              "spanId": "0202020202020202",
               "traceState": "ot=th:c,vendor=xyz",
               "parentSpanId": "",
               "flags": 0,
@@ -51,11 +59,14 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             },
             {
-              "traceId": "qrvM3QAAAAADgAAAAAAAAQ==",
-              "spanId": "AwMDAwMDAwM=",
+              "traceId": "aabbccdd000000000380000000000001",
+              "spanId": "0303030303030303",
               "traceState": "ot=th:0",
               "parentSpanId": "",
               "flags": 0,
@@ -69,7 +80,10 @@
               "droppedEventsCount": 0,
               "links": [],
               "droppedLinksCount": 0,
-              "status": { "message": "", "code": "STATUS_CODE_OK" }
+              "status": {
+                "message": "",
+                "code": "STATUS_CODE_OK"
+              }
             }
           ],
           "schemaUrl": ""

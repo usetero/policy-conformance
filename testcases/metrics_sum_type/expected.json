@@ -1,67 +1,43 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeMetrics": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "metrics": [
             {
-              "name": "system.cpu.load",
               "description": "CPU load average",
-              "unit": "1",
-              "metadata": [],
               "gauge": {
                 "dataPoints": [
-                  {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "exemplars": [],
-                    "flags": 0,
-                    "asDouble": 0
-                  }
+                  {}
                 ]
-              }
+              },
+              "name": "system.cpu.load",
+              "unit": "1"
             },
             {
-              "name": "http.duration",
               "description": "HTTP request duration",
-              "unit": "ms",
-              "metadata": [],
               "histogram": {
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
                 "dataPoints": [
                   {
-                    "attributes": [],
-                    "startTimeUnixNano": 0,
-                    "timeUnixNano": 0,
-                    "count": 0,
-                    "sum": 0,
-                    "bucketCounts": [0, 0, 0],
-                    "explicitBounds": [10, 100],
-                    "exemplars": [],
-                    "flags": 0,
-                    "min": 0,
-                    "max": 0
+                    "bucketCounts": [
+                      0,
+                      0,
+                      0
+                    ],
+                    "explicitBounds": [
+                      10,
+                      100
+                    ]
                   }
-                ],
-                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
-              }
+                ]
+              },
+              "name": "http.duration",
+              "unit": "ms"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

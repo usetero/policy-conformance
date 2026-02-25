@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/usetero/policy-go"
-	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
-	metricspb "go.opentelemetry.io/proto/otlp/metrics/v1"
-	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
-	"google.golang.org/protobuf/encoding/protojson"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
 
 // ─── Stats output ────────────────────────────────────────────────────
@@ -54,159 +56,130 @@ func writeStats(path string, registry *policy.PolicyRegistry) error {
 
 // ─── Signal processing ──────────────────────────────────────────────
 
-var marshaler = protojson.MarshalOptions{
-	EmitUnpopulated: true,
-}
-
 func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
-	var data logspb.LogsData
-	if err := protojson.Unmarshal(inputData, &data); err != nil {
+	req := plogotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputData); err != nil {
 		return nil, fmt.Errorf("unmarshal logs: %w", err)
 	}
 
-	// Reset stats before evaluation
 	registry.CollectStats()
 
-	for _, rl := range data.ResourceLogs {
-		for _, sl := range rl.ScopeLogs {
-			kept := sl.LogRecords[:0]
-			for _, rec := range sl.LogRecords {
+	logs := req.Logs()
+	for i := 0; i < logs.ResourceLogs().Len(); i++ {
+		rl := logs.ResourceLogs().At(i)
+		for j := 0; j < rl.ScopeLogs().Len(); j++ {
+			sl := rl.ScopeLogs().At(j)
+			sl.LogRecords().RemoveIf(func(rec plog.LogRecord) bool {
 				ctx := &LogContext{
 					Record:            rec,
-					Resource:          rl.Resource,
-					Scope:             sl.Scope,
-					ResourceSchemaURL: rl.SchemaUrl,
-					ScopeSchemaURL:    sl.SchemaUrl,
+					Resource:          rl.Resource(),
+					Scope:             sl.Scope(),
+					ResourceSchemaURL: rl.SchemaUrl(),
+					ScopeSchemaURL:    sl.SchemaUrl(),
 				}
 				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher, policy.WithLogTransform(OTelLogTransformer))
-				if result != policy.ResultDrop {
-					kept = append(kept, rec)
-				}
-			}
-			sl.LogRecords = kept
+				return result == policy.ResultDrop
+			})
 		}
 	}
 
 	// Prune empty scope containers
-	for _, rl := range data.ResourceLogs {
-		kept := rl.ScopeLogs[:0]
-		for _, sl := range rl.ScopeLogs {
-			if len(sl.LogRecords) > 0 {
-				kept = append(kept, sl)
-			}
-		}
-		rl.ScopeLogs = kept
+	for i := 0; i < logs.ResourceLogs().Len(); i++ {
+		rl := logs.ResourceLogs().At(i)
+		rl.ScopeLogs().RemoveIf(func(sl plog.ScopeLogs) bool {
+			return sl.LogRecords().Len() == 0
+		})
 	}
 
 	// Prune empty resource containers
-	kept := data.ResourceLogs[:0]
-	for _, rl := range data.ResourceLogs {
-		if len(rl.ScopeLogs) > 0 {
-			kept = append(kept, rl)
-		}
-	}
-	data.ResourceLogs = kept
+	logs.ResourceLogs().RemoveIf(func(rl plog.ResourceLogs) bool {
+		return rl.ScopeLogs().Len() == 0
+	})
 
-	return marshaler.Marshal(&data)
+	return req.MarshalJSON()
 }
 
 func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
-	var data metricspb.MetricsData
-	if err := protojson.Unmarshal(inputData, &data); err != nil {
+	req := pmetricotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputData); err != nil {
 		return nil, fmt.Errorf("unmarshal metrics: %w", err)
 	}
 
 	registry.CollectStats()
 
-	for _, rm := range data.ResourceMetrics {
-		for _, sm := range rm.ScopeMetrics {
-			kept := sm.Metrics[:0]
-			for _, m := range sm.Metrics {
+	metrics := req.Metrics()
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		rm := metrics.ResourceMetrics().At(i)
+		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+			sm := rm.ScopeMetrics().At(j)
+			sm.Metrics().RemoveIf(func(m pmetric.Metric) bool {
 				ctx := &MetricContext{
 					Metric:              m,
 					DatapointAttributes: getDatapointAttrs(m),
-					Resource:            rm.Resource,
-					Scope:               sm.Scope,
-					ResourceSchemaURL:   rm.SchemaUrl,
-					ScopeSchemaURL:      sm.SchemaUrl,
+					Resource:            rm.Resource(),
+					Scope:               sm.Scope(),
+					ResourceSchemaURL:   rm.SchemaUrl(),
+					ScopeSchemaURL:      sm.SchemaUrl(),
 				}
 				result := policy.EvaluateMetric(eng, ctx, OTelMetricMatcher)
-				if result != policy.ResultDrop {
-					kept = append(kept, m)
-				}
-			}
-			sm.Metrics = kept
+				return result == policy.ResultDrop
+			})
 		}
 	}
 
-	for _, rm := range data.ResourceMetrics {
-		kept := rm.ScopeMetrics[:0]
-		for _, sm := range rm.ScopeMetrics {
-			if len(sm.Metrics) > 0 {
-				kept = append(kept, sm)
-			}
-		}
-		rm.ScopeMetrics = kept
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		rm := metrics.ResourceMetrics().At(i)
+		rm.ScopeMetrics().RemoveIf(func(sm pmetric.ScopeMetrics) bool {
+			return sm.Metrics().Len() == 0
+		})
 	}
 
-	keptRM := data.ResourceMetrics[:0]
-	for _, rm := range data.ResourceMetrics {
-		if len(rm.ScopeMetrics) > 0 {
-			keptRM = append(keptRM, rm)
-		}
-	}
-	data.ResourceMetrics = keptRM
+	metrics.ResourceMetrics().RemoveIf(func(rm pmetric.ResourceMetrics) bool {
+		return rm.ScopeMetrics().Len() == 0
+	})
 
-	return marshaler.Marshal(&data)
+	return req.MarshalJSON()
 }
 
 func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {
-	var data tracepb.TracesData
-	if err := protojson.Unmarshal(inputData, &data); err != nil {
+	req := ptraceotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputData); err != nil {
 		return nil, fmt.Errorf("unmarshal traces: %w", err)
 	}
 
 	registry.CollectStats()
 
-	for _, rs := range data.ResourceSpans {
-		for _, ss := range rs.ScopeSpans {
-			kept := ss.Spans[:0]
-			for _, span := range ss.Spans {
+	traces := req.Traces()
+	for i := 0; i < traces.ResourceSpans().Len(); i++ {
+		rs := traces.ResourceSpans().At(i)
+		for j := 0; j < rs.ScopeSpans().Len(); j++ {
+			ss := rs.ScopeSpans().At(j)
+			ss.Spans().RemoveIf(func(span ptrace.Span) bool {
 				ctx := &TraceContext{
 					Span:              span,
-					Resource:          rs.Resource,
-					Scope:             ss.Scope,
-					ResourceSchemaURL: rs.SchemaUrl,
-					ScopeSchemaURL:    ss.SchemaUrl,
+					Resource:          rs.Resource(),
+					Scope:             ss.Scope(),
+					ResourceSchemaURL: rs.SchemaUrl(),
+					ScopeSchemaURL:    ss.SchemaUrl(),
 				}
 				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher, policy.WithTraceTransform(OTelTraceTransformer))
-				if result != policy.ResultDrop {
-					kept = append(kept, span)
-				}
-			}
-			ss.Spans = kept
+				return result == policy.ResultDrop
+			})
 		}
 	}
 
-	for _, rs := range data.ResourceSpans {
-		kept := rs.ScopeSpans[:0]
-		for _, ss := range rs.ScopeSpans {
-			if len(ss.Spans) > 0 {
-				kept = append(kept, ss)
-			}
-		}
-		rs.ScopeSpans = kept
+	for i := 0; i < traces.ResourceSpans().Len(); i++ {
+		rs := traces.ResourceSpans().At(i)
+		rs.ScopeSpans().RemoveIf(func(ss ptrace.ScopeSpans) bool {
+			return ss.Spans().Len() == 0
+		})
 	}
 
-	keptRS := data.ResourceSpans[:0]
-	for _, rs := range data.ResourceSpans {
-		if len(rs.ScopeSpans) > 0 {
-			keptRS = append(keptRS, rs)
-		}
-	}
-	data.ResourceSpans = keptRS
+	traces.ResourceSpans().RemoveIf(func(rs ptrace.ResourceSpans) bool {
+		return rs.ScopeSpans().Len() == 0
+	})
 
-	return marshaler.Marshal(&data)
+	return req.MarshalJSON()
 }
 
 // ─── Main ────────────────────────────────────────────────────────────
@@ -290,13 +263,10 @@ func main() {
 	}
 
 	if remoteMode {
-		// In remote mode, trigger a second sync to report stats back to the server.
-		// Load() performs a sync which includes policy_statuses from CollectStats.
 		if _, err := provider.Load(); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to sync stats: %v\n", err)
 		}
 	} else {
-		// In file mode, write stats locally
 		if err := writeStats(*statsPath, registry); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write stats: %v\n", err)
 			os.Exit(1)

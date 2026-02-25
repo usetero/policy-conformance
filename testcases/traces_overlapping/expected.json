@@ -1,63 +1,27 @@
 {
   "resourceSpans": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
-      "schemaUrl": "",
       "scopeSpans": [
         {
-          "schemaUrl": "",
-          "scope": {
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "name": "",
-            "version": ""
-          },
           "spans": [
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "POST /api/checkout",
-              "parentSpanId": "",
-              "spanId": "EjRWeJCrze8=",
-              "startTimeUnixNano": 0,
+              "spanId": "1234567890abcdef",
               "status": {
-                "code": "STATUS_CODE_ERROR",
-                "message": ""
+                "code": "STATUS_CODE_ERROR"
               },
-              "traceId": "q83vEjRWeJCrze8SNFZ4kA==",
+              "traceId": "abcdef1234567890abcdef1234567890",
               "traceState": "ot=th:0"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "GET /api/users",
-              "parentSpanId": "",
-              "spanId": "CYdlQyH+3Lo=",
-              "startTimeUnixNano": 0,
+              "spanId": "0987654321fedcba",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
-              "traceState": ""
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
           ]
         }

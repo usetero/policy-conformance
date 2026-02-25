@@ -1,0 +1,44 @@
+{
+  "policies": [
+    {
+      "id": "drop-critical",
+      "name": "Drop all CRITICAL logs (none beats rate_limit)",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "CRITICAL" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "rate-1ps-info",
+      "name": "Rate limit INFO to 1/s",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "INFO" }
+        ],
+        "keep": "1/s"
+      }
+    },
+    {
+      "id": "rate-3ps-warn",
+      "name": "Rate limit WARN to 3/s",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "WARN" }
+        ],
+        "keep": "3/s"
+      }
+    },
+    {
+      "id": "rate-critical-too",
+      "name": "Rate limit CRITICAL to 5/s (but drop-critical already drops them all)",
+      "log": {
+        "match": [
+          { "log_field": "severity_text", "exact": "CRITICAL" }
+        ],
+        "keep": "5/s"
+      }
+    }
+  ]
+}

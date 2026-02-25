@@ -9,45 +9,27 @@
               "stringValue": "api-server"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeSpans": [
         {
           "scope": {
             "name": "api.http",
-            "version": "2.0.0",
-            "attributes": [],
-            "droppedAttributesCount": 0
+            "version": "2.0.0"
           },
           "spans": [
             {
-              "traceId": "/ty6CYdlQyH+3LoJh2VDIQ==",
-              "spanId": "CYdlQyH+3Lo=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "POST /api/users",
               "kind": "SPAN_KIND_SERVER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "POST /api/users",
+              "spanId": "0987654321fedcba",
               "status": {
-                "message": "",
                 "code": "STATUS_CODE_OK"
-              }
+              },
+              "traceId": "fedcba0987654321fedcba0987654321"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     },
     {
       "resource": {
@@ -58,45 +40,27 @@
               "stringValue": "worker"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeSpans": [
         {
           "scope": {
             "name": "worker.jobs",
-            "version": "1.5.0",
-            "attributes": [],
-            "droppedAttributesCount": 0
+            "version": "1.5.0"
           },
           "spans": [
             {
-              "traceId": "AQEBAQEBAQEBAQEBAQEBAQ==",
-              "spanId": "AQEBAQEBAQE=",
-              "traceState": "",
-              "parentSpanId": "",
-              "flags": 0,
-              "name": "process.job",
               "kind": "SPAN_KIND_CONSUMER",
-              "startTimeUnixNano": 0,
-              "endTimeUnixNano": 0,
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "events": [],
-              "droppedEventsCount": 0,
-              "links": [],
-              "droppedLinksCount": 0,
+              "name": "process.job",
+              "spanId": "0101010101010101",
               "status": {
-                "message": "",
                 "code": "STATUS_CODE_OK"
-              }
+              },
+              "traceId": "01010101010101010101010101010101"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

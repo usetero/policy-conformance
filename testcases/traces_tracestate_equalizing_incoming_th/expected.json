@@ -9,82 +9,39 @@
               "stringValue": "test-svc"
             }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
-      "schemaUrl": "",
       "scopeSpans": [
         {
-          "schemaUrl": "",
-          "scope": {
-            "attributes": [],
-            "droppedAttributesCount": 0,
-            "name": "",
-            "version": ""
-          },
           "spans": [
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "incoming-25pct-more-restrictive-passthrough",
-              "parentSpanId": "",
-              "spanId": "AQEBAQEBAQE=",
-              "startTimeUnixNano": 0,
+              "spanId": "0101010101010101",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAgEAAAAAAAAA==",
+              "traceId": "aabbccdd000000002010000000000000",
               "traceState": "ot=th:c"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "incoming-75pct-less-restrictive-kept",
-              "parentSpanId": "",
-              "spanId": "AgICAgICAgI=",
-              "startTimeUnixNano": 0,
+              "spanId": "0202020202020202",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAhgAAAAAAAAA==",
+              "traceId": "aabbccdd000000002180000000000000",
               "traceState": "ot=th:8"
             },
             {
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "droppedEventsCount": 0,
-              "droppedLinksCount": 0,
-              "endTimeUnixNano": 0,
-              "events": [],
-              "flags": 0,
               "kind": "SPAN_KIND_SERVER",
-              "links": [],
               "name": "no-incoming-th-kept",
-              "parentSpanId": "",
-              "spanId": "BAQEBAQEBAQ=",
-              "startTimeUnixNano": 0,
+              "spanId": "0404040404040404",
               "status": {
-                "code": "STATUS_CODE_OK",
-                "message": ""
+                "code": "STATUS_CODE_OK"
               },
-              "traceId": "qrvM3QAAAAAjgAAAAAAAAA==",
+              "traceId": "aabbccdd000000002380000000000000",
               "traceState": "ot=th:8"
             }
           ]

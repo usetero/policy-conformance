@@ -1,0 +1,58 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-server"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "info 1"
+              },
+              "observedTimeUnixNano": 1000000000,
+              "severityNumber": "SEVERITY_NUMBER_INFO",
+              "severityText": "INFO",
+              "timeUnixNano": 1000000000
+            },
+            {
+              "body": {
+                "stringValue": "warn 1"
+              },
+              "observedTimeUnixNano": 1000000000,
+              "severityNumber": "SEVERITY_NUMBER_WARN",
+              "severityText": "WARN",
+              "timeUnixNano": 1000000000
+            },
+            {
+              "body": {
+                "stringValue": "warn 2"
+              },
+              "observedTimeUnixNano": 1000000000,
+              "severityNumber": "SEVERITY_NUMBER_WARN",
+              "severityText": "WARN",
+              "timeUnixNano": 1000000000
+            },
+            {
+              "body": {
+                "stringValue": "warn 3"
+              },
+              "observedTimeUnixNano": 1000000000,
+              "severityNumber": "SEVERITY_NUMBER_WARN",
+              "severityText": "WARN",
+              "timeUnixNano": 1000000000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

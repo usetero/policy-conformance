@@ -1,43 +1,26 @@
 {
   "resourceLogs": [
     {
-      "resource": {
-        "attributes": [],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
-      },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
-              "severityText": "INFO",
-              "body": { "stringValue": "data processed successfully" },
               "attributes": [
                 {
                   "key": "processed_by",
-                  "value": { "stringValue": "policy-engine" }
+                  "value": {
+                    "stringValue": "policy-engine"
+                  }
                 }
               ],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "",
-              "spanId": "",
-              "eventName": ""
+              "body": {
+                "stringValue": "data processed successfully"
+              },
+              "severityText": "INFO"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }

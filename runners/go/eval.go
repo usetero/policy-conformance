@@ -1,103 +1,79 @@
 package main
 
 import (
+	"encoding/hex"
 	"strings"
 
 	"github.com/usetero/policy-go"
-	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
-	logspb "go.opentelemetry.io/proto/otlp/logs/v1"
-	metricspb "go.opentelemetry.io/proto/otlp/metrics/v1"
-	resourcepb "go.opentelemetry.io/proto/otlp/resource/v1"
-	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 // ─── Context types ───────────────────────────────────────────────────
 
 type LogContext struct {
-	Record            *logspb.LogRecord
-	Resource          *resourcepb.Resource
-	Scope             *commonpb.InstrumentationScope
+	Record            plog.LogRecord
+	Resource          pcommon.Resource
+	Scope             pcommon.InstrumentationScope
 	ResourceSchemaURL string
 	ScopeSchemaURL    string
 }
 
 type MetricContext struct {
-	Metric              *metricspb.Metric
-	DatapointAttributes []*commonpb.KeyValue
-	Resource            *resourcepb.Resource
-	Scope               *commonpb.InstrumentationScope
+	Metric              pmetric.Metric
+	DatapointAttributes pcommon.Map
+	Resource            pcommon.Resource
+	Scope               pcommon.InstrumentationScope
 	ResourceSchemaURL   string
 	ScopeSchemaURL      string
 }
 
 type TraceContext struct {
-	Span              *tracepb.Span
-	Resource          *resourcepb.Resource
-	Scope             *commonpb.InstrumentationScope
+	Span              ptrace.Span
+	Resource          pcommon.Resource
+	Scope             pcommon.InstrumentationScope
 	ResourceSchemaURL string
 	ScopeSchemaURL    string
 }
 
 // ─── Attribute helpers ───────────────────────────────────────────────
 
-func findAttribute(attrs []*commonpb.KeyValue, key string) []byte {
-	for _, kv := range attrs {
-		if kv.Key == key {
-			return anyValueBytes(kv.Value)
-		}
+func findAttribute(attrs pcommon.Map, key string) []byte {
+	v, ok := attrs.Get(key)
+	if !ok {
+		return nil
 	}
-	return nil
+	return valueBytes(v)
 }
 
-func findAttributePath(attrs []*commonpb.KeyValue, path []string) []byte {
+func findAttributePath(attrs pcommon.Map, path []string) []byte {
 	if len(path) == 0 {
 		return nil
 	}
-	for _, kv := range attrs {
-		if kv.Key != path[0] {
-			continue
-		}
-		if len(path) == 1 {
-			return anyValueBytes(kv.Value)
-		}
-		// Traverse into nested kvlist
-		if kv.Value != nil {
-			if kvl, ok := kv.Value.Value.(*commonpb.AnyValue_KvlistValue); ok && kvl.KvlistValue != nil {
-				return findAttributePath(kvl.KvlistValue.Values, path[1:])
-			}
-		}
+	v, ok := attrs.Get(path[0])
+	if !ok {
 		return nil
+	}
+	if len(path) == 1 {
+		return valueBytes(v)
+	}
+	if v.Type() == pcommon.ValueTypeMap {
+		return findAttributePath(v.Map(), path[1:])
 	}
 	return nil
 }
 
-func anyValueBytes(v *commonpb.AnyValue) []byte {
-	if v == nil {
+func valueBytes(v pcommon.Value) []byte {
+	if v.Type() != pcommon.ValueTypeStr {
 		return nil
 	}
-	switch val := v.Value.(type) {
-	case *commonpb.AnyValue_StringValue:
-		if val.StringValue == "" {
-			return nil
-		}
-		return []byte(val.StringValue)
-	default:
+	s := v.Str()
+	if s == "" {
 		return nil
 	}
-}
-
-func resourceAttrs(r *resourcepb.Resource) []*commonpb.KeyValue {
-	if r == nil {
-		return nil
-	}
-	return r.Attributes
-}
-
-func scopeAttrs(s *commonpb.InstrumentationScope) []*commonpb.KeyValue {
-	if s == nil {
-		return nil
-	}
-	return s.Attributes
+	return []byte(s)
 }
 
 func attrPath(ref policy.LogFieldRef) string {
@@ -127,27 +103,29 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.LogFieldBody:
-			return anyValueBytes(ctx.Record.Body)
+			return valueBytes(ctx.Record.Body())
 		case policy.LogFieldSeverityText:
-			if ctx.Record.SeverityText == "" {
+			if ctx.Record.SeverityText() == "" {
 				return nil
 			}
-			return []byte(ctx.Record.SeverityText)
+			return []byte(ctx.Record.SeverityText())
 		case policy.LogFieldTraceID:
-			if len(ctx.Record.TraceId) == 0 {
+			id := ctx.Record.TraceID()
+			if id.IsEmpty() {
 				return nil
 			}
-			return ctx.Record.TraceId
+			return []byte(hex.EncodeToString(id[:]))
 		case policy.LogFieldSpanID:
-			if len(ctx.Record.SpanId) == 0 {
+			id := ctx.Record.SpanID()
+			if id.IsEmpty() {
 				return nil
 			}
-			return ctx.Record.SpanId
+			return []byte(hex.EncodeToString(id[:]))
 		case policy.LogFieldEventName:
-			if ctx.Record.EventName == "" {
+			if ctx.Record.EventName() == "" {
 				return nil
 			}
-			return []byte(ctx.Record.EventName)
+			return []byte(ctx.Record.EventName())
 		case policy.LogFieldResourceSchemaURL:
 			if ctx.ResourceSchemaURL == "" {
 				return nil
@@ -163,14 +141,14 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 		}
 	}
 
-	var attrs []*commonpb.KeyValue
+	var attrs pcommon.Map
 	switch {
 	case ref.IsRecordAttr():
-		attrs = ctx.Record.Attributes
+		attrs = ctx.Record.Attributes()
 	case ref.IsResourceAttr():
-		attrs = resourceAttrs(ctx.Resource)
+		attrs = ctx.Resource.Attributes()
 	case ref.IsScopeAttr():
-		attrs = scopeAttrs(ctx.Scope)
+		attrs = ctx.Scope.Attributes()
 	default:
 		return nil
 	}
@@ -183,34 +161,34 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.MetricFieldName:
-			if ctx.Metric.Name == "" {
+			if ctx.Metric.Name() == "" {
 				return nil
 			}
-			return []byte(ctx.Metric.Name)
+			return []byte(ctx.Metric.Name())
 		case policy.MetricFieldDescription:
-			if ctx.Metric.Description == "" {
+			if ctx.Metric.Description() == "" {
 				return nil
 			}
-			return []byte(ctx.Metric.Description)
+			return []byte(ctx.Metric.Description())
 		case policy.MetricFieldUnit:
-			if ctx.Metric.Unit == "" {
+			if ctx.Metric.Unit() == "" {
 				return nil
 			}
-			return []byte(ctx.Metric.Unit)
+			return []byte(ctx.Metric.Unit())
 		case policy.MetricFieldType:
 			return []byte(metricType(ctx.Metric))
 		case policy.MetricFieldAggregationTemporality:
 			return []byte(aggregationTemporality(ctx.Metric))
 		case policy.MetricFieldScopeName:
-			if ctx.Scope == nil || ctx.Scope.Name == "" {
+			if ctx.Scope.Name() == "" {
 				return nil
 			}
-			return []byte(ctx.Scope.Name)
+			return []byte(ctx.Scope.Name())
 		case policy.MetricFieldScopeVersion:
-			if ctx.Scope == nil || ctx.Scope.Version == "" {
+			if ctx.Scope.Version() == "" {
 				return nil
 			}
-			return []byte(ctx.Scope.Version)
+			return []byte(ctx.Scope.Version())
 		case policy.MetricFieldResourceSchemaURL:
 			if ctx.ResourceSchemaURL == "" {
 				return nil
@@ -226,55 +204,55 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 		}
 	}
 
-	var attrs []*commonpb.KeyValue
+	var attrs pcommon.Map
 	switch {
 	case ref.IsRecordAttr():
 		attrs = ctx.DatapointAttributes
 	case ref.IsResourceAttr():
-		attrs = resourceAttrs(ctx.Resource)
+		attrs = ctx.Resource.Attributes()
 	case ref.IsScopeAttr():
-		attrs = scopeAttrs(ctx.Scope)
+		attrs = ctx.Scope.Attributes()
 	default:
 		return nil
 	}
 	return findAttributePath(attrs, ref.AttrPath)
 }
 
-func metricType(m *metricspb.Metric) string {
-	switch m.Data.(type) {
-	case *metricspb.Metric_Gauge:
+func metricType(m pmetric.Metric) string {
+	switch m.Type() {
+	case pmetric.MetricTypeGauge:
 		return "gauge"
-	case *metricspb.Metric_Sum:
+	case pmetric.MetricTypeSum:
 		return "sum"
-	case *metricspb.Metric_Histogram:
+	case pmetric.MetricTypeHistogram:
 		return "histogram"
-	case *metricspb.Metric_ExponentialHistogram:
+	case pmetric.MetricTypeExponentialHistogram:
 		return "exponential_histogram"
-	case *metricspb.Metric_Summary:
+	case pmetric.MetricTypeSummary:
 		return "summary"
 	default:
 		return ""
 	}
 }
 
-func aggregationTemporality(m *metricspb.Metric) string {
-	switch d := m.Data.(type) {
-	case *metricspb.Metric_Sum:
-		return temporalityString(d.Sum.AggregationTemporality)
-	case *metricspb.Metric_Histogram:
-		return temporalityString(d.Histogram.AggregationTemporality)
-	case *metricspb.Metric_ExponentialHistogram:
-		return temporalityString(d.ExponentialHistogram.AggregationTemporality)
+func aggregationTemporality(m pmetric.Metric) string {
+	switch m.Type() {
+	case pmetric.MetricTypeSum:
+		return temporalityString(m.Sum().AggregationTemporality())
+	case pmetric.MetricTypeHistogram:
+		return temporalityString(m.Histogram().AggregationTemporality())
+	case pmetric.MetricTypeExponentialHistogram:
+		return temporalityString(m.ExponentialHistogram().AggregationTemporality())
 	default:
 		return ""
 	}
 }
 
-func temporalityString(t metricspb.AggregationTemporality) string {
+func temporalityString(t pmetric.AggregationTemporality) string {
 	switch t {
-	case metricspb.AggregationTemporality_AGGREGATION_TEMPORALITY_DELTA:
+	case pmetric.AggregationTemporalityDelta:
 		return "delta"
-	case metricspb.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE:
+	case pmetric.AggregationTemporalityCumulative:
 		return "cumulative"
 	default:
 		return ""
@@ -287,54 +265,56 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.TraceFieldName:
-			if ctx.Span.Name == "" {
+			if ctx.Span.Name() == "" {
 				return nil
 			}
-			return []byte(ctx.Span.Name)
+			return []byte(ctx.Span.Name())
 		case policy.TraceFieldTraceID:
-			if len(ctx.Span.TraceId) == 0 {
+			id := ctx.Span.TraceID()
+			if id.IsEmpty() {
 				return nil
 			}
-			return ctx.Span.TraceId
+			return []byte(hex.EncodeToString(id[:]))
 		case policy.TraceFieldSpanID:
-			if len(ctx.Span.SpanId) == 0 {
+			id := ctx.Span.SpanID()
+			if id.IsEmpty() {
 				return nil
 			}
-			return ctx.Span.SpanId
+			return []byte(hex.EncodeToString(id[:]))
 		case policy.TraceFieldParentSpanID:
-			if len(ctx.Span.ParentSpanId) == 0 {
+			id := ctx.Span.ParentSpanID()
+			if id.IsEmpty() {
 				return nil
 			}
-			return ctx.Span.ParentSpanId
+			return []byte(hex.EncodeToString(id[:]))
 		case policy.TraceFieldTraceState:
-			if ctx.Span.TraceState == "" {
+			ts := ctx.Span.TraceState().AsRaw()
+			if ts == "" {
 				return nil
 			}
-			return []byte(ctx.Span.TraceState)
+			return []byte(ts)
 		case policy.TraceFieldKind:
-			return []byte(spanKindString(ctx.Span.Kind))
+			return []byte(spanKindString(ctx.Span.Kind()))
 		case policy.TraceFieldStatus:
-			if ctx.Span.Status == nil {
-				return nil
-			}
-			return []byte(statusCodeString(ctx.Span.Status.Code))
+			return []byte(statusCodeString(ctx.Span.Status().Code()))
 		case policy.TraceFieldEventName:
-			for _, evt := range ctx.Span.Events {
-				if evt.Name != "" {
-					return []byte(evt.Name)
+			for i := 0; i < ctx.Span.Events().Len(); i++ {
+				name := ctx.Span.Events().At(i).Name()
+				if name != "" {
+					return []byte(name)
 				}
 			}
 			return nil
 		case policy.TraceFieldScopeName:
-			if ctx.Scope == nil || ctx.Scope.Name == "" {
+			if ctx.Scope.Name() == "" {
 				return nil
 			}
-			return []byte(ctx.Scope.Name)
+			return []byte(ctx.Scope.Name())
 		case policy.TraceFieldScopeVersion:
-			if ctx.Scope == nil || ctx.Scope.Version == "" {
+			if ctx.Scope.Version() == "" {
 				return nil
 			}
-			return []byte(ctx.Scope.Version)
+			return []byte(ctx.Scope.Version())
 		case policy.TraceFieldResourceSchemaURL:
 			if ctx.ResourceSchemaURL == "" {
 				return nil
@@ -350,44 +330,44 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 		}
 	}
 
-	var attrs []*commonpb.KeyValue
+	var attrs pcommon.Map
 	switch {
 	case ref.IsRecordAttr():
-		attrs = ctx.Span.Attributes
+		attrs = ctx.Span.Attributes()
 	case ref.IsResourceAttr():
-		attrs = resourceAttrs(ctx.Resource)
+		attrs = ctx.Resource.Attributes()
 	case ref.IsScopeAttr():
-		attrs = scopeAttrs(ctx.Scope)
+		attrs = ctx.Scope.Attributes()
 	default:
 		return nil
 	}
 	return findAttributePath(attrs, ref.AttrPath)
 }
 
-func spanKindString(k tracepb.Span_SpanKind) string {
+func spanKindString(k ptrace.SpanKind) string {
 	switch k {
-	case tracepb.Span_SPAN_KIND_INTERNAL:
+	case ptrace.SpanKindInternal:
 		return "internal"
-	case tracepb.Span_SPAN_KIND_SERVER:
+	case ptrace.SpanKindServer:
 		return "server"
-	case tracepb.Span_SPAN_KIND_CLIENT:
+	case ptrace.SpanKindClient:
 		return "client"
-	case tracepb.Span_SPAN_KIND_PRODUCER:
+	case ptrace.SpanKindProducer:
 		return "producer"
-	case tracepb.Span_SPAN_KIND_CONSUMER:
+	case ptrace.SpanKindConsumer:
 		return "consumer"
 	default:
 		return ""
 	}
 }
 
-func statusCodeString(c tracepb.Status_StatusCode) string {
+func statusCodeString(c ptrace.StatusCode) string {
 	switch c {
-	case tracepb.Status_STATUS_CODE_OK:
+	case ptrace.StatusCodeOk:
 		return "ok"
-	case tracepb.Status_STATUS_CODE_ERROR:
+	case ptrace.StatusCodeError:
 		return "error"
-	case tracepb.Status_STATUS_CODE_UNSET:
+	case ptrace.StatusCodeUnset:
 		return "unset"
 	default:
 		return ""
@@ -414,24 +394,24 @@ func otelLogRemove(ctx *LogContext, ref policy.LogFieldRef) bool {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.LogFieldBody:
-			hit := ctx.Record.Body != nil
-			ctx.Record.Body = nil
+			hit := ctx.Record.Body().Type() != pcommon.ValueTypeEmpty
+			ctx.Record.Body().SetStr("")
 			return hit
 		case policy.LogFieldSeverityText:
-			hit := ctx.Record.SeverityText != ""
-			ctx.Record.SeverityText = ""
+			hit := ctx.Record.SeverityText() != ""
+			ctx.Record.SetSeverityText("")
 			return hit
 		case policy.LogFieldTraceID:
-			hit := len(ctx.Record.TraceId) > 0
-			ctx.Record.TraceId = nil
+			hit := !ctx.Record.TraceID().IsEmpty()
+			ctx.Record.SetTraceID(pcommon.NewTraceIDEmpty())
 			return hit
 		case policy.LogFieldSpanID:
-			hit := len(ctx.Record.SpanId) > 0
-			ctx.Record.SpanId = nil
+			hit := !ctx.Record.SpanID().IsEmpty()
+			ctx.Record.SetSpanID(pcommon.NewSpanIDEmpty())
 			return hit
 		case policy.LogFieldEventName:
-			hit := ctx.Record.EventName != ""
-			ctx.Record.EventName = ""
+			hit := ctx.Record.EventName() != ""
+			ctx.Record.SetEventName("")
 			return hit
 		}
 		return false
@@ -443,67 +423,67 @@ func otelLogRedact(ctx *LogContext, ref policy.LogFieldRef, replacement string) 
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.LogFieldBody:
-			hit := ctx.Record.Body != nil
-			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
+			hit := ctx.Record.Body().Type() != pcommon.ValueTypeEmpty
+			ctx.Record.Body().SetStr(replacement)
 			return hit
 		case policy.LogFieldSeverityText:
-			hit := ctx.Record.SeverityText != ""
-			ctx.Record.SeverityText = replacement
+			hit := ctx.Record.SeverityText() != ""
+			ctx.Record.SetSeverityText(replacement)
 			return hit
 		case policy.LogFieldTraceID:
-			hit := len(ctx.Record.TraceId) > 0
-			ctx.Record.TraceId = []byte(replacement)
+			hit := !ctx.Record.TraceID().IsEmpty()
+			ctx.Record.SetTraceID(traceIDFromString(replacement))
 			return hit
 		case policy.LogFieldSpanID:
-			hit := len(ctx.Record.SpanId) > 0
-			ctx.Record.SpanId = []byte(replacement)
+			hit := !ctx.Record.SpanID().IsEmpty()
+			ctx.Record.SetSpanID(spanIDFromString(replacement))
 			return hit
 		case policy.LogFieldEventName:
-			hit := ctx.Record.EventName != ""
-			ctx.Record.EventName = replacement
+			hit := ctx.Record.EventName() != ""
+			ctx.Record.SetEventName(replacement)
 			return hit
 		}
 		return false
-	}
-	attrs := otelLogAttrs(ctx, ref)
-	key := attrPath(ref)
-	if attrs == nil || key == "" {
-		return false
-	}
-	idx := findAttributeIndex(*attrs, key)
-	if idx < 0 {
-		return false
-	}
-	(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: replacement}}
-	return true
-}
-
-func otelLogRename(ctx *LogContext, ref policy.LogFieldRef, to string, upsert bool) bool {
-	if ref.IsField() {
-		return false // renaming fixed fields not supported
 	}
 	attrs := otelLogAttrs(ctx, ref)
 	key := attrPath(ref)
 	if key == "" {
 		return false
 	}
-	idx := findAttributeIndex(*attrs, key)
-	if idx < 0 {
+	_, ok := attrs.Get(key)
+	if !ok {
 		return false
 	}
-	val := anyValueBytes((*attrs)[idx].Value)
+	attrs.PutStr(key, replacement)
+	return true
+}
+
+func otelLogRename(ctx *LogContext, ref policy.LogFieldRef, to string, upsert bool) bool {
+	if ref.IsField() {
+		return false
+	}
+	attrs := otelLogAttrs(ctx, ref)
+	key := attrPath(ref)
+	if key == "" {
+		return false
+	}
+	v, ok := attrs.Get(key)
+	if !ok {
+		return false
+	}
+	val := valueBytes(v)
 	if !upsert {
-		if findAttributeIndex(*attrs, to) >= 0 {
-			return true // source existed but target blocked
+		if _, exists := attrs.Get(to); exists {
+			return true
 		}
 	}
-	// Remove source
-	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
-	// Set target
+	attrs.RemoveIf(func(k string, v pcommon.Value) bool {
+		return k == key
+	})
 	if val != nil {
-		setAttribute(attrs, to, string(val), true)
+		attrs.PutStr(to, string(val))
 	} else {
-		setAttribute(attrs, to, "", true)
+		attrs.PutStr(to, "")
 	}
 	return true
 }
@@ -512,34 +492,34 @@ func otelLogAdd(ctx *LogContext, ref policy.LogFieldRef, value string, upsert bo
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.LogFieldBody:
-			if !upsert && ctx.Record.Body != nil {
+			if !upsert && ctx.Record.Body().Type() != pcommon.ValueTypeEmpty {
 				return true
 			}
-			ctx.Record.Body = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+			ctx.Record.Body().SetStr(value)
 			return true
 		case policy.LogFieldSeverityText:
-			if !upsert && ctx.Record.SeverityText != "" {
+			if !upsert && ctx.Record.SeverityText() != "" {
 				return true
 			}
-			ctx.Record.SeverityText = value
+			ctx.Record.SetSeverityText(value)
 			return true
 		case policy.LogFieldTraceID:
-			if !upsert && len(ctx.Record.TraceId) > 0 {
+			if !upsert && !ctx.Record.TraceID().IsEmpty() {
 				return true
 			}
-			ctx.Record.TraceId = []byte(value)
+			ctx.Record.SetTraceID(traceIDFromString(value))
 			return true
 		case policy.LogFieldSpanID:
-			if !upsert && len(ctx.Record.SpanId) > 0 {
+			if !upsert && !ctx.Record.SpanID().IsEmpty() {
 				return true
 			}
-			ctx.Record.SpanId = []byte(value)
+			ctx.Record.SetSpanID(spanIDFromString(value))
 			return true
 		case policy.LogFieldEventName:
-			if !upsert && ctx.Record.EventName != "" {
+			if !upsert && ctx.Record.EventName() != "" {
 				return true
 			}
-			ctx.Record.EventName = value
+			ctx.Record.SetEventName(value)
 			return true
 		}
 		return false
@@ -547,61 +527,44 @@ func otelLogAdd(ctx *LogContext, ref policy.LogFieldRef, value string, upsert bo
 	return setAttribute(otelLogAttrs(ctx, ref), attrPath(ref), value, upsert)
 }
 
-func otelLogAttrs(ctx *LogContext, ref policy.LogFieldRef) *[]*commonpb.KeyValue {
+func otelLogAttrs(ctx *LogContext, ref policy.LogFieldRef) pcommon.Map {
 	switch {
 	case ref.IsRecordAttr():
-		return &ctx.Record.Attributes
+		return ctx.Record.Attributes()
 	case ref.IsResourceAttr():
-		if ctx.Resource == nil {
-			return nil
-		}
-		return &ctx.Resource.Attributes
+		return ctx.Resource.Attributes()
 	case ref.IsScopeAttr():
-		if ctx.Scope == nil {
-			return nil
-		}
-		return &ctx.Scope.Attributes
+		return ctx.Scope.Attributes()
 	}
-	return nil
+	return pcommon.NewMap()
 }
 
-func findAttributeIndex(attrs []*commonpb.KeyValue, key string) int {
-	for i, kv := range attrs {
-		if kv.Key == key {
-			return i
-		}
-	}
-	return -1
-}
-
-func removeAttribute(attrs *[]*commonpb.KeyValue, key string) bool {
-	if attrs == nil || key == "" {
+func removeAttribute(attrs pcommon.Map, key string) bool {
+	if key == "" {
 		return false
 	}
-	idx := findAttributeIndex(*attrs, key)
-	if idx < 0 {
+	_, ok := attrs.Get(key)
+	if !ok {
 		return false
 	}
-	*attrs = append((*attrs)[:idx], (*attrs)[idx+1:]...)
+	attrs.RemoveIf(func(k string, v pcommon.Value) bool {
+		return k == key
+	})
 	return true
 }
 
-func setAttribute(attrs *[]*commonpb.KeyValue, key, value string, upsert bool) bool {
-	if attrs == nil || key == "" {
+func setAttribute(attrs pcommon.Map, key, value string, upsert bool) bool {
+	if key == "" {
 		return false
 	}
-	idx := findAttributeIndex(*attrs, key)
-	if idx >= 0 {
+	if _, ok := attrs.Get(key); ok {
 		if !upsert {
-			return true // exists but not overwriting
+			return true
 		}
-		(*attrs)[idx].Value = &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}}
+		attrs.PutStr(key, value)
 		return true
 	}
-	*attrs = append(*attrs, &commonpb.KeyValue{
-		Key:   key,
-		Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: value}},
-	})
+	attrs.PutStr(key, value)
 	return true
 }
 
@@ -609,12 +572,10 @@ func setAttribute(attrs *[]*commonpb.KeyValue, key, value string, upsert bool) b
 
 func OTelTraceTransformer(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
 	if ref.Field == policy.SpanSamplingThreshold().Field {
-		ctx.Span.TraceState = mergeOTTracestate(ctx.Span.TraceState, "th:"+value)
+		ctx.Span.TraceState().FromRaw(mergeOTTracestate(ctx.Span.TraceState().AsRaw(), "th:"+value))
 	}
 }
 
-// mergeOTTracestate merges an OpenTelemetry sub-key (e.g. "th:8000") into a
-// W3C tracestate string under the "ot" vendor key.
 func mergeOTTracestate(tracestate, subkv string) string {
 	subKey := subkv
 	if idx := strings.Index(subkv, ":"); idx >= 0 {
@@ -624,7 +585,6 @@ func mergeOTTracestate(tracestate, subkv string) string {
 	var otParts []string
 	var otherVendors []string
 
-	// Parse existing tracestate vendors
 	if tracestate != "" {
 		for _, vendor := range strings.Split(tracestate, ",") {
 			vendor = strings.TrimSpace(vendor)
@@ -632,7 +592,6 @@ func mergeOTTracestate(tracestate, subkv string) string {
 				continue
 			}
 			if strings.HasPrefix(vendor, "ot=") {
-				// Parse existing ot sub-keys
 				otValue := vendor[3:]
 				for _, part := range strings.Split(otValue, ";") {
 					part = strings.TrimSpace(part)
@@ -663,28 +622,48 @@ func mergeOTTracestate(tracestate, subkv string) string {
 
 // ─── Datapoint attribute helpers ─────────────────────────────────────
 
-func getDatapointAttrs(m *metricspb.Metric) []*commonpb.KeyValue {
-	switch d := m.Data.(type) {
-	case *metricspb.Metric_Gauge:
-		if len(d.Gauge.DataPoints) > 0 {
-			return d.Gauge.DataPoints[0].Attributes
+func getDatapointAttrs(m pmetric.Metric) pcommon.Map {
+	switch m.Type() {
+	case pmetric.MetricTypeGauge:
+		if m.Gauge().DataPoints().Len() > 0 {
+			return m.Gauge().DataPoints().At(0).Attributes()
 		}
-	case *metricspb.Metric_Sum:
-		if len(d.Sum.DataPoints) > 0 {
-			return d.Sum.DataPoints[0].Attributes
+	case pmetric.MetricTypeSum:
+		if m.Sum().DataPoints().Len() > 0 {
+			return m.Sum().DataPoints().At(0).Attributes()
 		}
-	case *metricspb.Metric_Histogram:
-		if len(d.Histogram.DataPoints) > 0 {
-			return d.Histogram.DataPoints[0].Attributes
+	case pmetric.MetricTypeHistogram:
+		if m.Histogram().DataPoints().Len() > 0 {
+			return m.Histogram().DataPoints().At(0).Attributes()
 		}
-	case *metricspb.Metric_ExponentialHistogram:
-		if len(d.ExponentialHistogram.DataPoints) > 0 {
-			return d.ExponentialHistogram.DataPoints[0].Attributes
+	case pmetric.MetricTypeExponentialHistogram:
+		if m.ExponentialHistogram().DataPoints().Len() > 0 {
+			return m.ExponentialHistogram().DataPoints().At(0).Attributes()
 		}
-	case *metricspb.Metric_Summary:
-		if len(d.Summary.DataPoints) > 0 {
-			return d.Summary.DataPoints[0].Attributes
+	case pmetric.MetricTypeSummary:
+		if m.Summary().DataPoints().Len() > 0 {
+			return m.Summary().DataPoints().At(0).Attributes()
 		}
 	}
-	return nil
+	return pcommon.NewMap()
+}
+
+// ─── ID conversion helpers ──────────────────────────────────────────
+
+func traceIDFromString(s string) pcommon.TraceID {
+	var id pcommon.TraceID
+	b, err := hex.DecodeString(s)
+	if err == nil && len(b) == 16 {
+		copy(id[:], b)
+	}
+	return id
+}
+
+func spanIDFromString(s string) pcommon.SpanID {
+	var id pcommon.SpanID
+	b, err := hex.DecodeString(s)
+	if err == nil && len(b) == 8 {
+		copy(id[:], b)
+	}
+	return id
 }

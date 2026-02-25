@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use policy_rs::proto::tero::policy::v1::{LogField, MetricField, TraceField};
 use policy_rs::{
     LogFieldSelector, LogSignal, Matchable, MetricFieldSelector, MetricSignal, TraceFieldSelector,
@@ -110,37 +109,6 @@ fn non_empty(s: &str) -> Option<Cow<'_, str>> {
     }
 }
 
-/// Decode a base64-encoded byte field. Returns UTF-8 string if valid, otherwise hex.
-/// Go returns raw bytes for log trace_id/span_id. When those bytes are valid UTF-8
-/// (e.g. "trace-id-abc1234"), the policy engine matches on the literal string.
-/// When the bytes are binary (real trace IDs), we fall back to hex encoding so
-/// the policy engine's hash_sample_key() gets a stable string representation.
-fn decode_base64_bytes(s: &str) -> Option<Cow<'static, str>> {
-    if s.is_empty() {
-        return None;
-    }
-    let bytes = BASE64.decode(s).ok()?;
-    match String::from_utf8(bytes) {
-        Ok(s) => Some(Cow::Owned(s)),
-        Err(e) => {
-            let hex: String = e.into_bytes().iter().map(|b| format!("{:02x}", b)).collect();
-            Some(Cow::Owned(hex))
-        }
-    }
-}
-
-/// Decode a base64-encoded byte field and return as a hex string.
-/// Used for trace IDs where the policy engine expects hex-encoded values
-/// for consistent probability sampling (extracting 56-bit randomness).
-fn decode_base64_to_hex(s: &str) -> Option<Cow<'static, str>> {
-    if s.is_empty() {
-        return None;
-    }
-    let bytes = BASE64.decode(s).ok()?;
-    let hex: String = bytes.iter().map(|b| format!("{:02x}", b)).collect();
-    Some(Cow::Owned(hex))
-}
-
 // ─── Log Context ─────────────────────────────────────────────────────
 
 pub struct MutLogContext<'a> {
@@ -159,8 +127,8 @@ impl Matchable for MutLogContext<'_> {
             LogFieldSelector::Simple(f) => match f {
                 LogField::Body => any_value_string(self.record.body.as_ref()),
                 LogField::SeverityText => non_empty(&self.record.severity_text),
-                LogField::TraceId => decode_base64_bytes(&self.record.trace_id),
-                LogField::SpanId => decode_base64_bytes(&self.record.span_id),
+                LogField::TraceId => non_empty(&self.record.trace_id),
+                LogField::SpanId => non_empty(&self.record.span_id),
                 LogField::EventName => non_empty(&self.record.event_name),
                 LogField::ResourceSchemaUrl => non_empty(self.resource_schema_url),
                 LogField::ScopeSchemaUrl => non_empty(self.scope_schema_url),
@@ -490,10 +458,9 @@ fn resolve_trace_field<'a>(
     match field {
         TraceFieldSelector::Simple(f) => match f {
             TraceField::Name => non_empty(&span.name),
-            // Return trace ID as hex for consistent probability sampling
-            TraceField::TraceId => decode_base64_to_hex(&span.trace_id),
-            TraceField::SpanId => decode_base64_to_hex(&span.span_id),
-            TraceField::ParentSpanId => decode_base64_to_hex(&span.parent_span_id),
+            TraceField::TraceId => non_empty(&span.trace_id),
+            TraceField::SpanId => non_empty(&span.span_id),
+            TraceField::ParentSpanId => non_empty(&span.parent_span_id),
             TraceField::TraceState => non_empty(&span.trace_state),
             TraceField::ScopeName => scope.as_ref().and_then(|s| non_empty(&s.name)),
             TraceField::ScopeVersion => scope.as_ref().and_then(|s| non_empty(&s.version)),

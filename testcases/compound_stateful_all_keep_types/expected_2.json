@@ -1,0 +1,38 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "web-service"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "warn one"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "WARN",
+              "timeUnixNano": "0"
+            },
+            {
+              "body": {
+                "stringValue": "warn two"
+              },
+              "observedTimeUnixNano": "0",
+              "severityText": "WARN",
+              "timeUnixNano": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

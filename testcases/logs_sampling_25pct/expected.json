@@ -5,52 +5,32 @@
         "attributes": [
           {
             "key": "service.name",
-            "value": { "stringValue": "api-server" }
+            "value": {
+              "stringValue": "api-server"
+            }
           }
-        ],
-        "droppedAttributesCount": 0,
-        "entityRefs": []
+        ]
       },
       "scopeLogs": [
         {
-          "scope": {
-            "name": "",
-            "version": "",
-            "attributes": [],
-            "droppedAttributesCount": 0
-          },
           "logRecords": [
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "body": {
+                "stringValue": "request handled: GET /api/users"
+              },
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/users" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "qrvM3QAAAAAB/XCj1wo9cA==",
-              "spanId": "",
-              "eventName": ""
+              "traceId": "aabbccdd0000000001fd70a3d70a3d70"
             },
             {
-              "timeUnixNano": 0,
-              "observedTimeUnixNano": 0,
-              "severityNumber": "SEVERITY_NUMBER_UNSPECIFIED",
+              "body": {
+                "stringValue": "request handled: GET /api/orders"
+              },
               "severityText": "INFO",
-              "body": { "stringValue": "request handled: GET /api/orders" },
-              "attributes": [],
-              "droppedAttributesCount": 0,
-              "flags": 0,
-              "traceId": "qrvM3QAAAAACwAAAAAAAAA==",
-              "spanId": "",
-              "eventName": ""
+              "traceId": "aabbccdd0000000002c0000000000000"
             }
-          ],
-          "schemaUrl": ""
+          ]
         }
-      ],
-      "schemaUrl": ""
+      ]
     }
   ]
 }
