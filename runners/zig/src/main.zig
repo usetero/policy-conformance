@@ -328,6 +328,8 @@ pub fn main() !void {
 
     // Use standard protobuf JSON mapping (oneof fields emitted without wrapper)
     proto.protobuf.json.pb_options.emit_oneof_field_name = false;
+    // OTel JSON uses lowercase hex for bytes fields (traceId, spanId, etc.)
+    proto.protobuf.json.pb_options.bytes_as_hex = true;
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
@@ -405,6 +407,9 @@ pub fn main() !void {
 // ─── Tests ───────────────────────────────────────────────────────────
 
 test "no memory leaks" {
+    proto.protobuf.json.pb_options.emit_oneof_field_name = false;
+    proto.protobuf.json.pb_options.bytes_as_hex = true;
+
     const allocator = std.testing.allocator;
 
     var tmp_dir = std.testing.tmpDir(.{});
