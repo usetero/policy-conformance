@@ -651,6 +651,7 @@ tasks:
         # Normalize: strip proto defaults (0, "", [], {}, false, null, unspecified enums)
         # and coerce string-encoded numbers. Same filter as the runner conformance tasks.
         normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
+        detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
 
         IMPL_PID=""; SINK_PID=""
         kill_servers() {
@@ -671,6 +672,22 @@ tasks:
           fi
 
           # ── Determine signal and endpoint ──
+          signal_to_endpoint() {
+            case "$1" in
+              log)    echo "/v1/logs" ;;
+              metric) echo "/v1/metrics" ;;
+              trace)  echo "/v1/traces" ;;
+              *)      echo "" ;;
+            esac
+          }
+
+          # Skip stateful compound tests (rate limiting/sampling state persists
+          # across batches in long-running implementations, unlike per-invocation runners)
+          case "$name" in
+            compound_stateful_*) SKIP=$((SKIP + 1)); continue ;;
+          esac
+
+          IS_COMPOUND=false
           if [ -f "$tc/input.json" ]; then
             case "$name" in
               logs_*)    ENDPOINT="/v1/logs" ;;
@@ -678,6 +695,10 @@ tasks:
               traces_*)  ENDPOINT="/v1/traces" ;;
               *)         SKIP=$((SKIP + 1)); continue ;;
             esac
+          elif ls "$tc"/input_*.json > /dev/null 2>&1; then
+            IS_COMPOUND=true
+            # Use /v1/logs for readiness probe (any OTLP endpoint works)
+            ENDPOINT="/v1/logs"
           else
             SKIP=$((SKIP + 1))
             continue
@@ -744,40 +765,92 @@ tasks:
             continue
           fi
 
-          # ── Send input data ──
-          curl -s -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
-            -H "Content-Type: application/json" \
-            -d @"$tc/input.json" > /dev/null 2>&1
+          out_ok=true
+          if ! $IS_COMPOUND; then
+            # ── Simple mode: single input/output ──
+            curl -s -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
+              -H "Content-Type: application/json" \
+              -d @"$tc/input.json" > /dev/null 2>&1
 
-          # ── Wait for data to arrive at sink (2s timeout for drop-all cases) ──
-          for i in $(seq 1 20); do
-            if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
-              break
-            fi
+            for i in $(seq 1 20); do
+              if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
+                break
+              fi
+              sleep 0.1
+            done
             sleep 0.1
-          done
-          sleep 0.1
-          curl -s "http://localhost:$SINK_PORT/output" > "$tc/output_{{.IMPL_NAME}}.json" 2>/dev/null
+            curl -s "http://localhost:$SINK_PORT/output" > "$tc/output_{{.IMPL_NAME}}.json" 2>/dev/null
 
-          # ── Shutdown (force kill, no graceful wait) ──
+            if ! diff <(jq -S "$normalize" "$tc/expected.json") \
+                      <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") > /dev/null 2>&1; then
+              out_ok=false
+            fi
+          else
+            # ── Compound mode: multiple input_N/expected_N pairs ──
+            for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+              n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+              expected_file="$tc/expected_${n}.json"
+              output_file="$tc/output_${n}_{{.IMPL_NAME}}.json"
+
+              # Reset sink before each batch
+              curl -s "http://localhost:$SINK_PORT/reset" > /dev/null 2>&1
+
+              # Detect signal and endpoint for this batch
+              batch_signal=$(jq -r "$detect_signal" "$input_file")
+              BATCH_ENDPOINT=$(signal_to_endpoint "$batch_signal")
+              if [ -z "$BATCH_ENDPOINT" ]; then
+                echo "  SKIP  $name/input_${n}.json (unknown signal)"; continue
+              fi
+
+              curl -s -X POST "http://localhost:$RECEIVER_PORT$BATCH_ENDPOINT" \
+                -H "Content-Type: application/json" \
+                -d @"$input_file" > /dev/null 2>&1
+
+              for i in $(seq 1 20); do
+                if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
+                  break
+                fi
+                sleep 0.1
+              done
+              sleep 0.1
+              curl -s "http://localhost:$SINK_PORT/output" > "$output_file" 2>/dev/null
+
+              if [ -f "$expected_file" ]; then
+                if ! diff <(jq -S "$normalize" "$expected_file") \
+                          <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  out_ok=false
+                fi
+              fi
+            done
+          fi
+
+          # ── Shutdown ──
           kill_servers
           rm -f "$CONFIG_FILE"
 
-          # ── Compare output ──
-          out_ok=true
-          if ! diff <(jq -S "$normalize" "$tc/expected.json") \
-                    <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") > /dev/null 2>&1; then
-            out_ok=false
-          fi
-
+          # ── Report result ──
           if $out_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
           else
             echo "  FAIL  $name"
-            echo "    output diff:"
-            diff <(jq -S "$normalize" "$tc/expected.json") \
-                 <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") || true
+            if ! $IS_COMPOUND; then
+              echo "    output diff:"
+              diff <(jq -S "$normalize" "$tc/expected.json") \
+                   <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") || true
+            else
+              for input_file in $(ls "$tc"/input_*.json 2>/dev/null | sort -t_ -k2 -n); do
+                n=$(basename "$input_file" | sed 's/input_\(.*\)\.json/\1/')
+                expected_file="$tc/expected_${n}.json"
+                output_file="$tc/output_${n}_{{.IMPL_NAME}}.json"
+                if [ -f "$expected_file" ] && ! diff <(jq -S "$normalize" "$expected_file") \
+                      <(jq -S "$normalize" "$output_file") > /dev/null 2>&1; then
+                  echo "    output diff (batch $n):"
+                  diff <(jq -S "$normalize" "$expected_file") \
+                       <(jq -S "$normalize" "$output_file") || true
+                fi
+              done
+            fi
             FAIL=$((FAIL + 1))
           fi
         done
