@@ -870,5 +870,5 @@ tasks:
         if [ "$OS" = "Darwin" ]; then
           brew install vectorscan
         else
-          sudo apt-get update && sudo apt-get install -y libhyperscan-dev
+          sudo apt-get update && sudo apt-get install -y libhyperscan-dev libboost-dev
         fi
