@@ -859,16 +859,12 @@ tasks:
         [ "$FAIL" -eq 0 ] && [ "$ERRORS" -eq 0 ]
 
   ci:setup:
-    desc: Install CI dependencies (hyperscan/vectorscan)
+    desc: Install CI dependencies (vectorscan, protoc, boost)
     cmds:
       - |
-        if pkg-config --exists libhs 2>/dev/null; then
-          echo "libhs already installed"
-          exit 0
-        fi
         OS=$(uname -s)
         if [ "$OS" = "Darwin" ]; then
-          brew install vectorscan
+          brew install vectorscan protobuf boost
         else
-          sudo apt-get update && sudo apt-get install -y libhyperscan-dev libboost-dev
+          sudo apt-get update && sudo apt-get install -y libhyperscan-dev libboost-dev protobuf-compiler
         fi
