@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/usetero/policy-go v1.3.10
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 )
 
