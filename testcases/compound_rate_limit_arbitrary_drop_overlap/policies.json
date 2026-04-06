@@ -1,0 +1,30 @@
+{
+  "policies": [
+    {
+      "id": "drop-debug",
+      "name": "Drop all DEBUG logs",
+      "log": {
+        "match": [
+          {
+            "log_field": "severity_text",
+            "exact": "DEBUG"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "rate-2-per-5s",
+      "name": "Rate limit to 2 per 5 seconds",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "2/5s"
+      }
+    }
+  ]
+}

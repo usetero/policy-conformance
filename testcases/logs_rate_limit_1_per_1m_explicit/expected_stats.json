@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "rate-1-per-1m",
+      "hits": 5
+    }
+  ]
+}

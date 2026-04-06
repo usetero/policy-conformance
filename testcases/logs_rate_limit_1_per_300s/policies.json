@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rate-1-per-300s",
+      "name": "Rate limit to 1 per 300 seconds",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "1/300s"
+      }
+    }
+  ]
+}

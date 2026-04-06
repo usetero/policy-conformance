@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "rate-1-per-10s",
+      "hits": 10
+    },
+    {
+      "policy_id": "rate-3-per-5s",
+      "hits": 2,
+      "misses": 8
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rate-2-per-5s-api",
+      "name": "Rate limit API to 2 per 5 seconds",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "2/5s"
+      }
+    }
+  ]
+}

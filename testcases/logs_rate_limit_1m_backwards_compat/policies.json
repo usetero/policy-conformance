@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rate-1m-compat",
+      "name": "Rate limit 1/m backwards compat (D defaults to 1)",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "1/m"
+      }
+    }
+  ]
+}
