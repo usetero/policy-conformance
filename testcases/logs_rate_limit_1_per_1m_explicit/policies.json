@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rate-1-per-1m",
+      "name": "Rate limit 1/1m explicit D=1",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "1/1m"
+      }
+    }
+  ]
+}

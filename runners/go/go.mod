@@ -3,7 +3,7 @@ module github.com/usetero/policy-conformance/runners/go
 go 1.25.0
 
 require (
-	github.com/usetero/policy-go v1.3.10
+	github.com/usetero/policy-go v1.5.0
 	go.opentelemetry.io/collector/pdata v1.52.0
 )
 

@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-debug",
+      "hits": 2
+    },
+    {
+      "policy_id": "rate-2-per-5s",
+      "hits": 8,
+      "misses": 2
+    }
+  ]
+}

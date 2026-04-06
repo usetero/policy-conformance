@@ -1,0 +1,17 @@
+{
+  "policies": [
+    {
+      "id": "rate-10-per-5m",
+      "name": "Rate limit to 10 per 5 minutes",
+      "log": {
+        "match": [
+          {
+            "resource_attribute": "service.name",
+            "exact": "api-server"
+          }
+        ],
+        "keep": "10/5m"
+      }
+    }
+  ]
+}

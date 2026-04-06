@@ -1,0 +1,52 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-server"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "request 1"
+              },
+              "severityText": "INFO"
+            },
+            {
+              "body": {
+                "stringValue": "request 2"
+              },
+              "severityText": "INFO"
+            },
+            {
+              "body": {
+                "stringValue": "request 3"
+              },
+              "severityText": "INFO"
+            },
+            {
+              "body": {
+                "stringValue": "request 4"
+              },
+              "severityText": "INFO"
+            },
+            {
+              "body": {
+                "stringValue": "request 5"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

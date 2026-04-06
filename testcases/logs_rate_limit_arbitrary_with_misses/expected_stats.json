@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "rate-2-per-5s-api",
+      "hits": 6
+    }
+  ]
+}
