@@ -452,13 +452,24 @@ tasks:
 
   # ── Benchmarks ──────────────────────────────────────────────
   bench:
-    desc: Benchmark all runners against each test case (cleaner sample for cross-version comparison)
+    desc: 'Benchmark all runners; results CSV at OUT=<path> (default: bench-results/bench-<timestamp>.csv)'
     aliases: [bch]
     deps: [build]
+    vars:
+      OUT: '{{.OUT | default ""}}'
     cmds:
       - |
         # Quiet-system recommendations: close other apps, disable Spotlight indexing,
         # plug in (laptop), and let the machine sit idle for ~30s before starting.
+        OUT="{{.OUT}}"
+        if [ -z "$OUT" ]; then
+          mkdir -p bench-results
+          OUT="bench-results/bench-$(date +%Y%m%d-%H%M%S).csv"
+        else
+          mkdir -p "$(dirname "$OUT")"
+        fi
+        echo "testcase,signal,command,mean,stddev,median,user,system,min,max" > "$OUT"
+
         for tc in testcases/*/; do
           name=$(basename "$tc")
           case "$name" in
@@ -468,16 +479,22 @@ tasks:
             *)         continue ;;
           esac
           echo "── $name ──"
+          tmp_csv=$(mktemp)
           # --warmup 10:         fill disk cache + JIT/dyld before measuring
           # --runs 100:          fixed sample size (mutually exclusive with --min-runs)
           # --prepare 'sync':    flush filesystem state for consistent I/O cost
           # -N:                  skip /bin/sh wrapper (lower variance)
+          # --export-csv:        per-testcase CSV; we prepend testcase + signal cols
           hyperfine --warmup 10 --runs 100 --prepare 'sync' -N \
+            --export-csv "$tmp_csv" \
             -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
             -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
             -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal"
+          tail -n +2 "$tmp_csv" | awk -v tc="$name" -v sig="$signal" -F, 'BEGIN{OFS=","} {print tc, sig, $0}' >> "$OUT"
+          rm -f "$tmp_csv"
           echo ""
         done
+        echo "Results: $OUT"
 
   # ── Repeat a single test N times ────────────────────────────
   test:repeat:
