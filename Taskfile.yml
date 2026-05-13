@@ -452,11 +452,13 @@ tasks:
 
   # ── Benchmarks ──────────────────────────────────────────────
   bench:
-    desc: Benchmark all runners against each test case
+    desc: Benchmark all runners against each test case (cleaner sample for cross-version comparison)
     aliases: [bch]
     deps: [build]
     cmds:
       - |
+        # Quiet-system recommendations: close other apps, disable Spotlight indexing,
+        # plug in (laptop), and let the machine sit idle for ~30s before starting.
         for tc in testcases/*/; do
           name=$(basename "$tc")
           case "$name" in
@@ -466,7 +468,11 @@ tasks:
             *)         continue ;;
           esac
           echo "── $name ──"
-          hyperfine --warmup 2 -N \
+          # --warmup 10:         fill disk cache + JIT/dyld before measuring
+          # --runs 100:          fixed sample size (mutually exclusive with --min-runs)
+          # --prepare 'sync':    flush filesystem state for consistent I/O cost
+          # -N:                  skip /bin/sh wrapper (lower variance)
+          hyperfine --warmup 10 --runs 100 --prepare 'sync' -N \
             -n go  "./runners/go/runner-go --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
             -n rs   "./runners/rs/target/release/runner-rs --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal" \
             -n zig  "./runners/zig/zig-out/bin/runner-zig --policies $tc/policies.json --input $tc/input.json --output /dev/null --stats /dev/null --signal $signal"
