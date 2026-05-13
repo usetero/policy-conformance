@@ -40,14 +40,6 @@ type TraceContext struct {
 
 // ─── Attribute helpers ───────────────────────────────────────────────
 
-func findAttribute(attrs pcommon.Map, key string) []byte {
-	v, ok := attrs.Get(key)
-	if !ok {
-		return nil
-	}
-	return valueBytes(v)
-}
-
 func findAttributePath(attrs pcommon.Map, path []string) []byte {
 	if len(path) == 0 {
 		return nil
@@ -63,6 +55,23 @@ func findAttributePath(attrs pcommon.Map, path []string) []byte {
 		return findAttributePath(v.Map(), path[1:])
 	}
 	return nil
+}
+
+func existsAttributePath(attrs pcommon.Map, path []string) bool {
+	if len(path) == 0 {
+		return false
+	}
+	v, ok := attrs.Get(path[0])
+	if !ok {
+		return false
+	}
+	if len(path) == 1 {
+		return true
+	}
+	if v.Type() == pcommon.ValueTypeMap {
+		return existsAttributePath(v.Map(), path[1:])
+	}
+	return false
 }
 
 func valueBytes(v pcommon.Value) []byte {
@@ -83,23 +92,9 @@ func attrPath(ref policy.LogFieldRef) string {
 	return ""
 }
 
-func metricAttrPath(ref policy.MetricFieldRef) string {
-	if len(ref.AttrPath) > 0 {
-		return ref.AttrPath[0]
-	}
-	return ""
-}
+// ─── Log accessor primitives ─────────────────────────────────────────
 
-func traceAttrPath(ref policy.TraceFieldRef) string {
-	if len(ref.AttrPath) > 0 {
-		return ref.AttrPath[0]
-	}
-	return ""
-}
-
-// ─── Log matcher ─────────────────────────────────────────────────────
-
-func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
+func logValue(ctx *LogContext, ref policy.LogFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.LogFieldBody:
@@ -141,23 +136,156 @@ func OTelLogMatcher(ctx *LogContext, ref policy.LogFieldRef) []byte {
 		}
 	}
 
-	var attrs pcommon.Map
-	switch {
-	case ref.IsRecordAttr():
-		attrs = ctx.Record.Attributes()
-	case ref.IsResourceAttr():
-		attrs = ctx.Resource.Attributes()
-	case ref.IsScopeAttr():
-		attrs = ctx.Scope.Attributes()
-	default:
+	attrs, ok := logAttrs(ctx, ref)
+	if !ok {
 		return nil
 	}
 	return findAttributePath(attrs, ref.AttrPath)
 }
 
-// ─── Metric matcher ──────────────────────────────────────────────────
+func logExists(ctx *LogContext, ref policy.LogFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			body := ctx.Record.Body()
+			switch body.Type() {
+			case pcommon.ValueTypeEmpty:
+				return false
+			case pcommon.ValueTypeStr:
+				return body.Str() != ""
+			default:
+				return true
+			}
+		case policy.LogFieldSeverityText:
+			return ctx.Record.SeverityText() != ""
+		case policy.LogFieldTraceID:
+			return !ctx.Record.TraceID().IsEmpty()
+		case policy.LogFieldSpanID:
+			return !ctx.Record.SpanID().IsEmpty()
+		case policy.LogFieldEventName:
+			return ctx.Record.EventName() != ""
+		case policy.LogFieldResourceSchemaURL:
+			return ctx.ResourceSchemaURL != ""
+		case policy.LogFieldScopeSchemaURL:
+			return ctx.ScopeSchemaURL != ""
+		default:
+			return false
+		}
+	}
 
-func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
+	attrs, ok := logAttrs(ctx, ref)
+	if !ok {
+		return false
+	}
+	return existsAttributePath(attrs, ref.AttrPath)
+}
+
+func logSet(ctx *LogContext, ref policy.LogFieldRef, value string) {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			ctx.Record.Body().SetStr(value)
+		case policy.LogFieldSeverityText:
+			ctx.Record.SetSeverityText(value)
+		case policy.LogFieldTraceID:
+			ctx.Record.SetTraceID(traceIDFromString(value))
+		case policy.LogFieldSpanID:
+			ctx.Record.SetSpanID(spanIDFromString(value))
+		case policy.LogFieldEventName:
+			ctx.Record.SetEventName(value)
+		}
+		return
+	}
+	attrs, ok := logAttrs(ctx, ref)
+	if !ok {
+		return
+	}
+	key := attrPath(ref)
+	if key == "" {
+		return
+	}
+	attrs.PutStr(key, value)
+}
+
+func logDelete(ctx *LogContext, ref policy.LogFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			hit := ctx.Record.Body().Type() != pcommon.ValueTypeEmpty
+			ctx.Record.Body().SetStr("")
+			return hit
+		case policy.LogFieldSeverityText:
+			hit := ctx.Record.SeverityText() != ""
+			ctx.Record.SetSeverityText("")
+			return hit
+		case policy.LogFieldTraceID:
+			hit := !ctx.Record.TraceID().IsEmpty()
+			ctx.Record.SetTraceID(pcommon.NewTraceIDEmpty())
+			return hit
+		case policy.LogFieldSpanID:
+			hit := !ctx.Record.SpanID().IsEmpty()
+			ctx.Record.SetSpanID(pcommon.NewSpanIDEmpty())
+			return hit
+		case policy.LogFieldEventName:
+			hit := ctx.Record.EventName() != ""
+			ctx.Record.SetEventName("")
+			return hit
+		}
+		return false
+	}
+	attrs, ok := logAttrs(ctx, ref)
+	if !ok {
+		return false
+	}
+	key := attrPath(ref)
+	if key == "" {
+		return false
+	}
+	if _, ok := attrs.Get(key); !ok {
+		return false
+	}
+	attrs.RemoveIf(func(k string, _ pcommon.Value) bool {
+		return k == key
+	})
+	return true
+}
+
+func logMove(ctx *LogContext, from, to policy.LogFieldRef) {
+	attrs, ok := logAttrs(ctx, from)
+	if !ok {
+		return
+	}
+	fromKey := attrPath(from)
+	toKey := attrPath(to)
+	if fromKey == "" || toKey == "" {
+		return
+	}
+	src, ok := attrs.Get(fromKey)
+	if !ok {
+		return
+	}
+	dst := attrs.PutEmpty(toKey)
+	src.CopyTo(dst)
+	attrs.RemoveIf(func(k string, _ pcommon.Value) bool {
+		return k == fromKey
+	})
+}
+
+func logAttrs(ctx *LogContext, ref policy.LogFieldRef) (pcommon.Map, bool) {
+	switch {
+	case ref.IsRecordAttr():
+		return ctx.Record.Attributes(), true
+	case ref.IsResourceAttr():
+		return ctx.Resource.Attributes(), true
+	case ref.IsScopeAttr():
+		return ctx.Scope.Attributes(), true
+	}
+	return pcommon.Map{}, false
+}
+
+// ─── Metric accessor primitives ──────────────────────────────────────
+
+func metricValue(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.MetricFieldName:
@@ -204,18 +332,56 @@ func OTelMetricMatcher(ctx *MetricContext, ref policy.MetricFieldRef) []byte {
 		}
 	}
 
-	var attrs pcommon.Map
-	switch {
-	case ref.IsRecordAttr():
-		attrs = ctx.DatapointAttributes
-	case ref.IsResourceAttr():
-		attrs = ctx.Resource.Attributes()
-	case ref.IsScopeAttr():
-		attrs = ctx.Scope.Attributes()
-	default:
+	attrs, ok := metricAttrs(ctx, ref)
+	if !ok {
 		return nil
 	}
 	return findAttributePath(attrs, ref.AttrPath)
+}
+
+func metricExists(ctx *MetricContext, ref policy.MetricFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.MetricFieldName:
+			return ctx.Metric.Name() != ""
+		case policy.MetricFieldDescription:
+			return ctx.Metric.Description() != ""
+		case policy.MetricFieldUnit:
+			return ctx.Metric.Unit() != ""
+		case policy.MetricFieldType:
+			return metricType(ctx.Metric) != ""
+		case policy.MetricFieldAggregationTemporality:
+			return aggregationTemporality(ctx.Metric) != ""
+		case policy.MetricFieldScopeName:
+			return ctx.Scope.Name() != ""
+		case policy.MetricFieldScopeVersion:
+			return ctx.Scope.Version() != ""
+		case policy.MetricFieldResourceSchemaURL:
+			return ctx.ResourceSchemaURL != ""
+		case policy.MetricFieldScopeSchemaURL:
+			return ctx.ScopeSchemaURL != ""
+		default:
+			return false
+		}
+	}
+
+	attrs, ok := metricAttrs(ctx, ref)
+	if !ok {
+		return false
+	}
+	return existsAttributePath(attrs, ref.AttrPath)
+}
+
+func metricAttrs(ctx *MetricContext, ref policy.MetricFieldRef) (pcommon.Map, bool) {
+	switch {
+	case ref.IsRecordAttr():
+		return ctx.DatapointAttributes, true
+	case ref.IsResourceAttr():
+		return ctx.Resource.Attributes(), true
+	case ref.IsScopeAttr():
+		return ctx.Scope.Attributes(), true
+	}
+	return pcommon.Map{}, false
 }
 
 func metricType(m pmetric.Metric) string {
@@ -259,9 +425,9 @@ func temporalityString(t pmetric.AggregationTemporality) string {
 	}
 }
 
-// ─── Trace matcher ───────────────────────────────────────────────────
+// ─── Trace accessor primitives ───────────────────────────────────────
 
-func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
+func traceValue(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 	if ref.IsField() {
 		switch ref.Field {
 		case policy.TraceFieldName:
@@ -330,18 +496,73 @@ func OTelTraceMatcher(ctx *TraceContext, ref policy.TraceFieldRef) []byte {
 		}
 	}
 
-	var attrs pcommon.Map
-	switch {
-	case ref.IsRecordAttr():
-		attrs = ctx.Span.Attributes()
-	case ref.IsResourceAttr():
-		attrs = ctx.Resource.Attributes()
-	case ref.IsScopeAttr():
-		attrs = ctx.Scope.Attributes()
-	default:
+	attrs, ok := traceAttrs(ctx, ref)
+	if !ok {
 		return nil
 	}
 	return findAttributePath(attrs, ref.AttrPath)
+}
+
+func traceExists(ctx *TraceContext, ref policy.TraceFieldRef) bool {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.TraceFieldName:
+			return ctx.Span.Name() != ""
+		case policy.TraceFieldTraceID:
+			return !ctx.Span.TraceID().IsEmpty()
+		case policy.TraceFieldSpanID:
+			return !ctx.Span.SpanID().IsEmpty()
+		case policy.TraceFieldParentSpanID:
+			return !ctx.Span.ParentSpanID().IsEmpty()
+		case policy.TraceFieldTraceState:
+			return ctx.Span.TraceState().AsRaw() != ""
+		case policy.TraceFieldKind:
+			return ctx.Span.Kind() != ptrace.SpanKindUnspecified
+		case policy.TraceFieldStatus:
+			return true
+		case policy.TraceFieldEventName:
+			for i := 0; i < ctx.Span.Events().Len(); i++ {
+				if ctx.Span.Events().At(i).Name() != "" {
+					return true
+				}
+			}
+			return false
+		case policy.TraceFieldScopeName:
+			return ctx.Scope.Name() != ""
+		case policy.TraceFieldScopeVersion:
+			return ctx.Scope.Version() != ""
+		case policy.TraceFieldResourceSchemaURL:
+			return ctx.ResourceSchemaURL != ""
+		case policy.TraceFieldScopeSchemaURL:
+			return ctx.ScopeSchemaURL != ""
+		default:
+			return false
+		}
+	}
+
+	attrs, ok := traceAttrs(ctx, ref)
+	if !ok {
+		return false
+	}
+	return existsAttributePath(attrs, ref.AttrPath)
+}
+
+func traceSet(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
+	if ref.Field == policy.SpanSamplingThreshold().Field {
+		ctx.Span.TraceState().FromRaw(mergeOTTracestate(ctx.Span.TraceState().AsRaw(), "th:"+value))
+	}
+}
+
+func traceAttrs(ctx *TraceContext, ref policy.TraceFieldRef) (pcommon.Map, bool) {
+	switch {
+	case ref.IsRecordAttr():
+		return ctx.Span.Attributes(), true
+	case ref.IsResourceAttr():
+		return ctx.Resource.Attributes(), true
+	case ref.IsScopeAttr():
+		return ctx.Scope.Attributes(), true
+	}
+	return pcommon.Map{}, false
 }
 
 func spanKindString(k ptrace.SpanKind) string {
@@ -374,207 +595,34 @@ func statusCodeString(c ptrace.StatusCode) string {
 	}
 }
 
-// ─── Log transformer ─────────────────────────────────────────────────
+// ─── Accessor builders ───────────────────────────────────────────────
 
-func OTelLogTransformer(ctx *LogContext, op policy.TransformOp) bool {
-	switch op.Kind {
-	case policy.TransformRemove:
-		return otelLogRemove(ctx, op.Ref)
-	case policy.TransformRedact:
-		return otelLogRedact(ctx, op.Ref, op.Value)
-	case policy.TransformRename:
-		return otelLogRename(ctx, op.Ref, op.To, op.Upsert)
-	case policy.TransformAdd:
-		return otelLogAdd(ctx, op.Ref, op.Value, op.Upsert)
-	}
-	return false
+func NewLogAccessor() *policy.LogAccessor[*LogContext] {
+	return policy.NewLogAccessor[*LogContext](
+		policy.WithLogValue(logValue),
+		policy.WithLogExists(logExists),
+		policy.WithLogSet(logSet),
+		policy.WithLogDelete(logDelete),
+		policy.WithLogMove(logMove),
+	)
 }
 
-func otelLogRemove(ctx *LogContext, ref policy.LogFieldRef) bool {
-	if ref.IsField() {
-		switch ref.Field {
-		case policy.LogFieldBody:
-			hit := ctx.Record.Body().Type() != pcommon.ValueTypeEmpty
-			ctx.Record.Body().SetStr("")
-			return hit
-		case policy.LogFieldSeverityText:
-			hit := ctx.Record.SeverityText() != ""
-			ctx.Record.SetSeverityText("")
-			return hit
-		case policy.LogFieldTraceID:
-			hit := !ctx.Record.TraceID().IsEmpty()
-			ctx.Record.SetTraceID(pcommon.NewTraceIDEmpty())
-			return hit
-		case policy.LogFieldSpanID:
-			hit := !ctx.Record.SpanID().IsEmpty()
-			ctx.Record.SetSpanID(pcommon.NewSpanIDEmpty())
-			return hit
-		case policy.LogFieldEventName:
-			hit := ctx.Record.EventName() != ""
-			ctx.Record.SetEventName("")
-			return hit
-		}
-		return false
-	}
-	return removeAttribute(otelLogAttrs(ctx, ref), attrPath(ref))
+func NewMetricAccessor() *policy.MetricAccessor[*MetricContext] {
+	return policy.NewMetricAccessor[*MetricContext](
+		policy.WithMetricValue(metricValue),
+		policy.WithMetricExists(metricExists),
+	)
 }
 
-func otelLogRedact(ctx *LogContext, ref policy.LogFieldRef, replacement string) bool {
-	if ref.IsField() {
-		switch ref.Field {
-		case policy.LogFieldBody:
-			hit := ctx.Record.Body().Type() != pcommon.ValueTypeEmpty
-			ctx.Record.Body().SetStr(replacement)
-			return hit
-		case policy.LogFieldSeverityText:
-			hit := ctx.Record.SeverityText() != ""
-			ctx.Record.SetSeverityText(replacement)
-			return hit
-		case policy.LogFieldTraceID:
-			hit := !ctx.Record.TraceID().IsEmpty()
-			ctx.Record.SetTraceID(traceIDFromString(replacement))
-			return hit
-		case policy.LogFieldSpanID:
-			hit := !ctx.Record.SpanID().IsEmpty()
-			ctx.Record.SetSpanID(spanIDFromString(replacement))
-			return hit
-		case policy.LogFieldEventName:
-			hit := ctx.Record.EventName() != ""
-			ctx.Record.SetEventName(replacement)
-			return hit
-		}
-		return false
-	}
-	attrs := otelLogAttrs(ctx, ref)
-	key := attrPath(ref)
-	if key == "" {
-		return false
-	}
-	_, ok := attrs.Get(key)
-	if !ok {
-		return false
-	}
-	attrs.PutStr(key, replacement)
-	return true
+func NewTraceAccessor() *policy.TraceAccessor[*TraceContext] {
+	return policy.NewTraceAccessor[*TraceContext](
+		policy.WithTraceValue(traceValue),
+		policy.WithTraceExists(traceExists),
+		policy.WithTraceSet(traceSet),
+	)
 }
 
-func otelLogRename(ctx *LogContext, ref policy.LogFieldRef, to string, upsert bool) bool {
-	if ref.IsField() {
-		return false
-	}
-	attrs := otelLogAttrs(ctx, ref)
-	key := attrPath(ref)
-	if key == "" {
-		return false
-	}
-	v, ok := attrs.Get(key)
-	if !ok {
-		return false
-	}
-	val := valueBytes(v)
-	if !upsert {
-		if _, exists := attrs.Get(to); exists {
-			return true
-		}
-	}
-	attrs.RemoveIf(func(k string, v pcommon.Value) bool {
-		return k == key
-	})
-	if val != nil {
-		attrs.PutStr(to, string(val))
-	} else {
-		attrs.PutStr(to, "")
-	}
-	return true
-}
-
-func otelLogAdd(ctx *LogContext, ref policy.LogFieldRef, value string, upsert bool) bool {
-	if ref.IsField() {
-		switch ref.Field {
-		case policy.LogFieldBody:
-			if !upsert && ctx.Record.Body().Type() != pcommon.ValueTypeEmpty {
-				return true
-			}
-			ctx.Record.Body().SetStr(value)
-			return true
-		case policy.LogFieldSeverityText:
-			if !upsert && ctx.Record.SeverityText() != "" {
-				return true
-			}
-			ctx.Record.SetSeverityText(value)
-			return true
-		case policy.LogFieldTraceID:
-			if !upsert && !ctx.Record.TraceID().IsEmpty() {
-				return true
-			}
-			ctx.Record.SetTraceID(traceIDFromString(value))
-			return true
-		case policy.LogFieldSpanID:
-			if !upsert && !ctx.Record.SpanID().IsEmpty() {
-				return true
-			}
-			ctx.Record.SetSpanID(spanIDFromString(value))
-			return true
-		case policy.LogFieldEventName:
-			if !upsert && ctx.Record.EventName() != "" {
-				return true
-			}
-			ctx.Record.SetEventName(value)
-			return true
-		}
-		return false
-	}
-	return setAttribute(otelLogAttrs(ctx, ref), attrPath(ref), value, upsert)
-}
-
-func otelLogAttrs(ctx *LogContext, ref policy.LogFieldRef) pcommon.Map {
-	switch {
-	case ref.IsRecordAttr():
-		return ctx.Record.Attributes()
-	case ref.IsResourceAttr():
-		return ctx.Resource.Attributes()
-	case ref.IsScopeAttr():
-		return ctx.Scope.Attributes()
-	}
-	return pcommon.NewMap()
-}
-
-func removeAttribute(attrs pcommon.Map, key string) bool {
-	if key == "" {
-		return false
-	}
-	_, ok := attrs.Get(key)
-	if !ok {
-		return false
-	}
-	attrs.RemoveIf(func(k string, v pcommon.Value) bool {
-		return k == key
-	})
-	return true
-}
-
-func setAttribute(attrs pcommon.Map, key, value string, upsert bool) bool {
-	if key == "" {
-		return false
-	}
-	if _, ok := attrs.Get(key); ok {
-		if !upsert {
-			return true
-		}
-		attrs.PutStr(key, value)
-		return true
-	}
-	attrs.PutStr(key, value)
-	return true
-}
-
-// ─── Trace transformer ──────────────────────────────────────────────
-
-func OTelTraceTransformer(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
-	if ref.Field == policy.SpanSamplingThreshold().Field {
-		ctx.Span.TraceState().FromRaw(mergeOTTracestate(ctx.Span.TraceState().AsRaw(), "th:"+value))
-	}
-}
+// ─── Tracestate merge ────────────────────────────────────────────────
 
 func mergeOTTracestate(tracestate, subkv string) string {
 	subKey := subkv

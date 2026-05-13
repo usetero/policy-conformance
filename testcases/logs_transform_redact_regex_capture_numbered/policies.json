@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-password-query-param",
+      "name": "Redact password query parameter preserving surrounding delimiters",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "password=" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "([?&]password=)[^&\\s]+(&session_id=)",
+              "replacement": "$1[REDACTED]$2"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

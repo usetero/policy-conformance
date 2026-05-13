@@ -1,0 +1,26 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "cvv",
+                  "value": {
+                    "stringValue": "[REDACTED]"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "payment processed"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

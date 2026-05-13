@@ -1,0 +1,18 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "alice@redacted wrote message"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

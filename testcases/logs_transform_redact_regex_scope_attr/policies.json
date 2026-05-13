@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-instance-suffix",
+      "name": "Redact instance numeric suffix in scope attribute",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "scope_attribute": "instance.id",
+              "regex": "[0-9]+$",
+              "replacement": "N"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

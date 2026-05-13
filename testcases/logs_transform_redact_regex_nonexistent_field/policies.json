@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-regex-missing-attr",
+      "name": "Regex redact on non-existent attribute is no-op",
+      "log": {
+        "match": [
+          { "log_field": "body", "exact": "test" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_attribute": "missing",
+              "regex": ".+",
+              "replacement": "[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

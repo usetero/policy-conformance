@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-host-id-digits",
+      "name": "Redact digits in host.id resource attribute",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "^.*$" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "resource_attribute": "host.id",
+              "regex": "[0-9]+",
+              "replacement": "#"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

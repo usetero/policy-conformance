@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-with-missing-group",
+      "name": "Reference to nonexistent named group expands to empty string",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "@example" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "(?P<user>\\w+)@example",
+              "replacement": "${user}@${nonexistent}redacted"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

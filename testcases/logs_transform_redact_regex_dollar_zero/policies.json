@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-error-code-wrap",
+      "name": "Wrap error code in brackets using $0 full match",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "error-" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "error-[a-z]+",
+              "replacement": "[$0]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

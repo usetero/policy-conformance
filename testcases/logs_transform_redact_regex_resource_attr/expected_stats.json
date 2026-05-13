@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-host-id-digits",
+      "hits": 1
+    }
+  ]
+}

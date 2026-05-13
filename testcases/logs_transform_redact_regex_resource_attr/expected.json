@@ -1,0 +1,28 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "host.id",
+            "value": {
+              "stringValue": "node-#"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "startup complete"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

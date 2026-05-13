@@ -1,0 +1,26 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "count",
+                  "value": {
+                    "intValue": "42"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "event"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

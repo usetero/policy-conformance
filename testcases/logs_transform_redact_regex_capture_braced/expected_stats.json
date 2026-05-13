@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-account-id-braced",
+      "hits": 1
+    }
+  ]
+}

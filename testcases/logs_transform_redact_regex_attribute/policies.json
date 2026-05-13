@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-pan-prefix",
+      "name": "Redact PAN prefix preserving last 4",
+      "log": {
+        "match": [
+          { "log_attribute": "card_number", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_attribute": "card_number",
+              "regex": "^([0-9]{9,15})([0-9]{4})$",
+              "replacement": "[REDACTED]$2"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

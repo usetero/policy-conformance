@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-no-match",
+      "hits": 1
+    }
+  ]
+}

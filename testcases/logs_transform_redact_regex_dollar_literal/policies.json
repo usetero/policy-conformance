@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-usd-amount",
+      "name": "Redact USD amount keeping literal dollar sign",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "USD" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "USD [0-9]+",
+              "replacement": "$$[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

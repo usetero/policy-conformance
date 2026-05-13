@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-bearer-case-insensitive",
+      "name": "Case-insensitive bearer token redaction via inline flag",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "(?i)bearer" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "(?i)(bearer\\s+)\\S+",
+              "replacement": "$1[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

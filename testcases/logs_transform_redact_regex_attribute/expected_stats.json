@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-pan-prefix",
+      "hits": 1
+    }
+  ]
+}

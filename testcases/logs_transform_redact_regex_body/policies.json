@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-api-key-in-body",
+      "name": "Redact api_key in log body",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "api_key" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "api_key=[A-Za-z0-9]+",
+              "replacement": "api_key=[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
