@@ -112,13 +112,32 @@ tasks:
         # Detect signal type from JSON content
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
 
+        # Load skip list (testcases.skip; one name per line, '#' comments allowed).
+        # Entries are listed in this file when the published library versions
+        # don't yet implement the feature the testcase exercises.
+        SKIP_LIST=""
+        if [ -f testcases.skip ]; then
+          SKIP_LIST=$(sed 's/#.*//; s/[[:space:]]*$//' testcases.skip | grep -v '^[[:space:]]*$' || true)
+        fi
+        is_skipped() {
+          [ -z "$SKIP_LIST" ] && return 1
+          printf '%s\n' "$SKIP_LIST" | grep -Fxq "$1"
+        }
+
         TC_FILTER="{{.TC}}"
-        PASS=0; FAIL=0
+        PASS=0; FAIL=0; SKIPPED=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
 
           # If TC filter is set, only run that test case
           if [ -n "$TC_FILTER" ] && [ "$name" != "$TC_FILTER" ]; then
+            continue
+          fi
+
+          # Honour testcases.skip (does NOT count toward FAIL)
+          if is_skipped "$name"; then
+            echo "  SKIP  $name (testcases.skip)"
+            SKIPPED=$((SKIPPED + 1))
             continue
           fi
 
@@ -215,7 +234,11 @@ tasks:
           fi
         done
         echo ""
-        echo "{{.LANG}}: $PASS passed, $FAIL failed"
+        if [ "$SKIPPED" -gt 0 ]; then
+          echo "{{.LANG}}: $PASS passed, $FAIL failed, $SKIPPED skipped"
+        else
+          echo "{{.LANG}}: $PASS passed, $FAIL failed"
+        fi
         [ "$FAIL" -eq 0 ]
 
   # ── HTTP provider tests ─────────────────────────────────────
@@ -298,9 +321,27 @@ tasks:
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
         # Normalize expected stats for HTTP comparison: server only reports {policy_id, hits} for policies with hits > 0
         normalize_http_stats='{policies: [.policies[] | del(.misses) | select(.hits > 0)] | sort_by(.policy_id)}'
-        PASS=0; FAIL=0; ERRORS=0
+
+        # Load skip list (see testcases.skip)
+        SKIP_LIST=""
+        if [ -f testcases.skip ]; then
+          SKIP_LIST=$(sed 's/#.*//; s/[[:space:]]*$//' testcases.skip | grep -v '^[[:space:]]*$' || true)
+        fi
+        is_skipped() {
+          [ -z "$SKIP_LIST" ] && return 1
+          printf '%s\n' "$SKIP_LIST" | grep -Fxq "$1"
+        }
+
+        PASS=0; FAIL=0; ERRORS=0; SKIPPED=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
+
+          # Honour testcases.skip (does NOT count toward FAIL/ERRORS)
+          if is_skipped "$name"; then
+            echo "  SKIP  $name (testcases.skip)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
 
           # Start conformance server; read port lines from stdout via pipe (no sleeps)
           PORT_FIFO=$(mktemp -u)
@@ -447,7 +488,11 @@ tasks:
           fi
         done
         echo ""
-        echo "{{.LANG}} ({{.PROVIDER_FLAG}}): $PASS passed, $FAIL failed, $ERRORS errors"
+        if [ "$SKIPPED" -gt 0 ]; then
+          echo "{{.LANG}} ({{.PROVIDER_FLAG}}): $PASS passed, $FAIL failed, $ERRORS errors, $SKIPPED skipped"
+        else
+          echo "{{.LANG}} ({{.PROVIDER_FLAG}}): $PASS passed, $FAIL failed, $ERRORS errors"
+        fi
         [ "$FAIL" -eq 0 ] && [ "$ERRORS" -eq 0 ]
 
   # ── Benchmarks ──────────────────────────────────────────────
@@ -470,6 +515,16 @@ tasks:
         fi
         echo "testcase,signal,command,mean,stddev,median,user,system,min,max" > "$OUT"
 
+        # Honour testcases.skip — same list the conformance tasks use.
+        SKIP_LIST=""
+        if [ -f testcases.skip ]; then
+          SKIP_LIST=$(sed 's/#.*//; s/[[:space:]]*$//' testcases.skip | grep -v '^[[:space:]]*$' || true)
+        fi
+        is_skipped() {
+          [ -z "$SKIP_LIST" ] && return 1
+          printf '%s\n' "$SKIP_LIST" | grep -Fxq "$1"
+        }
+
         for tc in testcases/*/; do
           name=$(basename "$tc")
           case "$name" in
@@ -478,6 +533,10 @@ tasks:
             traces_*)  signal=trace ;;
             *)         continue ;;
           esac
+          if is_skipped "$name"; then
+            echo "── $name (skipped) ──"
+            continue
+          fi
           echo "── $name ──"
           tmp_csv=$(mktemp)
           # --warmup 10:         fill disk cache + JIT/dyld before measuring
@@ -758,11 +817,12 @@ tasks:
           CONFIG_FILE=$(mktemp).{{.CONFIG_EXT}}
           envsubst < "{{.CONFIG_TEMPLATE}}" > "$CONFIG_FILE"
 
-          # ── Start implementation ──
+          # ── Start implementation (capture stdout+stderr to per-testcase log) ──
+          IMPL_LOG=$(mktemp)
           if [ -n "{{.IMPL_START_CMD}}" ]; then
-            ./$IMPL_BIN {{.IMPL_START_CMD}} "$CONFIG_FILE" > /dev/null 2>&1 &
+            ./$IMPL_BIN {{.IMPL_START_CMD}} "$CONFIG_FILE" > "$IMPL_LOG" 2>&1 &
           else
-            ./$IMPL_BIN "$CONFIG_FILE" > /dev/null 2>&1 &
+            ./$IMPL_BIN "$CONFIG_FILE" > "$IMPL_LOG" 2>&1 &
           fi
           IMPL_PID=$!
 
@@ -782,8 +842,11 @@ tasks:
 
           if ! $READY; then
             echo "  ERROR $name (implementation not ready after 5s)"
+            echo "    ── impl log (last 30 lines) ──"
+            tail -n 30 "$IMPL_LOG" 2>/dev/null | sed 's/^/    /'
+            echo "    ── end log ──"
             kill_servers
-            rm -f "$CONFIG_FILE"
+            rm -f "$CONFIG_FILE" "$IMPL_LOG"
             ERRORS=$((ERRORS + 1))
             continue
           fi
@@ -855,6 +918,7 @@ tasks:
           if $out_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
+            rm -f "$IMPL_LOG"
           else
             echo "  FAIL  $name"
             if ! $IS_COMPOUND; then
@@ -874,6 +938,10 @@ tasks:
                 fi
               done
             fi
+            echo "    ── impl log (last 30 lines) ──"
+            tail -n 30 "$IMPL_LOG" 2>/dev/null | sed 's/^/    /'
+            echo "    ── end log ──"
+            rm -f "$IMPL_LOG"
             FAIL=$((FAIL + 1))
           fi
         done

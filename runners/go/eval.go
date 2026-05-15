@@ -595,32 +595,30 @@ func statusCodeString(c ptrace.StatusCode) string {
 	}
 }
 
-// ─── Accessor builders ───────────────────────────────────────────────
+// ─── Accessor option sets ────────────────────────────────────────────
+// The variadic-option API in policy-go (v1.6+) builds the accessor internally
+// at each Evaluate* call. We declare the option slices once and reuse them.
 
-func NewLogAccessor() *policy.LogAccessor[*LogContext] {
-	return policy.NewLogAccessor[*LogContext](
+var (
+	LogOpts = []policy.LogOption[*LogContext]{
 		policy.WithLogValue(logValue),
 		policy.WithLogExists(logExists),
 		policy.WithLogSet(logSet),
 		policy.WithLogDelete(logDelete),
 		policy.WithLogMove(logMove),
-	)
-}
+	}
 
-func NewMetricAccessor() *policy.MetricAccessor[*MetricContext] {
-	return policy.NewMetricAccessor[*MetricContext](
+	MetricOpts = []policy.MetricOption[*MetricContext]{
 		policy.WithMetricValue(metricValue),
 		policy.WithMetricExists(metricExists),
-	)
-}
+	}
 
-func NewTraceAccessor() *policy.TraceAccessor[*TraceContext] {
-	return policy.NewTraceAccessor[*TraceContext](
+	TraceOpts = []policy.TraceOption[*TraceContext]{
 		policy.WithTraceValue(traceValue),
 		policy.WithTraceExists(traceExists),
 		policy.WithTraceSet(traceSet),
-	)
-}
+	}
+)
 
 // ─── Tracestate merge ────────────────────────────────────────────────
 

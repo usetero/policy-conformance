@@ -64,7 +64,6 @@ func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inpu
 
 	registry.CollectStats()
 
-	accessor := NewLogAccessor()
 	logs := req.Logs()
 	for i := 0; i < logs.ResourceLogs().Len(); i++ {
 		rl := logs.ResourceLogs().At(i)
@@ -78,7 +77,7 @@ func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inpu
 					ResourceSchemaURL: rl.SchemaUrl(),
 					ScopeSchemaURL:    sl.SchemaUrl(),
 				}
-				result := policy.EvaluateLog(eng, ctx, accessor)
+				result := policy.EvaluateLog(eng, ctx, LogOpts...)
 				return result == policy.ResultDrop
 			})
 		}
@@ -108,7 +107,6 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 
 	registry.CollectStats()
 
-	accessor := NewMetricAccessor()
 	metrics := req.Metrics()
 	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
 		rm := metrics.ResourceMetrics().At(i)
@@ -123,7 +121,7 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 					ResourceSchemaURL:   rm.SchemaUrl(),
 					ScopeSchemaURL:      sm.SchemaUrl(),
 				}
-				result := policy.EvaluateMetric(eng, ctx, accessor)
+				result := policy.EvaluateMetric(eng, ctx, MetricOpts...)
 				return result == policy.ResultDrop
 			})
 		}
@@ -151,7 +149,6 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 
 	registry.CollectStats()
 
-	accessor := NewTraceAccessor()
 	traces := req.Traces()
 	for i := 0; i < traces.ResourceSpans().Len(); i++ {
 		rs := traces.ResourceSpans().At(i)
@@ -165,7 +162,7 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 					ResourceSchemaURL: rs.SchemaUrl(),
 					ScopeSchemaURL:    ss.SchemaUrl(),
 				}
-				result := policy.EvaluateTrace(eng, ctx, accessor)
+				result := policy.EvaluateTrace(eng, ctx, TraceOpts...)
 				return result == policy.ResultDrop
 			})
 		}

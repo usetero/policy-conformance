@@ -93,7 +93,7 @@ fn processLogs(allocator: std.mem.Allocator, engine: PolicyEngine, input_data: [
                     .scope_schema_url = sl.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.log, @ptrCast(&ctx), &policy_id_buf, .{
+                const result = engine.evaluate(.log, &eval.log_accessor, @ptrCast(&ctx), &policy_id_buf, .{
                     .scratch = transform_arena.allocator(),
                 });
                 if (result.decision == .drop) {
@@ -155,7 +155,7 @@ fn processMetrics(allocator: std.mem.Allocator, engine: PolicyEngine, input_data
                     .scope_schema_url = sm.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.metric, @ptrCast(&ctx), &policy_id_buf, .{});
+                const result = engine.evaluate(.metric, &eval.metric_accessor, @ptrCast(&ctx), &policy_id_buf, .{});
                 if (result.decision == .drop) {
                     _ = sm.metrics.orderedRemove(i);
                 } else {
@@ -214,7 +214,7 @@ fn processTraces(allocator: std.mem.Allocator, engine: PolicyEngine, input_data:
                     .scope_schema_url = ss.schema_url,
                 };
                 var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.trace, @ptrCast(&ctx), &policy_id_buf, .{
+                const result = engine.evaluate(.trace, &eval.trace_accessor, @ptrCast(&ctx), &policy_id_buf, .{
                     .scratch = transform_arena.allocator(),
                 });
                 if (result.decision == .drop) {
@@ -270,11 +270,7 @@ fn run(allocator: std.mem.Allocator, pol_path: ?[]const u8, server_url: ?[]const
     var noop_bus: o11y.NoopEventBus = undefined;
     noop_bus.init();
 
-    var registry = PolicyRegistry.init(allocator, noop_bus.eventBus(), .{
-        .log = eval.log_accessor,
-        .metric = eval.metric_accessor,
-        .trace = eval.trace_accessor,
-    });
+    var registry = PolicyRegistry.init(allocator, noop_bus.eventBus());
     defer registry.deinit();
 
     const file_provider: ?*FileProvider = if (pol_path) |pp|
