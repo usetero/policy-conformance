@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-all-digits",
+      "name": "Redact all digit runs in body",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "[0-9]" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "[0-9]+",
+              "replacement": "#"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

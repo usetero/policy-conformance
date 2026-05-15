@@ -1,0 +1,18 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "item # cost # total #"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

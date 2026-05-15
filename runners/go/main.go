@@ -77,7 +77,7 @@ func processLogs(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inpu
 					ResourceSchemaURL: rl.SchemaUrl(),
 					ScopeSchemaURL:    sl.SchemaUrl(),
 				}
-				result := policy.EvaluateLog(eng, ctx, OTelLogMatcher, policy.WithLogTransform(OTelLogTransformer))
+				result := policy.EvaluateLog(eng, ctx, LogOpts...)
 				return result == policy.ResultDrop
 			})
 		}
@@ -121,7 +121,7 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 					ResourceSchemaURL:   rm.SchemaUrl(),
 					ScopeSchemaURL:      sm.SchemaUrl(),
 				}
-				result := policy.EvaluateMetric(eng, ctx, OTelMetricMatcher)
+				result := policy.EvaluateMetric(eng, ctx, MetricOpts...)
 				return result == policy.ResultDrop
 			})
 		}
@@ -162,7 +162,7 @@ func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, in
 					ResourceSchemaURL: rs.SchemaUrl(),
 					ScopeSchemaURL:    ss.SchemaUrl(),
 				}
-				result := policy.EvaluateTrace(eng, ctx, OTelTraceMatcher, policy.WithTraceTransform(OTelTraceTransformer))
+				result := policy.EvaluateTrace(eng, ctx, TraceOpts...)
 				return result == policy.ResultDrop
 			})
 		}

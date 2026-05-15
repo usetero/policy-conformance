@@ -1,0 +1,26 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "existing",
+                  "value": {
+                    "stringValue": "keep-me"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "test"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

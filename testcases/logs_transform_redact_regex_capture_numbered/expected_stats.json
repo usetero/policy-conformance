@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-password-query-param",
+      "hits": 1
+    }
+  ]
+}

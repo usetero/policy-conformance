@@ -18,5 +18,8 @@ testcases/*/output_*.json
 testcases/*/stats_*.json
 output.txt
 
+# Benchmark results
+bench-results/
+
 # OS
 .DS_Store

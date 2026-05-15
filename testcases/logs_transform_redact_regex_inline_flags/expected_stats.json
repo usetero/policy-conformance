@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policy_id": "redact-bearer-case-insensitive",
+      "hits": 1
+    }
+  ]
+}

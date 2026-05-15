@@ -1,0 +1,29 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "app",
+            "attributes": [
+              {
+                "key": "instance.id",
+                "value": {
+                  "stringValue": "worker-N"
+                }
+              }
+            ]
+          },
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "ready"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

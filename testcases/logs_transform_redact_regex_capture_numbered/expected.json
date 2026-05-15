@@ -1,0 +1,18 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "GET /login?user=alice&password=[REDACTED]&session_id=xyz HTTP/1.1"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

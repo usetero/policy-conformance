@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-cvv-anchored",
+      "name": "Anchored regex replaces full CVV value",
+      "log": {
+        "match": [
+          { "log_attribute": "cvv", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_attribute": "cvv",
+              "regex": "^[0-9]{3,4}$",
+              "replacement": "[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

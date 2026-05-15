@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-no-match",
+      "name": "Regex does not match - operation is a no-op",
+      "log": {
+        "match": [
+          { "log_field": "body", "contains": "test" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "password=\\w+",
+              "replacement": "password=[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

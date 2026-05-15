@@ -1,0 +1,26 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "attributes": [
+                {
+                  "key": "card_number",
+                  "value": {
+                    "stringValue": "[REDACTED]2222"
+                  }
+                }
+              ],
+              "body": {
+                "stringValue": "transaction logged"
+              },
+              "severityText": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

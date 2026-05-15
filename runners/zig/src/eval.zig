@@ -65,6 +65,24 @@ fn findAttributePath(attrs: []const KeyValue, path: []const []const u8) ?[]const
     return null;
 }
 
+/// Walk the attribute path looking only at presence (not value type).
+/// Returns true if the path resolves to a key at the right depth, regardless
+/// of whether the leaf value is a string, int, bool, or other AnyValue kind.
+fn findAttributePathExists(attrs: []const KeyValue, path: []const []const u8) bool {
+    if (path.len == 0) return false;
+    for (attrs) |kv| {
+        if (!std.mem.eql(u8, kv.key, path[0])) continue;
+        if (path.len == 1) return true;
+        const av = kv.value orelse return false;
+        const inner = av.value orelse return false;
+        switch (inner) {
+            .kvlist_value => |kvlist| return findAttributePathExists(kvlist.values.items, path[1..]),
+            else => return false,
+        }
+    }
+    return false;
+}
+
 fn anyValueString(val: ?AnyValue) ?[]const u8 {
     const v = val orelse return null;
     const inner = v.value orelse return null;
@@ -205,29 +223,53 @@ pub fn traceFieldAccessor(ctx: *const anyopaque, field: TraceFieldRef) ?[]const 
     };
 }
 
-// ─── Trace field mutator ────────────────────────────────────────────
+// ─── Trace exists / set primitives ──────────────────────────────────
 
-const TraceMutateOp = policy.TraceMutateOp;
+pub fn traceFieldExists(ctx: *const anyopaque, field: TraceFieldRef) bool {
+    const tc: *const TraceContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .trace_field => |tf| switch (tf) {
+            .TRACE_FIELD_NAME => tc.span.name.len > 0,
+            .TRACE_FIELD_TRACE_ID => tc.span.trace_id.len > 0,
+            .TRACE_FIELD_SPAN_ID => tc.span.span_id.len > 0,
+            .TRACE_FIELD_PARENT_SPAN_ID => tc.span.parent_span_id.len > 0,
+            .TRACE_FIELD_TRACE_STATE => tc.span.trace_state.len > 0,
+            .TRACE_FIELD_SCOPE_NAME => if (tc.scope) |s| s.name.len > 0 else false,
+            .TRACE_FIELD_SCOPE_VERSION => if (tc.scope) |s| s.version.len > 0 else false,
+            .TRACE_FIELD_RESOURCE_SCHEMA_URL => tc.resource_schema_url.len > 0,
+            .TRACE_FIELD_SCOPE_SCHEMA_URL => tc.scope_schema_url.len > 0,
+            else => false,
+        },
+        .span_attribute => |attr| findAttributePathExists(tc.span.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePathExists(resourceAttrs(tc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathExists(scopeAttrs(tc.scope), attr.path.items),
+        .span_kind => |requested| @intFromEnum(tc.span.kind) == @intFromEnum(requested),
+        .span_status => |requested| blk: {
+            const status = tc.span.status orelse break :blk false;
+            break :blk @intFromEnum(status.code) == @intFromEnum(requested);
+        },
+        .event_name => |requested| blk: {
+            for (tc.span.events.items) |evt| {
+                if (std.mem.eql(u8, evt.name, requested)) break :blk true;
+            }
+            break :blk false;
+        },
+        .event_attribute, .link_trace_id => false,
+    };
+}
 
-pub fn traceFieldMutator(ctx: *anyopaque, op: TraceMutateOp) bool {
+pub fn traceSet(ctx: *anyopaque, field: TraceFieldRef, value: []const u8) void {
     const tc: *TraceContext = @ptrCast(@alignCast(ctx));
-    switch (op) {
-        .set => |s| {
-            switch (s.field) {
-                .trace_field => |tf| {
-                    if (tf == .TRACE_FIELD_TRACE_STATE) {
-                        // The engine writes the raw threshold hex value.
-                        // We must merge it into the W3C tracestate as ot=th:VALUE.
-                        tc.span.trace_state = mergeOTTracestate(tc.allocator, tc.span.trace_state, s.value);
-                        return true;
-                    }
-                },
-                else => {},
+    switch (field) {
+        .trace_field => |tf| {
+            if (tf == .TRACE_FIELD_TRACE_STATE) {
+                // The engine writes the raw threshold hex value; merge it into
+                // the W3C tracestate as ot=th:VALUE.
+                tc.span.trace_state = mergeOTTracestate(tc.allocator, tc.span.trace_state, value);
             }
         },
         else => {},
     }
-    return false;
 }
 
 fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_value: []const u8) []const u8 {
@@ -280,18 +322,116 @@ fn nonEmpty(s: []const u8) ?[]const u8 {
     return if (s.len == 0) null else s;
 }
 
-// ─── Log field mutator ───────────────────────────────────────────────
+// ─── Log exists / set / delete / move primitives ─────────────────────
 
-const MutateOp = policy.MutateOp;
-
-pub fn logFieldMutator(ctx: *anyopaque, op: MutateOp) bool {
-    const lc: *LogContext = @ptrCast(@alignCast(ctx));
-    switch (op) {
-        .remove => |field| return mutRemove(lc, field),
-        .set => |s| return mutSet(lc, s.field, s.value, s.upsert),
-        .rename => |r| return mutRename(lc, r.from, r.to, r.upsert),
-    }
+pub fn logFieldExists(ctx: *const anyopaque, field: FieldRef) bool {
+    const lc: *const LogContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .log_field => |lf| switch (lf) {
+            .LOG_FIELD_BODY => blk: {
+                // Mirror the `value` accessor: empty string body counts as
+                // missing. Non-string body kinds (kvlist, int, etc.) still
+                // count as present.
+                const body = lc.record.body orelse break :blk false;
+                const inner = body.value orelse break :blk false;
+                break :blk switch (inner) {
+                    .string_value => |s| s.len > 0,
+                    else => true,
+                };
+            },
+            .LOG_FIELD_SEVERITY_TEXT => lc.record.severity_text.len > 0,
+            .LOG_FIELD_TRACE_ID => lc.record.trace_id.len > 0,
+            .LOG_FIELD_SPAN_ID => lc.record.span_id.len > 0,
+            .LOG_FIELD_EVENT_NAME => lc.record.event_name.len > 0,
+            .LOG_FIELD_RESOURCE_SCHEMA_URL => lc.resource_schema_url.len > 0,
+            .LOG_FIELD_SCOPE_SCHEMA_URL => lc.scope_schema_url.len > 0,
+            else => false,
+        },
+        .log_attribute => |attr| findAttributePathExists(lc.record.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePathExists(resourceAttrs(lc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathExists(scopeAttrs(lc.scope), attr.path.items),
+    };
 }
+
+pub fn logSet(ctx: *anyopaque, field: FieldRef, value: []const u8) void {
+    const lc: *LogContext = @ptrCast(@alignCast(ctx));
+    _ = mutSet(lc, field, value, true);
+}
+
+pub fn logDelete(ctx: *anyopaque, field: FieldRef) bool {
+    const lc: *LogContext = @ptrCast(@alignCast(ctx));
+    return mutRemove(lc, field);
+}
+
+pub fn logMove(ctx: *anyopaque, from: FieldRef, to: []const u8) void {
+    const lc: *LogContext = @ptrCast(@alignCast(ctx));
+    // Engine pre-resolves upsert semantics (calling delete first when needed);
+    // here we simply relocate the value if the source attribute exists.
+    _ = mutMoveAttr(lc, from, to);
+}
+
+// ─── Metric exists primitive ─────────────────────────────────────────
+
+pub fn metricFieldExists(ctx: *const anyopaque, field: MetricFieldRef) bool {
+    const mc: *const MetricContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .metric_field => |mf| switch (mf) {
+            .METRIC_FIELD_NAME => mc.metric.name.len > 0,
+            .METRIC_FIELD_DESCRIPTION => mc.metric.description.len > 0,
+            .METRIC_FIELD_UNIT => mc.metric.unit.len > 0,
+            .METRIC_FIELD_SCOPE_NAME => if (mc.scope) |s| s.name.len > 0 else false,
+            .METRIC_FIELD_SCOPE_VERSION => if (mc.scope) |s| s.version.len > 0 else false,
+            .METRIC_FIELD_RESOURCE_SCHEMA_URL => mc.resource_schema_url.len > 0,
+            .METRIC_FIELD_SCOPE_SCHEMA_URL => mc.scope_schema_url.len > 0,
+            else => false,
+        },
+        .datapoint_attribute => |attr| findAttributePathExists(mc.datapoint_attributes, attr.path.items),
+        .resource_attribute => |attr| findAttributePathExists(resourceAttrs(mc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathExists(scopeAttrs(mc.scope), attr.path.items),
+        .metric_type => |requested| blk: {
+            const data = mc.metric.data orelse break :blk false;
+            const actual: @TypeOf(requested) = switch (data) {
+                .gauge => .METRIC_TYPE_GAUGE,
+                .sum => .METRIC_TYPE_SUM,
+                .histogram => .METRIC_TYPE_HISTOGRAM,
+                .exponential_histogram => .METRIC_TYPE_EXPONENTIAL_HISTOGRAM,
+                .summary => .METRIC_TYPE_SUMMARY,
+            };
+            break :blk actual == requested;
+        },
+        .aggregation_temporality => |requested| blk: {
+            const data = mc.metric.data orelse break :blk false;
+            const actual = switch (data) {
+                .sum => |s| s.aggregation_temporality,
+                .histogram => |h| h.aggregation_temporality,
+                .exponential_histogram => |eh| eh.aggregation_temporality,
+                else => break :blk false,
+            };
+            break :blk @intFromEnum(actual) == @intFromEnum(requested);
+        },
+    };
+}
+
+// ─── Static accessor templates ───────────────────────────────────────
+
+pub const log_accessor: policy.LogAccessor = .{
+    .value = logFieldAccessor,
+    .exists = logFieldExists,
+    .set = logSet,
+    .delete = logDelete,
+    .move = logMove,
+};
+
+pub const metric_accessor: policy.MetricAccessor = .{
+    .value = metricFieldAccessor,
+    .exists = metricFieldExists,
+};
+
+pub const trace_accessor: policy.TraceAccessor = .{
+    .value = traceFieldAccessor,
+    .exists = traceFieldExists,
+    .set = traceSet,
+};
 
 fn mutRemove(lc: *LogContext, field: FieldRef) bool {
     switch (field) {
@@ -376,12 +516,16 @@ fn mutSet(lc: *LogContext, field: FieldRef, value: []const u8, _: bool) bool {
     }
 }
 
-fn mutRename(lc: *LogContext, from: FieldRef, to: []const u8, upsert: bool) bool {
+/// Move an attribute value from `from` to `to`. The engine has already
+/// pre-resolved upsert semantics (it will have called delete on the target
+/// when upsert=true; it skips this call entirely when upsert=false and the
+/// target exists), so we only need to relocate the source.
+fn mutMoveAttr(lc: *LogContext, from: FieldRef, to: []const u8) bool {
     const attrs = switch (from) {
         .log_attribute => &lc.record.attributes,
         .resource_attribute => if (lc.resource) |r| &r.attributes else return false,
         .scope_attribute => if (lc.scope) |s| &s.attributes else return false,
-        .log_field => return false, // renaming fixed fields not supported
+        .log_field => return false,
     };
     const key = switch (from) {
         .log_attribute => |attr| attrKey(attr),
@@ -391,26 +535,10 @@ fn mutRename(lc: *LogContext, from: FieldRef, to: []const u8, upsert: bool) bool
     };
     const k = key orelse return false;
 
-    // Find and remove source
     const src_idx = findAttrIndex(attrs.items, k) orelse return false;
     const src_val = attrs.items[src_idx].value;
-
-    // Check if target exists
-    if (!upsert) {
-        if (findAttrIndex(attrs.items, to) != null) return true; // blocked
-    }
-
-    // Remove source
     _ = attrs.orderedRemove(src_idx);
 
-    // Remove existing target if upsert
-    if (upsert) {
-        if (findAttrIndex(attrs.items, to)) |ti| {
-            _ = attrs.orderedRemove(ti);
-        }
-    }
-
-    // Add renamed entry
     attrs.append(lc.allocator, .{ .key = to, .value = src_val }) catch return false;
     return true;
 }

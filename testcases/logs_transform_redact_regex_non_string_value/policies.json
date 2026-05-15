@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-non-string-noop",
+      "name": "Regex redact on non-string value is no-op",
+      "log": {
+        "match": [
+          { "log_attribute": "count", "exists": true }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_attribute": "count",
+              "regex": ".+",
+              "replacement": "[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

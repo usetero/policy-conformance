@@ -1,0 +1,23 @@
+{
+  "policies": [
+    {
+      "id": "redact-url-host-named",
+      "name": "Redact URL host using named capture for scheme",
+      "log": {
+        "match": [
+          { "log_field": "body", "regex": "https?://" }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "log_field": "body",
+              "regex": "(?P<scheme>https?)://[^/\\s]+",
+              "replacement": "${scheme}://[REDACTED]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
