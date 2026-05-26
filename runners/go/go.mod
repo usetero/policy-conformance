@@ -7,7 +7,7 @@ require (
 	go.opentelemetry.io/collector/pdata v1.52.0
 )
 
-// replace github.com/usetero/policy-go => ../../../policy-go
+replace github.com/usetero/policy-go => ../../../policy-go
 
 require (
 	github.com/flier/gohs v1.2.3 // indirect

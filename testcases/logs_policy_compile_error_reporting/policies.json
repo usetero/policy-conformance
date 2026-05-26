@@ -1,0 +1,27 @@
+{
+  "policies": [
+    {
+      "id": "bad-empty-attribute-path",
+      "name": "Broken empty attribute path policy",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logAttribute": {}, "exists": true },
+          { "logField": "LOG_FIELD_BODY", "contains": "error" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop debug logs",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logField": "LOG_FIELD_SEVERITY_TEXT", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

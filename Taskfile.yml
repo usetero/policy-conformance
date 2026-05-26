@@ -140,6 +140,16 @@ tasks:
             SKIPPED=$((SKIPPED + 1))
             continue
           fi
+          if [ -f "$tc/provider_only" ]; then
+            echo "  SKIP  $name (provider-only)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
+          if [ -f "$tc/go_only" ] && [ "{{.LANG}}" != "go" ]; then
+            echo "  SKIP  $name (go-only)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
 
           if [ -f "$tc/input.json" ]; then
             # ── Simple mode: single input/output ──
@@ -319,8 +329,8 @@ tasks:
         set +e
         normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
-        # Normalize expected stats for HTTP comparison: server only reports {policy_id, hits} for policies with hits > 0
-        normalize_http_stats='{policies: [.policies[] | del(.misses) | select(.hits > 0)] | sort_by(.policy_id)}'
+        # Normalize expected stats for HTTP comparison: server reports hitful policies and compile-error statuses.
+        normalize_http_stats='{policies: [.policies[] | del(.misses) | select((.hits // 0) > 0 or ((.errors // []) | length > 0))] | sort_by(.policy_id)}'
 
         # Load skip list (see testcases.skip)
         SKIP_LIST=""
@@ -332,13 +342,24 @@ tasks:
           printf '%s\n' "$SKIP_LIST" | grep -Fxq "$1"
         }
 
+        TC_FILTER="{{.TC}}"
         PASS=0; FAIL=0; ERRORS=0; SKIPPED=0
         for tc in testcases/*/; do
           name=$(basename "$tc")
 
+          # If TC filter is set, only run that test case
+          if [ -n "$TC_FILTER" ] && [ "$name" != "$TC_FILTER" ]; then
+            continue
+          fi
+
           # Honour testcases.skip (does NOT count toward FAIL/ERRORS)
           if is_skipped "$name"; then
             echo "  SKIP  $name (testcases.skip)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
+          if [ -f "$tc/go_only" ] && [ "{{.LANG}}" != "go" ]; then
+            echo "  SKIP  $name (go-only)"
             SKIPPED=$((SKIPPED + 1))
             continue
           fi
@@ -535,6 +556,10 @@ tasks:
           esac
           if is_skipped "$name"; then
             echo "── $name (skipped) ──"
+            continue
+          fi
+          if [ -f "$tc/provider_only" ]; then
+            echo "── $name (provider-only; skipped) ──"
             continue
           fi
           echo "── $name ──"
@@ -750,6 +775,10 @@ tasks:
 
           # If TC filter is set, only run that test case
           if [ -n "$TC_FILTER" ] && [ "$name" != "$TC_FILTER" ]; then
+            continue
+          fi
+          if [ -f "$tc/provider_only" ] || [ -f "$tc/go_only" ]; then
+            SKIP=$((SKIP + 1))
             continue
           fi
 
