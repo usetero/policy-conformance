@@ -3,12 +3,11 @@
     .version = "0.2.0",
     .dependencies = .{
         .policy_zig = .{
-            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.3.1.tar.gz",
-            .hash = "policy_zig-0.1.7-5_dp3ps4EACY3nicmFNzL2EUIbKEM5q3fROlZirr1id8",
+            .path = "../../../policy-zig",
         },
     },
     .fingerprint = 0xc320c559d1fd6c72,
-    .minimum_zig_version = "0.15.1",
+    .minimum_zig_version = "0.16.0",
     .paths = .{
         "build.zig",
         "build.zig.zon",

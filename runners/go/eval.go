@@ -85,6 +85,46 @@ func valueBytes(v pcommon.Value) []byte {
 	return []byte(s)
 }
 
+// findAttributeValue resolves an attribute path to its raw pcommon.Value,
+// preserving the value's native type for typed (equals/gt/gte/lt/lte) matching.
+func findAttributeValue(attrs pcommon.Map, path []string) (pcommon.Value, bool) {
+	if len(path) == 0 {
+		return pcommon.Value{}, false
+	}
+	v, ok := attrs.Get(path[0])
+	if !ok {
+		return pcommon.Value{}, false
+	}
+	if len(path) == 1 {
+		return v, true
+	}
+	if v.Type() == pcommon.ValueTypeMap {
+		return findAttributeValue(v.Map(), path[1:])
+	}
+	return pcommon.Value{}, false
+}
+
+// typedValueOf maps an OTLP attribute value to the engine's TypedValue so that
+// non-string matchers (equals on bool/int/double/bytes, numeric comparisons)
+// see the value's real type. Map/slice/empty values are reported as absent,
+// which the engine treats as a non-match (fail-open).
+func typedValueOf(v pcommon.Value) policy.TypedValue {
+	switch v.Type() {
+	case pcommon.ValueTypeStr:
+		return policy.TypedValueOfString(v.Str())
+	case pcommon.ValueTypeBool:
+		return policy.TypedValueOfBool(v.Bool())
+	case pcommon.ValueTypeInt:
+		return policy.TypedValueOfInt(v.Int())
+	case pcommon.ValueTypeDouble:
+		return policy.TypedValueOfDouble(v.Double())
+	case pcommon.ValueTypeBytes:
+		return policy.TypedValueOfBytes(v.Bytes().AsRaw())
+	default:
+		return policy.TypedValue{}
+	}
+}
+
 func attrPath(ref policy.LogFieldRef) string {
 	if len(ref.AttrPath) > 0 {
 		return ref.AttrPath[0]
@@ -178,6 +218,63 @@ func logExists(ctx *LogContext, ref policy.LogFieldRef) bool {
 		return false
 	}
 	return existsAttributePath(attrs, ref.AttrPath)
+}
+
+// logTypedValue returns the log field's value with its native type for the
+// typed matchers. Identifier fields (trace_id/span_id) are bytes, so the typed
+// value carries the raw id bytes — an equals/hex_value matcher decodes its hex
+// literal to bytes and compares bytes==bytes.
+func logTypedValue(ctx *LogContext, ref policy.LogFieldRef) policy.TypedValue {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.LogFieldBody:
+			return typedValueOf(ctx.Record.Body())
+		case policy.LogFieldSeverityText:
+			if ctx.Record.SeverityText() == "" {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfString(ctx.Record.SeverityText())
+		case policy.LogFieldTraceID:
+			id := ctx.Record.TraceID()
+			if id.IsEmpty() {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfBytes(id[:])
+		case policy.LogFieldSpanID:
+			id := ctx.Record.SpanID()
+			if id.IsEmpty() {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfBytes(id[:])
+		case policy.LogFieldEventName:
+			if ctx.Record.EventName() == "" {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfString(ctx.Record.EventName())
+		case policy.LogFieldResourceSchemaURL:
+			if ctx.ResourceSchemaURL == "" {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfString(ctx.ResourceSchemaURL)
+		case policy.LogFieldScopeSchemaURL:
+			if ctx.ScopeSchemaURL == "" {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfString(ctx.ScopeSchemaURL)
+		default:
+			return policy.TypedValue{}
+		}
+	}
+
+	attrs, ok := logAttrs(ctx, ref)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	v, ok := findAttributeValue(attrs, ref.AttrPath)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	return typedValueOf(v)
 }
 
 func logSet(ctx *LogContext, ref policy.LogFieldRef, value string) {
@@ -372,6 +469,27 @@ func metricExists(ctx *MetricContext, ref policy.MetricFieldRef) bool {
 	return existsAttributePath(attrs, ref.AttrPath)
 }
 
+func metricTypedValue(ctx *MetricContext, ref policy.MetricFieldRef) policy.TypedValue {
+	if ref.IsField() {
+		// All well-known metric fields are strings (name/description/unit and the
+		// enum renderings for type/temporality/scope). Reuse the string accessor.
+		b := metricValue(ctx, ref)
+		if b == nil {
+			return policy.TypedValue{}
+		}
+		return policy.TypedValueOfString(string(b))
+	}
+	attrs, ok := metricAttrs(ctx, ref)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	v, ok := findAttributeValue(attrs, ref.AttrPath)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	return typedValueOf(v)
+}
+
 func metricAttrs(ctx *MetricContext, ref policy.MetricFieldRef) (pcommon.Map, bool) {
 	switch {
 	case ref.IsRecordAttr():
@@ -547,6 +665,48 @@ func traceExists(ctx *TraceContext, ref policy.TraceFieldRef) bool {
 	return existsAttributePath(attrs, ref.AttrPath)
 }
 
+func traceTypedValue(ctx *TraceContext, ref policy.TraceFieldRef) policy.TypedValue {
+	if ref.IsField() {
+		switch ref.Field {
+		case policy.TraceFieldTraceID:
+			id := ctx.Span.TraceID()
+			if id.IsEmpty() {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfBytes(id[:])
+		case policy.TraceFieldSpanID:
+			id := ctx.Span.SpanID()
+			if id.IsEmpty() {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfBytes(id[:])
+		case policy.TraceFieldParentSpanID:
+			id := ctx.Span.ParentSpanID()
+			if id.IsEmpty() {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfBytes(id[:])
+		default:
+			// All other well-known span fields are strings (name/trace_state and
+			// the enum renderings for kind/status). Reuse the string accessor.
+			b := traceValue(ctx, ref)
+			if b == nil {
+				return policy.TypedValue{}
+			}
+			return policy.TypedValueOfString(string(b))
+		}
+	}
+	attrs, ok := traceAttrs(ctx, ref)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	v, ok := findAttributeValue(attrs, ref.AttrPath)
+	if !ok {
+		return policy.TypedValue{}
+	}
+	return typedValueOf(v)
+}
+
 func traceSet(ctx *TraceContext, ref policy.TraceFieldRef, value string) {
 	if ref.Field == policy.SpanSamplingThreshold().Field {
 		ctx.Span.TraceState().FromRaw(mergeOTTracestate(ctx.Span.TraceState().AsRaw(), "th:"+value))
@@ -603,6 +763,7 @@ var (
 	LogOpts = []policy.LogOption[*LogContext]{
 		policy.WithLogValue(logValue),
 		policy.WithLogExists(logExists),
+		policy.WithLogTypedValue(logTypedValue),
 		policy.WithLogSet(logSet),
 		policy.WithLogDelete(logDelete),
 		policy.WithLogMove(logMove),
@@ -611,11 +772,13 @@ var (
 	MetricOpts = []policy.MetricOption[*MetricContext]{
 		policy.WithMetricValue(metricValue),
 		policy.WithMetricExists(metricExists),
+		policy.WithMetricTypedValue(metricTypedValue),
 	}
 
 	TraceOpts = []policy.TraceOption[*TraceContext]{
 		policy.WithTraceValue(traceValue),
 		policy.WithTraceExists(traceExists),
+		policy.WithTraceTypedValue(traceTypedValue),
 		policy.WithTraceSet(traceSet),
 	}
 )

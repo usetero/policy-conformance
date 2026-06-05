@@ -65,7 +65,7 @@ tasks:
     aliases: [bz]
     dir: runners/zig
     cmds:
-      - ../../bin/zig build -Doptimize=ReleaseSafe
+      - ../../bin/zig build -Doptimize=Debug
 
   # ── Test per-language ──────────────────────────────────────
   test:go:
@@ -518,7 +518,7 @@ tasks:
 
   # ── Benchmarks ──────────────────────────────────────────────
   bench:
-    desc: 'Benchmark all runners; results CSV at OUT=<path> (default: bench-results/bench-<timestamp>.csv)'
+    desc: "Benchmark all runners; results CSV at OUT=<path> (default: bench-results/bench-<timestamp>.csv)"
     aliases: [bch]
     deps: [build]
     vars:
@@ -707,6 +707,13 @@ tasks:
     cmds:
       - go build -o sink-server .
 
+  build:otlpjson2proto:
+    desc: Build OTLP JSON-to-protobuf helper for Vector implementation tests
+    dir: runners/go
+    cmds:
+      - mkdir -p ../../implementations/otlpjson2proto
+      - go build -o ../../implementations/otlpjson2proto/otlpjson2proto ./cmd/otlpjson2proto
+
   test:impl:collector:
     desc: Run implementation conformance tests for tero-collector-distro
     aliases: [tic]
@@ -720,6 +727,7 @@ tasks:
           IMPL_START_CMD: "--config"
           CONFIG_TEMPLATE: implementations/tero-collector-distro/config.template.yaml
           CONFIG_EXT: yaml
+          POST_CT: application/json
 
   test:impl:edge:
     desc: Run implementation conformance tests for edge
@@ -734,6 +742,22 @@ tasks:
           IMPL_START_CMD: ""
           CONFIG_TEMPLATE: implementations/edge/config.template.json
           CONFIG_EXT: json
+          POST_CT: application/json
+
+  test:impl:vector:
+    desc: Run implementation conformance tests for Vector
+    aliases: [tiv]
+    deps: [build:sink, build:otlpjson2proto]
+    cmds:
+      - task: conformance:impl
+        vars:
+          IMPL: vector
+          IMPL_NAME: vector
+          IMPL_BIN: implementations/vector/vector
+          IMPL_START_CMD: "--config"
+          CONFIG_TEMPLATE: implementations/vector/config.template.yaml
+          CONFIG_EXT: yaml
+          POST_CT: application/x-protobuf
 
   test:impl:
     desc: Run implementation conformance tests for all implementations
@@ -741,6 +765,7 @@ tasks:
     cmds:
       - task: test:impl:collector
       - task: test:impl:edge
+      - task: test:impl:vector
 
   conformance:impl:
     desc: Run test cases against a single implementation
@@ -760,10 +785,11 @@ tasks:
         normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
 
-        IMPL_PID=""; SINK_PID=""
+        IMPL_PID=""; SINK_PID=""; VECTOR_DATA_DIR=""
         kill_servers() {
           [ -n "$IMPL_PID" ] && kill -9 "$IMPL_PID" 2>/dev/null; IMPL_PID=""
           [ -n "$SINK_PID" ] && kill -9 "$SINK_PID" 2>/dev/null; SINK_PID=""
+          [ -n "$VECTOR_DATA_DIR" ] && rm -rf "$VECTOR_DATA_DIR"; VECTOR_DATA_DIR=""
         }
         trap kill_servers EXIT
 
@@ -789,6 +815,14 @@ tasks:
               metric) echo "/v1/metrics" ;;
               trace)  echo "/v1/traces" ;;
               *)      echo "" ;;
+            esac
+          }
+          probe_payload_for_endpoint() {
+            case "$1" in
+              /v1/logs)    echo '{"resourceLogs":[]}' ;;
+              /v1/metrics) echo '{"resourceMetrics":[]}' ;;
+              /v1/traces)  echo '{"resourceSpans":[]}' ;;
+              *)           echo '{}' ;;
             esac
           }
 
@@ -842,7 +876,8 @@ tasks:
 
           # ── Generate runtime config ──
           POLICIES_PATH="$(pwd)/$tc/policies.json"
-          export RECEIVER_PORT SINK_PORT POLICIES_PATH
+          VECTOR_DATA_DIR=$(mktemp -d)
+          export RECEIVER_PORT SINK_PORT POLICIES_PATH VECTOR_DATA_DIR
           CONFIG_FILE=$(mktemp).{{.CONFIG_EXT}}
           envsubst < "{{.CONFIG_TEMPLATE}}" > "$CONFIG_FILE"
 
@@ -855,18 +890,40 @@ tasks:
           fi
           IMPL_PID=$!
 
-          # ── Wait for readiness (poll receiver) ──
+          # ── Build POST payload + headers (impl-specific wire format) ──
+          # Vector's OTLP source only accepts protobuf; edge/collector accept JSON.
+          PAYLOAD_CT="{{.POST_CT}}"
+          PAYLOAD_FILE=$(mktemp)
+          PROBE_FILE=$(mktemp)
+          PROBE_JSON=$(mktemp)
+          case "$ENDPOINT" in
+            /v1/logs)    echo '{"resourceLogs":[{"scopeLogs":[{"logRecords":[{}]}]}]}' > "$PROBE_JSON" ;;
+            /v1/metrics) echo '{"resourceMetrics":[{"scopeMetrics":[{"metrics":[{}]}]}]}' > "$PROBE_JSON" ;;
+            /v1/traces)  echo '{"resourceSpans":[{"scopeSpans":[{"spans":[{}]}]}]}'      > "$PROBE_JSON" ;;
+          esac
+          if [ "$PAYLOAD_CT" = "application/x-protobuf" ]; then
+            ./implementations/otlpjson2proto/otlpjson2proto --signal "${ENDPOINT#/v1/}" --input "$PROBE_JSON" --output "$PROBE_FILE" 2>/dev/null
+          else
+            cp "$PROBE_JSON" "$PROBE_FILE"
+          fi
+          rm -f "$PROBE_JSON"
+
+          # ── Wait for readiness ──
+          # Repeatedly POST a minimal valid OTLP request until accepted; this
+          # exercises the same code path as the real test data, so success
+          # here means the source is genuinely ready (not just listening).
           READY=false
           for i in $(seq 1 50); do
-            if curl -sf -o /dev/null -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
-                 -H "Content-Type: application/json" -d '{}' 2>/dev/null; then
+            if curl -sf -o /dev/null --max-time 0.5 -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
+                 -H "Content-Type: $PAYLOAD_CT" --data-binary @"$PROBE_FILE" 2>/dev/null; then
               READY=true
               break
             fi
             sleep 0.1
           done
+          rm -f "$PROBE_FILE"
 
-          # Reset sink after readiness probe (may have forwarded empty data)
+          # Reset sink after readiness probe (probe payload flows through too)
           curl -s "http://localhost:$SINK_PORT/reset" > /dev/null 2>&1
 
           if ! $READY; then
@@ -880,22 +937,34 @@ tasks:
             continue
           fi
 
-          out_ok=true
-          if ! $IS_COMPOUND; then
-            # ── Simple mode: single input/output ──
-            curl -s -X POST "http://localhost:$RECEIVER_PORT$ENDPOINT" \
-              -H "Content-Type: application/json" \
-              -d @"$tc/input.json" > /dev/null 2>&1
+          # Helper: convert input JSON to the wire format the impl expects.
+          to_wire() {
+            local signal="$1" input_json="$2" out_file="$3"
+            if [ "$PAYLOAD_CT" = "application/x-protobuf" ]; then
+              ./implementations/otlpjson2proto/otlpjson2proto --signal "$signal" --input "$input_json" --output "$out_file"
+            else
+              cp "$input_json" "$out_file"
+            fi
+          }
 
+          # Helper: POST wire bytes; poll the sink until data arrives; read it.
+          send_and_capture() {
+            local endpoint="$1" wire_file="$2" out_file="$3"
+            curl -s -X POST "http://localhost:$RECEIVER_PORT$endpoint" \
+              -H "Content-Type: $PAYLOAD_CT" --data-binary @"$wire_file" > /dev/null 2>&1
             for i in $(seq 1 20); do
-              if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
-                break
-              fi
+              curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null && break
               sleep 0.1
             done
             sleep 0.1
-            curl -s "http://localhost:$SINK_PORT/output" > "$tc/output_{{.IMPL_NAME}}.json" 2>/dev/null
+            curl -s "http://localhost:$SINK_PORT/output" > "$out_file" 2>/dev/null
+          }
 
+          out_ok=true
+          if ! $IS_COMPOUND; then
+            # ── Simple mode: single input/output ──
+            to_wire "${ENDPOINT#/v1/}" "$tc/input.json" "$PAYLOAD_FILE"
+            send_and_capture "$ENDPOINT" "$PAYLOAD_FILE" "$tc/output_{{.IMPL_NAME}}.json"
             if ! diff <(jq -S "$normalize" "$tc/expected.json") \
                       <(jq -S "$normalize" "$tc/output_{{.IMPL_NAME}}.json") > /dev/null 2>&1; then
               out_ok=false
@@ -907,28 +976,16 @@ tasks:
               expected_file="$tc/expected_${n}.json"
               output_file="$tc/output_${n}_{{.IMPL_NAME}}.json"
 
-              # Reset sink before each batch
               curl -s "http://localhost:$SINK_PORT/reset" > /dev/null 2>&1
 
-              # Detect signal and endpoint for this batch
               batch_signal=$(jq -r "$detect_signal" "$input_file")
               BATCH_ENDPOINT=$(signal_to_endpoint "$batch_signal")
               if [ -z "$BATCH_ENDPOINT" ]; then
                 echo "  SKIP  $name/input_${n}.json (unknown signal)"; continue
               fi
 
-              curl -s -X POST "http://localhost:$RECEIVER_PORT$BATCH_ENDPOINT" \
-                -H "Content-Type: application/json" \
-                -d @"$input_file" > /dev/null 2>&1
-
-              for i in $(seq 1 20); do
-                if curl -sf -o /dev/null "http://localhost:$SINK_PORT/has-data" 2>/dev/null; then
-                  break
-                fi
-                sleep 0.1
-              done
-              sleep 0.1
-              curl -s "http://localhost:$SINK_PORT/output" > "$output_file" 2>/dev/null
+              to_wire "${BATCH_ENDPOINT#/v1/}" "$input_file" "$PAYLOAD_FILE"
+              send_and_capture "$BATCH_ENDPOINT" "$PAYLOAD_FILE" "$output_file"
 
               if [ -f "$expected_file" ]; then
                 if ! diff <(jq -S "$normalize" "$expected_file") \
@@ -938,6 +995,7 @@ tasks:
               fi
             done
           fi
+          rm -f "$PAYLOAD_FILE"
 
           # ── Shutdown ──
           kill_servers
