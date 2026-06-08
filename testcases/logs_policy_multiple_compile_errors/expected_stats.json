@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-two-regexes",
+      "hits": 0,
+      "errors": [
+        "log: match[0]: invalid regex \"([bad-one\"",
+        "log: match[1]: invalid regex \"([bad-two\""
+      ]
+    },
+    {
+      "policy_id": "drop-debug",
+      "hits": 1
+    }
+  ]
+}

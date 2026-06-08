@@ -1,0 +1,26 @@
+{
+  "policies": [
+    {
+      "id": "bad-metric-regex",
+      "name": "Broken metric regex policy",
+      "enabled": true,
+      "metric": {
+        "match": [
+          { "metricField": "METRIC_FIELD_NAME", "regex": "([bad" }
+        ],
+        "keep": false
+      }
+    },
+    {
+      "id": "drop-system-load",
+      "name": "Drop system.load metrics",
+      "enabled": true,
+      "metric": {
+        "match": [
+          { "metricField": "METRIC_FIELD_NAME", "regex": "^system\\.load.*$" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "policies": [
+    {
+      "id": "bad-trace-regex",
+      "name": "Broken trace regex policy",
+      "enabled": true,
+      "trace": {
+        "match": [
+          { "traceField": "TRACE_FIELD_NAME", "regex": "([bad" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    },
+    {
+      "id": "drop-health",
+      "name": "Drop health spans",
+      "enabled": true,
+      "trace": {
+        "match": [
+          { "traceField": "TRACE_FIELD_NAME", "contains": "health" }
+        ],
+        "keep": { "percentage": 0.0 }
+      }
+    }
+  ]
+}

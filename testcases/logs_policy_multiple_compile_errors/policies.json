@@ -1,0 +1,27 @@
+{
+  "policies": [
+    {
+      "id": "bad-two-regexes",
+      "name": "Broken policy with two regex errors",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logField": "LOG_FIELD_BODY", "regex": "([bad-one" },
+          { "logField": "LOG_FIELD_SEVERITY_TEXT", "regex": "([bad-two" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop debug logs",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logField": "LOG_FIELD_SEVERITY_TEXT", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

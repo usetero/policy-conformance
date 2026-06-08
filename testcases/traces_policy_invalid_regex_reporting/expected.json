@@ -1,0 +1,19 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "kind": "SPAN_KIND_SERVER",
+              "name": "GET /api/users",
+              "spanId": "0202020202020202",
+              "status": { "code": "STATUS_CODE_OK" },
+              "traceId": "01010101010101010101010101010101"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

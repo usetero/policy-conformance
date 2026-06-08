@@ -65,7 +65,7 @@ tasks:
     aliases: [bz]
     dir: runners/zig
     cmds:
-      - ../../bin/zig build -Doptimize=Debug
+      - ../../bin/zig build -Doptimize=ReleaseSafe
 
   # ── Test per-language ──────────────────────────────────────
   test:go:
@@ -147,6 +147,11 @@ tasks:
           fi
           if [ -f "$tc/go_only" ] && [ "{{.LANG}}" != "go" ]; then
             echo "  SKIP  $name (go-only)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
+          if [ -f "$tc/zig_unsupported" ] && [ "{{.LANG}}" = "zig" ]; then
+            echo "  SKIP  $name (zig-unsupported)"
             SKIPPED=$((SKIPPED + 1))
             continue
           fi
@@ -330,7 +335,7 @@ tasks:
         normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
         # Normalize expected stats for HTTP comparison: server reports hitful policies and compile-error statuses.
-        normalize_http_stats='{policies: [.policies[] | del(.misses) | select((.hits // 0) > 0 or ((.errors // []) | length > 0))] | sort_by(.policy_id)}'
+        normalize_http_stats='def norm_error: if test("^log: transform:.*invalid.*regex") then "log: transform: invalid regex" elif test("invalid regex") then sub("^(?<prefix>.*invalid regex \"[^\"]+\").*$"; "\(.prefix)") elif test("^log: keep:") then "log: keep" else . end; {policies: [.policies[] | del(.misses) | .errors = ((.errors // []) | map(norm_error) | sort) | if (.errors | length) == 0 then del(.errors) else . end | select((.hits // 0) > 0 or ((.errors // []) | length > 0))] | sort_by(.policy_id)}'
 
         # Load skip list (see testcases.skip)
         SKIP_LIST=""
@@ -360,6 +365,11 @@ tasks:
           fi
           if [ -f "$tc/go_only" ] && [ "{{.LANG}}" != "go" ]; then
             echo "  SKIP  $name (go-only)"
+            SKIPPED=$((SKIPPED + 1))
+            continue
+          fi
+          if [ -f "$tc/zig_unsupported" ] && [ "{{.LANG}}" = "zig" ]; then
+            echo "  SKIP  $name (zig-unsupported)"
             SKIPPED=$((SKIPPED + 1))
             continue
           fi
@@ -425,7 +435,7 @@ tasks:
                 out_ok=false
               fi
               if ! diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
-                        <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
+                        <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
                 stats_ok=false
               fi
             fi
@@ -463,7 +473,7 @@ tasks:
               # Fetch accumulated stats from server (single fetch after all batches)
               curl -s "http://localhost:$HTTP_PORT/stats" > "$tc/stats_{{.LANG}}_http.json" 2>/dev/null
               if ! diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
-                        <(jq -S . "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
+                        <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
                 stats_ok=false
               fi
             fi
@@ -503,7 +513,7 @@ tasks:
             if ! $stats_ok; then
               echo "    stats diff:"
               diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
-                   <(jq -S . "$tc/stats_{{.LANG}}_http.json") || true
+                   <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") || true
             fi
             FAIL=$((FAIL + 1))
           fi

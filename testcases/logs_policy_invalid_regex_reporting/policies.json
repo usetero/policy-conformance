@@ -1,0 +1,26 @@
+{
+  "policies": [
+    {
+      "id": "bad-log-regex",
+      "name": "Broken log regex policy",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logField": "LOG_FIELD_BODY", "regex": "([bad" }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop debug logs",
+      "enabled": true,
+      "log": {
+        "match": [
+          { "logField": "LOG_FIELD_SEVERITY_TEXT", "exact": "DEBUG" }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-trace-regex",
+      "hits": 0,
+      "errors": [
+        "trace: match[0]: invalid regex \"([bad\""
+      ]
+    },
+    {
+      "policy_id": "drop-health",
+      "hits": 1
+    }
+  ]
+}

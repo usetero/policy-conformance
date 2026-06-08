@@ -1,0 +1,26 @@
+{
+  "resourceLogs": [
+    {
+      "resource": { "attributes": [], "droppedAttributesCount": 0, "entityRefs": [] },
+      "scopeLogs": [
+        {
+          "scope": { "name": "", "version": "", "attributes": [], "droppedAttributesCount": 0 },
+          "logRecords": [
+            {
+              "severityText": "DEBUG",
+              "body": { "stringValue": "debug should be dropped" },
+              "attributes": []
+            },
+            {
+              "severityText": "INFO",
+              "body": { "stringValue": "info should survive bad policy" },
+              "attributes": []
+            }
+          ],
+          "schemaUrl": ""
+        }
+      ],
+      "schemaUrl": ""
+    }
+  ]
+}
