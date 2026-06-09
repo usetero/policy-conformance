@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-keep-value",
+      "hits": 0,
+      "errors": [
+        "log: keep: invalid value \"bogus\""
+      ]
+    },
+    {
+      "policy_id": "drop-debug",
+      "hits": 1
+    }
+  ]
+}
