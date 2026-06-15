@@ -86,9 +86,16 @@ async fn process_logs(
     });
 
     for rl in &mut data.resource_logs {
+        if let Some(r) = rl.resource.as_mut() {
+            otel::prepare_attributes(&mut r.attributes);
+        }
         for sl in &mut rl.scope_logs {
+            if let Some(s) = sl.scope.as_mut() {
+                otel::prepare_attributes(&mut s.attributes);
+            }
             let mut kept = Vec::new();
             for rec in sl.log_records.iter_mut() {
+                rec.prepare();
                 let mut ctx = eval::MutLogContext {
                     record: rec,
                     resource: rl.resource.as_mut(),
@@ -98,7 +105,6 @@ async fn process_logs(
                 };
                 let result = engine
                     .evaluate_and_transform(snapshot, &mut ctx)
-                    .await
                     .unwrap_or_else(|e| {
                         eprintln!("evaluation error: {e}");
                         process::exit(1);
@@ -152,7 +158,7 @@ async fn process_metrics(
                     resource_schema_url: &rm.schema_url,
                     scope_schema_url: &sm.schema_url,
                 };
-                let result = engine.evaluate(snapshot, &ctx).await.unwrap_or_else(|e| {
+                let result = engine.evaluate(snapshot, &ctx).unwrap_or_else(|e| {
                     eprintln!("evaluation error: {e}");
                     process::exit(1);
                 });
@@ -184,9 +190,16 @@ async fn process_traces(
     });
 
     for rs in &mut data.resource_spans {
+        if let Some(r) = rs.resource.as_mut() {
+            otel::prepare_attributes(&mut r.attributes);
+        }
         for ss in &mut rs.scope_spans {
+            if let Some(s) = ss.scope.as_mut() {
+                otel::prepare_attributes(&mut s.attributes);
+            }
             let mut kept = Vec::new();
             for span in &mut ss.spans {
+                span.prepare();
                 let mut ctx = eval::MutTraceContext {
                     span,
                     resource: rs.resource.as_ref(),
@@ -196,7 +209,6 @@ async fn process_traces(
                 };
                 let result = engine
                     .evaluate_trace(snapshot, &mut ctx)
-                    .await
                     .unwrap_or_else(|e| {
                         eprintln!("evaluation error: {e}");
                         process::exit(1);

@@ -54,6 +54,11 @@ pub struct AnyValue {
     pub kvlist_value: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bytes_value: Option<String>,
+    /// Raw bytes decoded from `bytes_value` (base64) by [`prepare_attributes`].
+    /// Held here so the `get_typed_value` accessor can hand the engine a
+    /// borrowed `&[u8]` for `equals`/hex byte comparisons.
+    #[serde(skip)]
+    pub bytes_decoded: Option<Vec<u8>>,
 }
 
 // ─── Logs ────────────────────────────────────────────────────────────
@@ -94,6 +99,12 @@ pub struct LogRecord {
     pub trace_id: String,
     pub span_id: String,
     pub event_name: String,
+    /// trace_id/span_id decoded from hex by [`prepare_attributes`], so byte
+    /// matchers on the identifier fields compare raw bytes.
+    #[serde(skip)]
+    pub trace_id_bytes: Option<Vec<u8>>,
+    #[serde(skip)]
+    pub span_id_bytes: Option<Vec<u8>>,
 }
 
 // ─── Metrics ─────────────────────────────────────────────────────────
@@ -319,6 +330,14 @@ pub struct Span {
     pub links: Vec<serde_json::Value>,
     pub dropped_links_count: u32,
     pub status: Option<Status>,
+    /// trace_id/span_id/parent_span_id decoded from hex by
+    /// [`prepare_attributes`], for byte matchers on the identifier fields.
+    #[serde(skip)]
+    pub trace_id_bytes: Option<Vec<u8>>,
+    #[serde(skip)]
+    pub span_id_bytes: Option<Vec<u8>>,
+    #[serde(skip)]
+    pub parent_span_id_bytes: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -326,4 +345,66 @@ pub struct Span {
 pub struct Status {
     pub message: String,
     pub code: String,
+}
+
+// ─── Byte decoding for typed/hex matchers ────────────────────────────
+//
+// trace/span identifier fields arrive as lowercase-hex strings and byte-valued
+// attributes as base64. The typed `equals`/hex matchers compare raw bytes, so
+// we decode each once up front (mirroring how a real consumer would store the
+// decoded id) and stash the bytes on the record. The `get_typed_value` accessor
+// then hands the engine a borrowed `&[u8]`.
+
+use base64::Engine as _;
+
+fn decode_hex(s: &str) -> Option<Vec<u8>> {
+    if s.is_empty() || s.len() % 2 != 0 {
+        return None;
+    }
+    let mut out = Vec::with_capacity(s.len() / 2);
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        let hi = (bytes[i] as char).to_digit(16)?;
+        let lo = (bytes[i + 1] as char).to_digit(16)?;
+        out.push(((hi << 4) | lo) as u8);
+        i += 2;
+    }
+    Some(out)
+}
+
+fn decode_base64(s: &str) -> Option<Vec<u8>> {
+    base64::engine::general_purpose::STANDARD.decode(s).ok()
+}
+
+/// Decode any base64 `bytes_value` on these attributes into raw bytes so the
+/// typed accessor can borrow them. Nested kvlist values are left untouched —
+/// typed matching only targets flat attribute paths.
+pub fn prepare_attributes(attrs: &mut [KeyValue]) {
+    for kv in attrs {
+        if let Some(v) = kv.value.as_mut() {
+            if let Some(b64) = &v.bytes_value {
+                v.bytes_decoded = decode_base64(b64);
+            }
+        }
+    }
+}
+
+impl LogRecord {
+    /// Decode identifier hex and attribute bytes for typed matching.
+    pub fn prepare(&mut self) {
+        self.trace_id_bytes = decode_hex(&self.trace_id);
+        self.span_id_bytes = decode_hex(&self.span_id);
+        prepare_attributes(&mut self.attributes);
+    }
+}
+
+impl Span {
+    /// Decode identifier hex and attribute bytes for typed matching.
+    pub fn prepare(&mut self) {
+        self.trace_id_bytes = decode_hex(&self.trace_id);
+        self.span_id_bytes = decode_hex(&self.span_id);
+        self.parent_span_id_bytes = decode_hex(&self.parent_span_id);
+        prepare_attributes(&mut self.attributes);
+    }
 }

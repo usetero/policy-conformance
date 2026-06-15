@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-transform-regex",
+      "hits": 0,
+      "errors": [
+        "log: transform: redact[0]: invalid regex \"([bad\""
+      ]
+    },
+    {
+      "policy_id": "drop-debug",
+      "hits": 1
+    }
+  ]
+}

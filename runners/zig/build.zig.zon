@@ -3,12 +3,15 @@
     .version = "0.2.0",
     .dependencies = .{
         .policy_zig = .{
-            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.3.1.tar.gz",
-            .hash = "policy_zig-0.1.7-5_dp3ps4EACY3nicmFNzL2EUIbKEM5q3fROlZirr1id8",
+            // Local working copy — uncomment (and remove url/hash below) to
+            // develop against an unreleased ../../../policy-zig:
+            // .path = "../../../policy-zig",
+            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.4.0.tar.gz",
+            .hash = "policy_zig-0.1.7-5_dp3mBWEQCMgFeFVWrd57P_E0joBbvmzQR9ivHHSNVg",
         },
     },
     .fingerprint = 0xc320c559d1fd6c72,
-    .minimum_zig_version = "0.15.1",
+    .minimum_zig_version = "0.16.0",
     .paths = .{
         "build.zig",
         "build.zig.zon",

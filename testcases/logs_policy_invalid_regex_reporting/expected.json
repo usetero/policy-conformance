@@ -1,0 +1,16 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": { "stringValue": "error should survive bad regex policy" },
+              "severityText": "ERROR"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

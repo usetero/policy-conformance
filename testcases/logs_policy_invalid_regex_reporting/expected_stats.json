@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-log-regex",
+      "hits": 0,
+      "errors": [
+        "log: match[0]: invalid regex \"([bad\""
+      ]
+    },
+    {
+      "policy_id": "drop-debug",
+      "hits": 1
+    }
+  ]
+}

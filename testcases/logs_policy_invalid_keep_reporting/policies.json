@@ -1,0 +1,32 @@
+{
+  "policies": [
+    {
+      "id": "bad-keep-value",
+      "name": "Broken keep value policy",
+      "enabled": true,
+      "log": {
+        "match": [
+          {
+            "logField": "LOG_FIELD_BODY",
+            "contains": "error"
+          }
+        ],
+        "keep": "bogus"
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop debug logs",
+      "enabled": true,
+      "log": {
+        "match": [
+          {
+            "logField": "LOG_FIELD_SEVERITY_TEXT",
+            "exact": "DEBUG"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

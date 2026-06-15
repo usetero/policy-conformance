@@ -1,0 +1,107 @@
+# Policy-aware Vector build used by the conformance harness.
+# OTLP receiver -> per-signal `policy` transform (mode: otel) -> OpenTelemetry sink.
+# Each signal has its own policy transform because the source emits one output
+# per signal and each sink targets a signal-specific OTLP endpoint; the policy
+# engine only applies the matchers compiled for that signal.
+data_dir: ${VECTOR_DATA_DIR}
+
+sources:
+  source0:
+    type: opentelemetry
+    grpc:
+      address: 127.0.0.1:0
+    http:
+      address: 0.0.0.0:${RECEIVER_PORT}
+    use_otlp_decoding: true
+
+transforms:
+  policy_logs:
+    type: policy
+    inputs:
+      - source0.logs
+    mode: otel
+    policy_providers:
+      - type: file
+        id: local
+        path: ${POLICIES_PATH}
+
+  policy_metrics:
+    type: policy
+    inputs:
+      - source0.metrics
+    mode: otel
+    policy_providers:
+      - type: file
+        id: local
+        path: ${POLICIES_PATH}
+
+  policy_traces:
+    type: policy
+    inputs:
+      - source0.traces
+    mode: otel
+    policy_providers:
+      - type: file
+        id: local
+        path: ${POLICIES_PATH}
+
+sinks:
+  otel_logs_sink:
+    type: opentelemetry
+    inputs:
+      - policy_logs
+    protocol:
+      type: http
+      uri: http://localhost:${SINK_PORT}/v1/logs
+      method: post
+      encoding:
+        codec: json
+      framing:
+        method: newline_delimited
+      batch:
+        max_events: 1
+      request:
+        headers:
+          content-type: application/json
+    healthcheck:
+      enabled: false
+
+  otel_metrics_sink:
+    type: opentelemetry
+    inputs:
+      - policy_metrics
+    protocol:
+      type: http
+      uri: http://localhost:${SINK_PORT}/v1/metrics
+      method: post
+      encoding:
+        codec: json
+      framing:
+        method: newline_delimited
+      batch:
+        max_events: 1
+      request:
+        headers:
+          content-type: application/json
+    healthcheck:
+      enabled: false
+
+  otel_traces_sink:
+    type: opentelemetry
+    inputs:
+      - policy_traces
+    protocol:
+      type: http
+      uri: http://localhost:${SINK_PORT}/v1/traces
+      method: post
+      encoding:
+        codec: json
+      framing:
+        method: newline_delimited
+      batch:
+        max_events: 1
+      request:
+        headers:
+          content-type: application/json
+    healthcheck:
+      enabled: false

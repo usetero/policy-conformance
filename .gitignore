@@ -9,9 +9,12 @@ server/conformance-server
 
 # Implementation binaries and build artifacts
 implementations/sink/sink-server
+implementations/otlpjson2proto/otlpjson2proto
 implementations/tero-collector-distro/tero-collector
 implementations/edge/edge
 implementations/edge/edge-*
+implementations/vector/vector
+implementations/vector/vector-*
 
 # Test outputs
 testcases/*/output_*.json
@@ -23,3 +26,4 @@ bench-results/
 
 # OS
 .DS_Store
+zig-pkg/

@@ -1,0 +1,15 @@
+{
+  "policies": [
+    {
+      "policy_id": "bad-metric-regex",
+      "hits": 0,
+      "errors": [
+        "metric: match[0]: invalid regex \"([bad\""
+      ]
+    },
+    {
+      "policy_id": "drop-system-load",
+      "hits": 1
+    }
+  ]
+}

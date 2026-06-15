@@ -15,8 +15,8 @@ import (
 // ─── Accumulated OTLP data ──────────────────────────────────────────
 
 type sink struct {
-	mu   sync.Mutex
-	logs []json.RawMessage // resourceLogs entries
+	mu      sync.Mutex
+	logs    []json.RawMessage // resourceLogs entries
 	metrics []json.RawMessage // resourceMetrics entries
 	traces  []json.RawMessage // resourceSpans entries
 }

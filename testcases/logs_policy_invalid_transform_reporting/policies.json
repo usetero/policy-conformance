@@ -1,0 +1,41 @@
+{
+  "policies": [
+    {
+      "id": "bad-transform-regex",
+      "name": "Broken transform regex policy",
+      "enabled": true,
+      "log": {
+        "match": [
+          {
+            "logField": "LOG_FIELD_BODY",
+            "contains": "error"
+          }
+        ],
+        "keep": "all",
+        "transform": {
+          "redact": [
+            {
+              "logAttribute": { "path": ["cvv"] },
+              "regex": "([bad",
+              "replacement": "[REDACTED]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drop-debug",
+      "name": "Drop debug logs",
+      "enabled": true,
+      "log": {
+        "match": [
+          {
+            "logField": "LOG_FIELD_SEVERITY_TEXT",
+            "exact": "DEBUG"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use policy_rs::engine::TypedValue;
 use policy_rs::proto::tero::policy::v1::{LogField, MetricField, TraceField};
 use policy_rs::{
     LogFieldSelector, LogSignal, Matchable, MetricFieldSelector, MetricSignal, TraceFieldSelector,
@@ -113,6 +114,55 @@ fn find_attribute_path_owned(attrs: &[otel::KeyValue], path: &[String]) -> Optio
             }
         }
         return None;
+    }
+    None
+}
+
+/// Resolve an attribute path to its raw AnyValue, preserving the value's
+/// native type for typed (equals/gt/gte/lt/lte) matching. Only flat paths are
+/// supported — nested kvlist values are stored as raw JSON and aren't borrowed.
+fn find_attribute_value<'a>(
+    attrs: &'a [otel::KeyValue],
+    path: &[String],
+) -> Option<&'a otel::AnyValue> {
+    if path.is_empty() {
+        return None;
+    }
+    for kv in attrs {
+        if kv.key != path[0] {
+            continue;
+        }
+        if path.len() == 1 {
+            return kv.value.as_ref();
+        }
+        return None;
+    }
+    None
+}
+
+/// Map an OTLP AnyValue to the engine's TypedValue so non-string matchers see
+/// the value's real type. Map/slice/empty values report as absent (None),
+/// which the engine treats as a non-match (fail-open).
+fn any_value_typed(v: &otel::AnyValue) -> Option<TypedValue<'_>> {
+    if let Some(s) = &v.string_value {
+        return Some(TypedValue::String(Cow::Borrowed(s)));
+    }
+    if let Some(b) = v.bool_value {
+        return Some(TypedValue::Bool(b));
+    }
+    if let Some(iv) = &v.int_value {
+        let i = match iv {
+            serde_json::Value::Number(n) => n.as_i64(),
+            serde_json::Value::String(s) => s.parse::<i64>().ok(),
+            _ => None,
+        }?;
+        return Some(TypedValue::Int(i));
+    }
+    if let Some(d) = v.double_value {
+        return Some(TypedValue::Double(d));
+    }
+    if let Some(b) = &v.bytes_decoded {
+        return Some(TypedValue::Bytes(b));
     }
     None
 }
@@ -250,6 +300,56 @@ impl Matchable for MutLogContext<'_> {
                     .unwrap_or(&[]),
                 path,
             ),
+        }
+    }
+
+    fn get_typed_value(&self, field: &LogFieldSelector) -> Option<TypedValue<'_>> {
+        match field {
+            LogFieldSelector::Simple(f) => match f {
+                LogField::Body => self.record.body.as_ref().and_then(any_value_typed),
+                LogField::TraceId => self
+                    .record
+                    .trace_id_bytes
+                    .as_deref()
+                    .map(TypedValue::Bytes)
+                    .or_else(|| non_empty(&self.record.trace_id).map(TypedValue::String)),
+                LogField::SpanId => self
+                    .record
+                    .span_id_bytes
+                    .as_deref()
+                    .map(TypedValue::Bytes)
+                    .or_else(|| non_empty(&self.record.span_id).map(TypedValue::String)),
+                LogField::SeverityText => {
+                    non_empty(&self.record.severity_text).map(TypedValue::String)
+                }
+                LogField::EventName => non_empty(&self.record.event_name).map(TypedValue::String),
+                LogField::ResourceSchemaUrl => {
+                    non_empty(self.resource_schema_url).map(TypedValue::String)
+                }
+                LogField::ScopeSchemaUrl => {
+                    non_empty(self.scope_schema_url).map(TypedValue::String)
+                }
+                _ => None,
+            },
+            LogFieldSelector::LogAttribute(path) => {
+                find_attribute_value(&self.record.attributes, path).and_then(any_value_typed)
+            }
+            LogFieldSelector::ResourceAttribute(path) => find_attribute_value(
+                self.resource
+                    .as_ref()
+                    .map(|r| r.attributes.as_slice())
+                    .unwrap_or(&[]),
+                path,
+            )
+            .and_then(any_value_typed),
+            LogFieldSelector::ScopeAttribute(path) => find_attribute_value(
+                self.scope
+                    .as_ref()
+                    .map(|s| s.attributes.as_slice())
+                    .unwrap_or(&[]),
+                path,
+            )
+            .and_then(any_value_typed),
         }
     }
 }
@@ -474,6 +574,22 @@ impl Matchable for MetricContext<'_> {
             _ => self.get_field(field).is_some(),
         }
     }
+
+    fn get_typed_value(&self, field: &MetricFieldSelector) -> Option<TypedValue<'_>> {
+        match field {
+            MetricFieldSelector::DatapointAttribute(path) => {
+                find_attribute_value(self.datapoint_attributes, path).and_then(any_value_typed)
+            }
+            MetricFieldSelector::ResourceAttribute(path) => {
+                find_attribute_value(resource_attrs(self.resource), path).and_then(any_value_typed)
+            }
+            MetricFieldSelector::ScopeAttribute(path) => {
+                find_attribute_value(scope_attrs(self.scope), path).and_then(any_value_typed)
+            }
+            // Name/description/unit/type/temporality/scope are string-valued.
+            _ => self.get_field(field).map(TypedValue::String),
+        }
+    }
 }
 
 // ─── Trace Matchable ─────────────────────────────────────────────────
@@ -572,6 +688,42 @@ impl Matchable for MutTraceContext<'_> {
             }
             // Other trace fields are string-valued; the default is correct.
             _ => self.get_field(field).is_some(),
+        }
+    }
+
+    fn get_typed_value(&self, field: &TraceFieldSelector) -> Option<TypedValue<'_>> {
+        match field {
+            TraceFieldSelector::Simple(f) => match f {
+                TraceField::TraceId => self
+                    .span
+                    .trace_id_bytes
+                    .as_deref()
+                    .map(TypedValue::Bytes)
+                    .or_else(|| non_empty(&self.span.trace_id).map(TypedValue::String)),
+                TraceField::SpanId => self
+                    .span
+                    .span_id_bytes
+                    .as_deref()
+                    .map(TypedValue::Bytes)
+                    .or_else(|| non_empty(&self.span.span_id).map(TypedValue::String)),
+                TraceField::ParentSpanId => self
+                    .span
+                    .parent_span_id_bytes
+                    .as_deref()
+                    .map(TypedValue::Bytes)
+                    .or_else(|| non_empty(&self.span.parent_span_id).map(TypedValue::String)),
+                _ => self.get_field(field).map(TypedValue::String),
+            },
+            TraceFieldSelector::SpanAttribute(path) => {
+                find_attribute_value(&self.span.attributes, path).and_then(any_value_typed)
+            }
+            TraceFieldSelector::ResourceAttribute(path) => {
+                find_attribute_value(resource_attrs(self.resource), path).and_then(any_value_typed)
+            }
+            TraceFieldSelector::ScopeAttribute(path) => {
+                find_attribute_value(scope_attrs(self.scope), path).and_then(any_value_typed)
+            }
+            _ => self.get_field(field).map(TypedValue::String),
         }
     }
 }

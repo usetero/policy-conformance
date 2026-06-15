@@ -1,0 +1,25 @@
+{
+  "resourceMetrics": [
+    {
+      "scopeMetrics": [
+        {
+          "metrics": [
+            {
+              "description": "Total HTTP requests",
+              "name": "http.requests",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "asDouble": 0
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
+              },
+              "unit": "1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

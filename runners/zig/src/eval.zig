@@ -92,6 +92,61 @@ fn anyValueString(val: ?AnyValue) ?[]const u8 {
     };
 }
 
+// ─── Typed value helpers (equals/gt/gte/lt/lte) ──────────────────────
+// The engine prefers `accessor.typed_value` for the typed matchers so that
+// non-string values (bool/int/double/bytes) match by type. Identifier fields
+// (trace_id/span_id) are already raw bytes here because the runner decodes
+// them via `bytes_as_hex`, so they map straight to TypedValue.bytes.
+
+const TypedValue = policy.TypedValue;
+
+fn typedStr(s: []const u8) ?TypedValue {
+    return if (s.len == 0) null else TypedValue{ .string = s };
+}
+
+fn typedBytes(b: []const u8) ?TypedValue {
+    return if (b.len == 0) null else TypedValue{ .bytes = b };
+}
+
+/// Identifier fields (trace_id/span_id) are held as lowercase-hex strings, so
+/// decode them to raw bytes for the typed `equals`/hex byte comparison. The
+/// decoded bytes are allocated in the per-request arena. Returns null (a
+/// non-match) for empty or non-hex values.
+fn typedHexBytes(allocator: std.mem.Allocator, hex_str: []const u8) ?TypedValue {
+    if (hex_str.len == 0 or hex_str.len % 2 != 0) return null;
+    const out = allocator.alloc(u8, hex_str.len / 2) catch return null;
+    _ = std.fmt.hexToBytes(out, hex_str) catch return null;
+    return TypedValue{ .bytes = out };
+}
+
+fn anyValueTyped(val: ?AnyValue) ?TypedValue {
+    const v = val orelse return null;
+    const inner = v.value orelse return null;
+    return switch (inner) {
+        .string_value => |s| TypedValue{ .string = s },
+        .bool_value => |b| TypedValue{ .bool = b },
+        .int_value => |i| TypedValue{ .int = i },
+        .double_value => |d| TypedValue{ .double = d },
+        .bytes_value => |b| TypedValue{ .bytes = b },
+        else => null, // array/kvlist/strindex → absent (non-match, fail-open)
+    };
+}
+
+fn findAttributePathTyped(attrs: []const KeyValue, path: []const []const u8) ?TypedValue {
+    if (path.len == 0) return null;
+    for (attrs) |kv| {
+        if (!std.mem.eql(u8, kv.key, path[0])) continue;
+        if (path.len == 1) return anyValueTyped(kv.value);
+        const av = kv.value orelse return null;
+        const inner = av.value orelse return null;
+        switch (inner) {
+            .kvlist_value => |kvlist| return findAttributePathTyped(kvlist.values.items, path[1..]),
+            else => return null,
+        }
+    }
+    return null;
+}
+
 fn resourceAttrs(resource: ?*const Resource) []const KeyValue {
     const r = resource orelse return &.{};
     return r.attributes.items;
@@ -265,17 +320,20 @@ pub fn traceSet(ctx: *anyopaque, field: TraceFieldRef, value: []const u8) void {
             if (tf == .TRACE_FIELD_TRACE_STATE) {
                 // The engine writes the raw threshold hex value; merge it into
                 // the W3C tracestate as ot=th:VALUE.
-                tc.span.trace_state = mergeOTTracestate(tc.allocator, tc.span.trace_state, value);
+                const merged = mergeOTTracestate(tc.allocator, tc.span.trace_state, value) catch return;
+                tc.span.trace_state = merged;
             }
         },
         else => {},
     }
 }
 
-fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_value: []const u8) []const u8 {
+fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_value: []const u8) std.mem.Allocator.Error![]const u8 {
     // Build "ot=th:VALUE" or merge into existing tracestate
     var ot_parts: std.ArrayListUnmanaged(u8) = .empty;
+    defer ot_parts.deinit(allocator);
     var other_vendors: std.ArrayListUnmanaged(u8) = .empty;
+    defer other_vendors.deinit(allocator);
 
     if (tracestate.len > 0) {
         var vendors = std.mem.splitScalar(u8, tracestate, ',');
@@ -290,28 +348,29 @@ fn mergeOTTracestate(allocator: std.mem.Allocator, tracestate: []const u8, th_va
                     if (part.len == 0) continue;
                     // Skip existing th: sub-key
                     if (std.mem.startsWith(u8, part, "th:")) continue;
-                    if (ot_parts.items.len > 0) ot_parts.appendSlice(allocator, ";") catch {};
-                    ot_parts.appendSlice(allocator, part) catch {};
+                    if (ot_parts.items.len > 0) try ot_parts.appendSlice(allocator, ";");
+                    try ot_parts.appendSlice(allocator, part);
                 }
             } else {
-                if (other_vendors.items.len > 0) other_vendors.appendSlice(allocator, ",") catch {};
-                other_vendors.appendSlice(allocator, vendor) catch {};
+                if (other_vendors.items.len > 0) try other_vendors.appendSlice(allocator, ",");
+                try other_vendors.appendSlice(allocator, vendor);
             }
         }
     }
 
     // Build result: ot=[existing_subkeys;]th:VALUE[,other_vendors]
     var result: std.ArrayListUnmanaged(u8) = .empty;
-    result.appendSlice(allocator, "ot=") catch {};
+    errdefer result.deinit(allocator);
+    try result.appendSlice(allocator, "ot=");
     if (ot_parts.items.len > 0) {
-        result.appendSlice(allocator, ot_parts.items) catch {};
-        result.appendSlice(allocator, ";") catch {};
+        try result.appendSlice(allocator, ot_parts.items);
+        try result.appendSlice(allocator, ";");
     }
-    result.appendSlice(allocator, "th:") catch {};
-    result.appendSlice(allocator, th_value) catch {};
+    try result.appendSlice(allocator, "th:");
+    try result.appendSlice(allocator, th_value);
     if (other_vendors.items.len > 0) {
-        result.appendSlice(allocator, ",") catch {};
-        result.appendSlice(allocator, other_vendors.items) catch {};
+        try result.appendSlice(allocator, ",");
+        try result.appendSlice(allocator, other_vendors.items);
     }
     return result.items;
 }
@@ -412,11 +471,62 @@ pub fn metricFieldExists(ctx: *const anyopaque, field: MetricFieldRef) bool {
     };
 }
 
+// ─── Typed value accessors ───────────────────────────────────────────
+
+pub fn logTypedValue(ctx: *const anyopaque, field: FieldRef) ?TypedValue {
+    const lc: *const LogContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .log_field => |lf| switch (lf) {
+            .LOG_FIELD_BODY => anyValueTyped(lc.record.body),
+            .LOG_FIELD_SEVERITY_TEXT => typedStr(lc.record.severity_text),
+            .LOG_FIELD_TRACE_ID => typedHexBytes(lc.allocator, lc.record.trace_id),
+            .LOG_FIELD_SPAN_ID => typedHexBytes(lc.allocator, lc.record.span_id),
+            .LOG_FIELD_EVENT_NAME => typedStr(lc.record.event_name),
+            .LOG_FIELD_RESOURCE_SCHEMA_URL => typedStr(lc.resource_schema_url),
+            .LOG_FIELD_SCOPE_SCHEMA_URL => typedStr(lc.scope_schema_url),
+            else => null,
+        },
+        .log_attribute => |attr| findAttributePathTyped(lc.record.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePathTyped(resourceAttrs(lc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathTyped(scopeAttrs(lc.scope), attr.path.items),
+    };
+}
+
+pub fn metricTypedValue(ctx: *const anyopaque, field: MetricFieldRef) ?TypedValue {
+    const mc: *const MetricContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .datapoint_attribute => |attr| findAttributePathTyped(mc.datapoint_attributes, attr.path.items),
+        .resource_attribute => |attr| findAttributePathTyped(resourceAttrs(mc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathTyped(scopeAttrs(mc.scope), attr.path.items),
+        // name/description/unit/type/temporality/scope are string-valued.
+        else => if (metricFieldAccessor(ctx, field)) |s| TypedValue{ .string = s } else null,
+    };
+}
+
+pub fn traceTypedValue(ctx: *const anyopaque, field: TraceFieldRef) ?TypedValue {
+    const tc: *const TraceContext = @ptrCast(@alignCast(ctx));
+    return switch (field) {
+        .trace_field => |tf| switch (tf) {
+            .TRACE_FIELD_TRACE_ID => typedHexBytes(tc.allocator, tc.span.trace_id),
+            .TRACE_FIELD_SPAN_ID => typedHexBytes(tc.allocator, tc.span.span_id),
+            .TRACE_FIELD_PARENT_SPAN_ID => typedHexBytes(tc.allocator, tc.span.parent_span_id),
+            .TRACE_FIELD_NAME => typedStr(tc.span.name),
+            .TRACE_FIELD_TRACE_STATE => typedStr(tc.span.trace_state),
+            else => if (traceFieldAccessor(ctx, field)) |s| TypedValue{ .string = s } else null,
+        },
+        .span_attribute => |attr| findAttributePathTyped(tc.span.attributes.items, attr.path.items),
+        .resource_attribute => |attr| findAttributePathTyped(resourceAttrs(tc.resource), attr.path.items),
+        .scope_attribute => |attr| findAttributePathTyped(scopeAttrs(tc.scope), attr.path.items),
+        else => if (traceFieldAccessor(ctx, field)) |s| TypedValue{ .string = s } else null,
+    };
+}
+
 // ─── Static accessor templates ───────────────────────────────────────
 
 pub const log_accessor: policy.LogAccessor = .{
     .value = logFieldAccessor,
     .exists = logFieldExists,
+    .typed_value = logTypedValue,
     .set = logSet,
     .delete = logDelete,
     .move = logMove,
@@ -425,11 +535,13 @@ pub const log_accessor: policy.LogAccessor = .{
 pub const metric_accessor: policy.MetricAccessor = .{
     .value = metricFieldAccessor,
     .exists = metricFieldExists,
+    .typed_value = metricTypedValue,
 };
 
 pub const trace_accessor: policy.TraceAccessor = .{
     .value = traceFieldAccessor,
     .exists = traceFieldExists,
+    .typed_value = traceTypedValue,
     .set = traceSet,
 };
 
@@ -536,10 +648,10 @@ fn mutMoveAttr(lc: *LogContext, from: FieldRef, to: []const u8) bool {
     const k = key orelse return false;
 
     const src_idx = findAttrIndex(attrs.items, k) orelse return false;
-    const src_val = attrs.items[src_idx].value;
-    _ = attrs.orderedRemove(src_idx);
+    var moved = attrs.orderedRemove(src_idx);
+    moved.key = to;
 
-    attrs.append(lc.allocator, .{ .key = to, .value = src_val }) catch return false;
+    attrs.append(lc.allocator, moved) catch return false;
     return true;
 }
 

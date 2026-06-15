@@ -3,11 +3,9 @@ module github.com/usetero/policy-conformance/runners/go
 go 1.25.0
 
 require (
-	github.com/usetero/policy-go v1.7.0
+	github.com/usetero/policy-go v1.8.1
 	go.opentelemetry.io/collector/pdata v1.52.0
 )
-
-// replace github.com/usetero/policy-go => ../../../policy-go
 
 require (
 	github.com/flier/gohs v1.2.3 // indirect

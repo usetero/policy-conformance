@@ -30,18 +30,22 @@ type policyStore struct {
 	hash     string
 
 	// Accumulated stats from client sync requests
-	stats map[string]int64 // policy_id -> match_hits
+	stats map[string]*policyStats // policy_id -> stats
+}
+
+type policyStats struct {
+	hits   int64
+	errors []string
 }
 
 func newPolicyStore() *policyStore {
 	return &policyStore{
-		stats: make(map[string]int64),
+		stats: make(map[string]*policyStats),
 	}
 }
 
 func (s *policyStore) loadFile(path string) error {
-	provider := policy.NewFileProvider(path)
-	policies, err := provider.Load()
+	policies, err := loadPolicies(path)
 	if err != nil {
 		return fmt.Errorf("load %s: %w", path, err)
 	}
@@ -61,19 +65,61 @@ func (s *policyStore) loadFile(path string) error {
 	return nil
 }
 
+func loadPolicies(path string) ([]*policyv1.Policy, error) {
+	provider := policy.NewFileProvider(path)
+	policies, err := provider.Load()
+	if err == nil {
+		return policies, nil
+	}
+
+	data, readErr := os.ReadFile(path)
+	if readErr != nil {
+		return nil, fmt.Errorf("read policy file: %w", readErr)
+	}
+
+	var resp policyv1.SyncResponse
+	if protoErr := protojson.Unmarshal(data, &resp); protoErr != nil {
+		return nil, fmt.Errorf("parse policy JSON: %v; parse proto JSON: %w", err, protoErr)
+	}
+	return resp.GetPolicies(), nil
+}
+
 func (s *policyStore) recordStats(statuses []*policyv1.PolicySyncStatus) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, st := range statuses {
+		if st.GetMatchHits() == 0 && len(st.GetErrors()) == 0 {
+			continue
+		}
+		stats := s.stats[st.GetId()]
+		if stats == nil {
+			stats = &policyStats{}
+			s.stats[st.GetId()] = stats
+		}
 		if st.GetMatchHits() > 0 {
-			s.stats[st.GetId()] += st.GetMatchHits()
+			stats.hits += st.GetMatchHits()
+		}
+		for _, msg := range st.GetErrors() {
+			if !containsString(stats.errors, msg) {
+				stats.errors = append(stats.errors, msg)
+			}
 		}
 	}
 }
 
+func containsString(items []string, target string) bool {
+	for _, item := range items {
+		if item == target {
+			return true
+		}
+	}
+	return false
+}
+
 type policyHit struct {
-	PolicyID string `json:"policy_id"`
-	Hits     int64  `json:"hits"`
+	PolicyID string   `json:"policy_id"`
+	Hits     int64    `json:"hits"`
+	Errors   []string `json:"errors,omitempty"`
 }
 
 type statsOutput struct {
@@ -85,8 +131,12 @@ func (s *policyStore) getStats() statsOutput {
 	defer s.mu.RUnlock()
 
 	var out statsOutput
-	for id, hits := range s.stats {
-		out.Policies = append(out.Policies, policyHit{PolicyID: id, Hits: hits})
+	for id, stats := range s.stats {
+		out.Policies = append(out.Policies, policyHit{
+			PolicyID: id,
+			Hits:     stats.hits,
+			Errors:   stats.errors,
+		})
 	}
 	if out.Policies == nil {
 		out.Policies = []policyHit{}
