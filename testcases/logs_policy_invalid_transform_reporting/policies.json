@@ -8,7 +8,7 @@
         "match": [
           {
             "logField": "LOG_FIELD_BODY",
-            "contains": "zzz-nomatch"
+            "contains": "error"
           }
         ],
         "keep": "all",
