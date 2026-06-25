@@ -8,7 +8,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/usetero/policy-go"
+	"github.com/usetero/policy-go/backend/teroscan"
+	"github.com/usetero/policy-go/policy"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -206,7 +207,7 @@ func main() {
 	}
 
 	// Load policies
-	registry := policy.NewPolicyRegistry()
+	registry := policy.NewPolicyRegistry(policy.WithRegexBackend(teroscan.New()))
 	var provider policy.PolicyProvider
 	switch {
 	case *serverURL != "":
