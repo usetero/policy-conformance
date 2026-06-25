@@ -440,7 +440,7 @@ fn run(allocator: std.mem.Allocator, io: std.Io, pol_path: ?[]const u8, server_u
         }
 
         try evaluate(allocator, io, &registry, bus, in_path, out_path, signal);
-        registry.flushStats();
+        // subscribe() wired the stats collector; fetchAndNotify pulls stats itself.
         try hp.fetchAndNotify();
     } else {
         return error.NoProvider;
