@@ -6,8 +6,8 @@
             // Local working copy — uncomment (and remove url/hash below) to
             // develop against an unreleased ../../../policy-zig:
             // .path = "../../../policy-zig",
-            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.4.0.tar.gz",
-            .hash = "policy_zig-0.1.7-5_dp3mBWEQCMgFeFVWrd57P_E0joBbvmzQR9ivHHSNVg",
+            .url = "https://github.com/usetero/policy-zig/archive/refs/tags/v0.4.4.tar.gz",
+            .hash = "policy_zig-0.1.7-5_dp3q0-EgDyYRR7_LInB9k-CjcBiI8nGewWKOXAVbvO",
         },
     },
     .fingerprint = 0xc320c559d1fd6c72,

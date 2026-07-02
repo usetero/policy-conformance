@@ -118,18 +118,19 @@ const json_opts: std.json.ParseOptions = .{
     .ignore_unknown_fields = true,
 };
 
-// protobuf 5.0.0 JSON encode options: standard proto3 mapping (oneof fields
-// emitted without a wrapper) and bytes rendered as lowercase hex — OTel/JSON
-// encodes traceId/spanId as hex. Decode honours the `tl_bytes_as_hex`
-// thread-local, set once in main()/tests before decoding.
-const pb_encode_opts: proto.protobuf.json.Options = .{
+// protobuf 5.0.0 JSON options: standard proto3 mapping (oneof fields emitted
+// without a wrapper) and OTLP identifier bytes rendered as lowercase hex.
+// hex_bytes_fields is per-field (matching OTLP/JSON, which hex-encodes only
+// identifiers) and threads through both jsonEncode and decodeOpts — no global
+// state, so it must be passed at every decode/encode call.
+const pb_opts: proto.protobuf.json.Options = .{
     .emit_oneof_field_name = false,
-    .bytes_as_hex = true,
+    .hex_bytes_fields = &.{ "trace_id", "span_id", "parent_span_id" },
 };
 
 fn processLogs(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, engine: PolicyEngine, input_data: []const u8) ![]const u8 {
     var decode_span = bus.started(.debug, JsonDecodeStarted{ .signal = "log" });
-    var parsed = try LogsData.jsonDecode(input_data, json_opts, allocator);
+    var parsed = try proto.protobuf.json.decodeOpts(LogsData, input_data, json_opts, pb_opts, allocator);
     defer parsed.deinit();
     var data = parsed.value;
     const data_allocator = parsed.arena.allocator();
@@ -200,14 +201,14 @@ fn processLogs(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, en
     }
 
     var encode_span = bus.started(.debug, JsonEncodeStarted{ .signal = "log" });
-    const output = try data.jsonEncode(.{}, pb_encode_opts, allocator);
+    const output = try data.jsonEncode(.{}, pb_opts, allocator);
     encode_span.completed(JsonEncodeCompleted{ .signal = "log", .bytes = output.len });
     return output;
 }
 
 fn processMetrics(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, engine: PolicyEngine, input_data: []const u8) ![]const u8 {
     var decode_span = bus.started(.debug, JsonDecodeStarted{ .signal = "metric" });
-    var parsed = try MetricsData.jsonDecode(input_data, json_opts, allocator);
+    var parsed = try proto.protobuf.json.decodeOpts(MetricsData, input_data, json_opts, pb_opts, allocator);
     defer parsed.deinit();
     var data = parsed.value;
     decode_span.completed(JsonDecodeCompleted{ .signal = "metric", .resources = data.resource_metrics.items.len });
@@ -271,14 +272,14 @@ fn processMetrics(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus,
     }
 
     var encode_span = bus.started(.debug, JsonEncodeStarted{ .signal = "metric" });
-    const output = try data.jsonEncode(.{}, pb_encode_opts, allocator);
+    const output = try data.jsonEncode(.{}, pb_opts, allocator);
     encode_span.completed(JsonEncodeCompleted{ .signal = "metric", .bytes = output.len });
     return output;
 }
 
 fn processTraces(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, engine: PolicyEngine, input_data: []const u8) ![]const u8 {
     var decode_span = bus.started(.debug, JsonDecodeStarted{ .signal = "trace" });
-    var parsed = try TracesData.jsonDecode(input_data, json_opts, allocator);
+    var parsed = try proto.protobuf.json.decodeOpts(TracesData, input_data, json_opts, pb_opts, allocator);
     defer parsed.deinit();
     var data = parsed.value;
     const data_allocator = parsed.arena.allocator();
@@ -346,7 +347,7 @@ fn processTraces(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, 
     }
 
     var encode_span = bus.started(.debug, JsonEncodeStarted{ .signal = "trace" });
-    const output = try data.jsonEncode(.{}, pb_encode_opts, allocator);
+    const output = try data.jsonEncode(.{}, pb_opts, allocator);
     encode_span.completed(JsonEncodeCompleted{ .signal = "trace", .bytes = output.len });
     return output;
 }
@@ -440,7 +441,7 @@ fn run(allocator: std.mem.Allocator, io: std.Io, pol_path: ?[]const u8, server_u
         }
 
         try evaluate(allocator, io, &registry, bus, in_path, out_path, signal);
-        registry.flushStats();
+        // subscribe() wired the stats collector; fetchAndNotify pulls stats itself.
         try hp.fetchAndNotify();
     } else {
         return error.NoProvider;
@@ -476,11 +477,6 @@ pub fn main(init: std.process.Init) !void {
     // Zig 0.16 "Juicy Main": the process-provided gpa (leak-checked in Debug)
     // for the run, and the process arena for argv (freed automatically on exit).
     const allocator = init.gpa;
-
-    // OTel/JSON encodes bytes fields (traceId, spanId, …) as lowercase hex.
-    // protobuf 5.0.0 reads this thread-local during decode; encode passes it via
-    // pb_encode_opts. Single-threaded runner, so set once for the whole run.
-    proto.protobuf.json.tl_bytes_as_hex = true;
 
     const args = try init.minimal.args.toSlice(init.arena.allocator());
 
@@ -560,8 +556,6 @@ pub fn main(init: std.process.Init) !void {
 // ─── Tests ───────────────────────────────────────────────────────────
 
 test "no memory leaks" {
-    proto.protobuf.json.tl_bytes_as_hex = true;
-
     const allocator = std.testing.allocator;
 
     var tmp_dir = std.testing.tmpDir(.{});
@@ -626,8 +620,6 @@ test "no memory leaks" {
 }
 
 test "log transform appends to non-empty scope attributes" {
-    proto.protobuf.json.tl_bytes_as_hex = true;
-
     const allocator = std.testing.allocator;
 
     var tmp_dir = std.testing.tmpDir(.{});
