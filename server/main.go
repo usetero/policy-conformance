@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/usetero/policy-go"
+	"github.com/usetero/policy-go/policy"
 	policyv1 "github.com/usetero/policy-go/proto/tero/policy/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
