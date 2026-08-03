@@ -108,17 +108,6 @@ fn typedBytes(b: []const u8) ?TypedValue {
     return if (b.len == 0) null else TypedValue{ .bytes = b };
 }
 
-/// Identifier fields (trace_id/span_id) are held as lowercase-hex strings, so
-/// decode them to raw bytes for the typed `equals`/hex byte comparison. The
-/// decoded bytes are allocated in the per-request arena. Returns null (a
-/// non-match) for empty or non-hex values.
-fn typedHexBytes(allocator: std.mem.Allocator, hex_str: []const u8) ?TypedValue {
-    if (hex_str.len == 0 or hex_str.len % 2 != 0) return null;
-    const out = allocator.alloc(u8, hex_str.len / 2) catch return null;
-    _ = std.fmt.hexToBytes(out, hex_str) catch return null;
-    return TypedValue{ .bytes = out };
-}
-
 fn anyValueTyped(val: ?AnyValue) ?TypedValue {
     const v = val orelse return null;
     const inner = v.value orelse return null;
@@ -479,8 +468,8 @@ pub fn logTypedValue(ctx: *const anyopaque, field: FieldRef) ?TypedValue {
         .log_field => |lf| switch (lf) {
             .LOG_FIELD_BODY => anyValueTyped(lc.record.body),
             .LOG_FIELD_SEVERITY_TEXT => typedStr(lc.record.severity_text),
-            .LOG_FIELD_TRACE_ID => typedHexBytes(lc.allocator, lc.record.trace_id),
-            .LOG_FIELD_SPAN_ID => typedHexBytes(lc.allocator, lc.record.span_id),
+            .LOG_FIELD_TRACE_ID => typedBytes(lc.record.trace_id),
+            .LOG_FIELD_SPAN_ID => typedBytes(lc.record.span_id),
             .LOG_FIELD_EVENT_NAME => typedStr(lc.record.event_name),
             .LOG_FIELD_RESOURCE_SCHEMA_URL => typedStr(lc.resource_schema_url),
             .LOG_FIELD_SCOPE_SCHEMA_URL => typedStr(lc.scope_schema_url),
@@ -507,9 +496,9 @@ pub fn traceTypedValue(ctx: *const anyopaque, field: TraceFieldRef) ?TypedValue 
     const tc: *const TraceContext = @ptrCast(@alignCast(ctx));
     return switch (field) {
         .trace_field => |tf| switch (tf) {
-            .TRACE_FIELD_TRACE_ID => typedHexBytes(tc.allocator, tc.span.trace_id),
-            .TRACE_FIELD_SPAN_ID => typedHexBytes(tc.allocator, tc.span.span_id),
-            .TRACE_FIELD_PARENT_SPAN_ID => typedHexBytes(tc.allocator, tc.span.parent_span_id),
+            .TRACE_FIELD_TRACE_ID => typedBytes(tc.span.trace_id),
+            .TRACE_FIELD_SPAN_ID => typedBytes(tc.span.span_id),
+            .TRACE_FIELD_PARENT_SPAN_ID => typedBytes(tc.span.parent_span_id),
             .TRACE_FIELD_NAME => typedStr(tc.span.name),
             .TRACE_FIELD_TRACE_STATE => typedStr(tc.span.trace_state),
             else => if (traceFieldAccessor(ctx, field)) |s| TypedValue{ .string = s } else null,
@@ -524,7 +513,6 @@ pub fn traceTypedValue(ctx: *const anyopaque, field: TraceFieldRef) ?TypedValue 
 // ─── Static accessor templates ───────────────────────────────────────
 
 pub const log_accessor: policy.LogAccessor = .{
-    .value = logFieldAccessor,
     .exists = logFieldExists,
     .typed_value = logTypedValue,
     .set = logSet,
@@ -533,13 +521,11 @@ pub const log_accessor: policy.LogAccessor = .{
 };
 
 pub const metric_accessor: policy.MetricAccessor = .{
-    .value = metricFieldAccessor,
     .exists = metricFieldExists,
     .typed_value = metricTypedValue,
 };
 
 pub const trace_accessor: policy.TraceAccessor = .{
-    .value = traceFieldAccessor,
     .exists = traceFieldExists,
     .typed_value = traceTypedValue,
     .set = traceSet,

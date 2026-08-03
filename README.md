@@ -179,6 +179,35 @@ task test:grpc:rs
 
 > Note: The Zig runner does not support gRPC.
 
+### Implementation tests
+
+Runs whole binaries (not just the runners) end to end: the harness starts the
+implementation with a rendered config, POSTs each testcase over OTLP, and diffs
+what reaches a local sink.
+
+```sh
+task test:impl             # collector + edge + vector
+task test:impl:collector   # tero-collector-distro only
+task test:impl:edge        # edge only
+task test:impl:vector      # Vector only
+```
+
+`edge` and `tero-collector-distro` are provisioned from their upstream releases,
+pinned by `EDGE_VERSION` / `COLLECTOR_VERSION` in `Taskfile.yml`; the
+`test:impl:*` tasks fetch them on demand and skip the fetch when the pinned
+version is already in place. To try a different release without editing the
+Taskfile:
+
+```sh
+task fetch                   # provision both at their pinned versions
+task fetch:edge EDGE_VERSION=latest
+task fetch:collector COLLECTOR_VERSION=v0.13.0
+```
+
+`tero-collector-distro` publishes only a container image, so `fetch:collector`
+builds the tag from source with OCB (a few minutes, and it needs Go). Vector is
+still a hand-placed binary — see `implementations/vector/README.md`.
+
 ### Other commands
 
 ```sh

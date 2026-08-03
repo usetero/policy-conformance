@@ -15,6 +15,8 @@ implementations/edge/edge
 implementations/edge/edge-*
 implementations/vector/vector
 implementations/vector/vector-*
+implementations/*/.version
+.tmp/
 
 # Test outputs
 testcases/*/output_*.json

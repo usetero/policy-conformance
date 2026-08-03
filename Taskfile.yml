@@ -1,6 +1,12 @@
 ---
 version: "3"
 
+vars:
+  # Released versions of the implementations under test. Bump these to move the
+  # implementation suites to a newer release; `latest` also works.
+  EDGE_VERSION: v1.29.3
+  COLLECTOR_VERSION: v0.14.0
+
 tasks:
   # ── Top-level composite tasks ──────────────────────────────
   default:
@@ -717,6 +723,44 @@ tasks:
     cmds:
       - go build -o sink-server .
 
+  fetch:
+    desc: Provision all released implementation binaries
+    aliases: [f]
+    cmds:
+      - task: fetch:edge
+      - task: fetch:collector
+
+  fetch:edge:
+    desc: Download the pinned edge release binary (EDGE_VERSION=vX.Y.Z to override)
+    status:
+      - test "$(cat implementations/edge/.version 2>/dev/null)" = "{{.EDGE_VERSION}}"
+    cmds:
+      - >-
+        gh release download {{.EDGE_VERSION}} -R usetero/edge
+        -p edge-{{OS}}-{{ARCH}} -O implementations/edge/edge --clobber
+      - chmod +x implementations/edge/edge
+      - echo "{{.EDGE_VERSION}}" > implementations/edge/.version
+
+  fetch:collector:
+    # note: tero-collector-distro publishes only a container image, so the
+    # release tag is built from source with OCB. Swap to a release asset if one
+    # ever ships.
+    desc: Build tero-collector from its pinned release tag (COLLECTOR_VERSION to override)
+    status:
+      - test "$(cat implementations/tero-collector-distro/.version 2>/dev/null)" = "{{.COLLECTOR_VERSION}}"
+    cmds:
+      - rm -rf .tmp/tero-collector-distro
+      - mkdir -p .tmp
+      - >-
+        git clone --depth 1 --branch {{.COLLECTOR_VERSION}}
+        https://github.com/usetero/tero-collector-distro.git
+        .tmp/tero-collector-distro
+      - cd .tmp/tero-collector-distro && task build:collector
+      - >-
+        cp .tmp/tero-collector-distro/collector/_build/tero-collector
+        implementations/tero-collector-distro/tero-collector
+      - echo "{{.COLLECTOR_VERSION}}" > implementations/tero-collector-distro/.version
+
   build:otlpjson2proto:
     desc: Build OTLP JSON-to-protobuf helper for Vector implementation tests
     dir: runners/go
@@ -727,7 +771,7 @@ tasks:
   test:impl:collector:
     desc: Run implementation conformance tests for tero-collector-distro
     aliases: [tic]
-    deps: [build:sink]
+    deps: [build:sink, fetch:collector]
     cmds:
       - task: conformance:impl
         vars:
@@ -742,7 +786,7 @@ tasks:
   test:impl:edge:
     desc: Run implementation conformance tests for edge
     aliases: [tie]
-    deps: [build:sink]
+    deps: [build:sink, fetch:edge]
     cmds:
       - task: conformance:impl
         vars:
