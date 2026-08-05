@@ -34,10 +34,12 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/usetero/policy-go/backend/teroscan v1.10.2 h1:hCLNkoSXlAlLMX1sD6KXyOc1FxYnjgpoPlCnZGHw9m4=
 github.com/usetero/policy-go/backend/teroscan v1.10.2/go.mod h1:FKOIpv4b5SoktB+L0xvGjlHyJEzS0K0Gsb82qcj3GRg=
-github.com/usetero/policy-go/policy v1.11.0 h1:aac1pyx64o41q3yq6UDc2C9qNugPP96RurqldVi5Fjg=
-github.com/usetero/policy-go/policy v1.11.0/go.mod h1:1PMrk613wBjt/jT0yZGIfsSvDdJMahxhs4Uvn824abU=
+github.com/usetero/policy-go/policy v1.12.0 h1:/eubFlkHNb+5zyBJCf8RZHhQ0XbFy+Bmb9dma9YnRU4=
+github.com/usetero/policy-go/policy v1.12.0/go.mod h1:1PMrk613wBjt/jT0yZGIfsSvDdJMahxhs4Uvn824abU=
 github.com/usetero/policy-go/proto v1.10.1 h1:wL92GWeWBVz+30PjKx4Oz2N1USOGcGlmYx6fwjM8wY8=
 github.com/usetero/policy-go/proto v1.10.1/go.mod h1:Cc1jv/PrOSu8E1l73JyAKrbH9ojIZQMxBCHLX9y0Ktg=
+github.com/usetero/policy-go/proto v1.11.0 h1:BmaoYBKCSSZ73GLE+F9j8QkdfP97Pr1JX+FIo3U1YIY=
+github.com/usetero/policy-go/proto v1.11.0/go.mod h1:Cc1jv/PrOSu8E1l73JyAKrbH9ojIZQMxBCHLX9y0Ktg=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/collector/featuregate v1.52.0 h1:Ba/6lL8BY+wWbQ8w7aOWzbyl4WG8i8eSGl2fnrBHBnE=

@@ -31,6 +31,21 @@ type policyStore struct {
 
 	// Accumulated stats from client sync requests
 	stats map[string]*policyStats // policy_id -> stats
+
+	// Accumulated SyncRequest.volume across every sync (spec: Volume Tracking).
+	// Clients drain their counters on read, so summing the syncs gives the total
+	// the client observed.
+	volume volumeTotals
+}
+
+// volumeTotals is the accumulated VolumeStats, and the JSON shape of /volume.
+type volumeTotals struct {
+	LogRecords       int64 `json:"log_records"`
+	LogBytes         int64 `json:"log_bytes"`
+	MetricDataPoints int64 `json:"metric_data_points"`
+	MetricBytes      int64 `json:"metric_bytes"`
+	Spans            int64 `json:"spans"`
+	SpanBytes        int64 `json:"span_bytes"`
 }
 
 type policyStats struct {
@@ -107,6 +122,23 @@ func (s *policyStore) recordStats(statuses []*policyv1.PolicySyncStatus) {
 	}
 }
 
+func (s *policyStore) recordVolume(v *policyv1.VolumeStats) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.volume.LogRecords += v.GetLogRecords()
+	s.volume.LogBytes += v.GetLogBytes()
+	s.volume.MetricDataPoints += v.GetMetricDataPoints()
+	s.volume.MetricBytes += v.GetMetricBytes()
+	s.volume.Spans += v.GetSpans()
+	s.volume.SpanBytes += v.GetSpanBytes()
+}
+
+func (s *policyStore) getVolume() volumeTotals {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.volume
+}
+
 func containsString(items []string, target string) bool {
 	for _, item := range items {
 		if item == target {
@@ -151,6 +183,9 @@ func (s *policyStore) sync(req *policyv1.SyncRequest) *policyv1.SyncResponse {
 	// Record any stats from the client
 	if len(req.GetPolicyStatuses()) > 0 {
 		s.recordStats(req.GetPolicyStatuses())
+	}
+	if req.GetVolume() != nil {
+		s.recordVolume(req.GetVolume())
 	}
 
 	s.mu.RLock()
@@ -240,6 +275,13 @@ func statsHandler(store *policyStore) http.HandlerFunc {
 	}
 }
 
+func volumeHandler(store *policyStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(store.getVolume())
+	}
+}
+
 // ─── Main ────────────────────────────────────────────────────────────
 
 func main() {
@@ -282,6 +324,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/policy/sync", syncHandler(store))
 	mux.HandleFunc("/stats", statsHandler(store))
+	mux.HandleFunc("/volume", volumeHandler(store))
 	mux.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))

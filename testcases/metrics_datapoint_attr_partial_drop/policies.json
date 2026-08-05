@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-dev-datapoints",
+      "name": "Drop dev data points",
+      "metric": {
+        "match": [
+          { "datapoint_attribute": ["env"], "exact": "dev" }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

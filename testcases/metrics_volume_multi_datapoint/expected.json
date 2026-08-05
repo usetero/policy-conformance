@@ -1,0 +1,37 @@
+{
+  "resourceMetrics": [
+    {
+      "scopeMetrics": [
+        {
+          "metrics": [
+            {
+              "name": "http.requests",
+              "description": "Total HTTP requests",
+              "unit": "1",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      { "key": "route", "value": { "stringValue": "/a" } }
+                    ]
+                  },
+                  {
+                    "attributes": [
+                      { "key": "route", "value": { "stringValue": "/b" } }
+                    ]
+                  },
+                  {
+                    "attributes": [
+                      { "key": "route", "value": { "stringValue": "/c" } }
+                    ]
+                  }
+                ],
+                "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
