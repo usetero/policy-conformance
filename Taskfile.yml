@@ -71,7 +71,7 @@ tasks:
     aliases: [bz]
     dir: runners/zig
     cmds:
-      - ../../bin/zig build -Doptimize=ReleaseSafe
+      - ../../bin/zig build -Doptimize=ReleaseFast
 
   # ── Test per-language ──────────────────────────────────────
   test:go:
