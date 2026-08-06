@@ -35,7 +35,8 @@ testcases/logs_severity_drop/
 ├── policies.json             # Policy definitions
 ├── input.json                # OTLP JSON input
 ├── expected.json             # Expected OTLP JSON output
-└── expected_stats.json       # Expected match statistics
+├── expected_stats.json       # Expected match statistics
+└── expected_volume.json      # Optional; expected SyncRequest.volume (HTTP/gRPC only)
 ```
 
 The harness runs a simple test as follows:
@@ -162,10 +163,27 @@ task test:http:zig   # Zig only
                --signal log
    ```
 4. Fetches accumulated stats from `GET /stats`
-5. Shuts down the server via `GET /shutdown`
-6. Diffs output and stats (stats normalization strips `misses` and zero-hit
+5. For test cases with an `expected_volume.json`, fetches the accumulated
+   `SyncRequest.volume` from `GET /volume`
+6. Shuts down the server via `GET /shutdown`
+7. Diffs output and stats (stats normalization strips `misses` and zero-hit
    policies since the server only reports `{policy_id, hits}` for matched
-   policies)
+   policies), plus volume when expected
+
+#### Volume tracking
+
+Volume only reaches a provider (`SyncRequest.volume`), so it is checked in
+HTTP/gRPC mode only — file mode ignores `expected_volume.json`. The server sums
+the volume of every sync it receives; clients drain their counters on read, so
+the sum is the total the client observed:
+
+```json
+{ "log_records": 3, "metric_data_points": 3, "spans": 3 }
+```
+
+Only record counts are compared, and omitted fields read as `0`. Byte counts are
+optional per spec and explicitly an estimate, so they are not comparable across
+implementations — the runners leave them at `0`.
 
 ### gRPC provider
 
@@ -220,6 +238,10 @@ task clean                                              # Remove build artifacts
 
 - `traces_event_attribute` and `traces_link_trace_id` are unimplemented across
   all runners
+- `task test:http:rs` errors on every test case with policy-rs v1.8.0: its
+  vendored `Policy` message has no `extensions` field (spec v1.6.0), and its JSON
+  decoder rejects unknown fields, so it rejects the server's sync response.
+  gRPC mode is unaffected (protobuf ignores unknown fields).
 
 ## Test case catalog
 

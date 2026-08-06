@@ -186,29 +186,48 @@ impl MetricData {
         }
     }
 
-    pub fn first_datapoint_attributes(&self) -> &[KeyValue] {
+    /// Attributes of every data point, in order. The data point is the record
+    /// unit for metrics, so evaluation runs once per entry here.
+    pub fn datapoint_attributes(&self) -> Vec<&[KeyValue]> {
+        fn attrs<T, F: Fn(&T) -> &[KeyValue]>(dps: &[T], f: F) -> Vec<&[KeyValue]> {
+            dps.iter().map(f).collect()
+        }
         match self {
-            MetricData::Gauge(g) => g
-                .data_points
-                .first()
-                .map(|dp| dp.attributes.as_slice())
-                .unwrap_or(&[]),
-            MetricData::Sum(s) => s
-                .data_points
-                .first()
-                .map(|dp| dp.attributes.as_slice())
-                .unwrap_or(&[]),
-            MetricData::Histogram(h) => h
-                .data_points
-                .first()
-                .map(|dp| dp.attributes.as_slice())
-                .unwrap_or(&[]),
-            MetricData::ExponentialHistogram(_) => &[],
-            MetricData::Summary(s) => s
-                .data_points
-                .first()
-                .map(|dp| dp.attributes.as_slice())
-                .unwrap_or(&[]),
+            MetricData::Gauge(g) => attrs(&g.data_points, |dp| &dp.attributes),
+            MetricData::Sum(s) => attrs(&s.data_points, |dp| &dp.attributes),
+            MetricData::Histogram(h) => attrs(&h.data_points, |dp| &dp.attributes),
+            MetricData::ExponentialHistogram(eh) => attrs(&eh.data_points, |dp| &dp.attributes),
+            MetricData::Summary(s) => attrs(&s.data_points, |dp| &dp.attributes),
+        }
+    }
+
+    /// Keep only the data points whose decision is `true`, in the order
+    /// [`Self::datapoint_attributes`] reported them.
+    pub fn retain_datapoints(&mut self, keep: &[bool]) {
+        fn retain<T>(dps: &mut Vec<T>, keep: &[bool]) {
+            let mut i = 0;
+            dps.retain(|_| {
+                let k = keep.get(i).copied().unwrap_or(true);
+                i += 1;
+                k
+            });
+        }
+        match self {
+            MetricData::Gauge(g) => retain(&mut g.data_points, keep),
+            MetricData::Sum(s) => retain(&mut s.data_points, keep),
+            MetricData::Histogram(h) => retain(&mut h.data_points, keep),
+            MetricData::ExponentialHistogram(eh) => retain(&mut eh.data_points, keep),
+            MetricData::Summary(s) => retain(&mut s.data_points, keep),
+        }
+    }
+
+    pub fn datapoint_count(&self) -> usize {
+        match self {
+            MetricData::Gauge(g) => g.data_points.len(),
+            MetricData::Sum(s) => s.data_points.len(),
+            MetricData::Histogram(h) => h.data_points.len(),
+            MetricData::ExponentialHistogram(eh) => eh.data_points.len(),
+            MetricData::Summary(s) => s.data_points.len(),
         }
     }
 }
@@ -237,8 +256,18 @@ pub struct Histogram {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ExponentialHistogram {
-    pub data_points: Vec<serde_json::Value>,
+    pub data_points: Vec<ExponentialHistogramDataPoint>,
     pub aggregation_temporality: serde_json::Value,
+}
+
+/// Only `attributes` is modelled — matching needs it, and the rest round-trips
+/// through `other` untouched.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ExponentialHistogramDataPoint {
+    pub attributes: Vec<KeyValue>,
+    #[serde(flatten)]
+    pub other: serde_json::Map<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

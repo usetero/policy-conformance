@@ -777,34 +777,6 @@ func mergeOTTracestate(tracestate, subkv string) string {
 	return result
 }
 
-// ─── Datapoint attribute helpers ─────────────────────────────────────
-
-func getDatapointAttrs(m pmetric.Metric) pcommon.Map {
-	switch m.Type() {
-	case pmetric.MetricTypeGauge:
-		if m.Gauge().DataPoints().Len() > 0 {
-			return m.Gauge().DataPoints().At(0).Attributes()
-		}
-	case pmetric.MetricTypeSum:
-		if m.Sum().DataPoints().Len() > 0 {
-			return m.Sum().DataPoints().At(0).Attributes()
-		}
-	case pmetric.MetricTypeHistogram:
-		if m.Histogram().DataPoints().Len() > 0 {
-			return m.Histogram().DataPoints().At(0).Attributes()
-		}
-	case pmetric.MetricTypeExponentialHistogram:
-		if m.ExponentialHistogram().DataPoints().Len() > 0 {
-			return m.ExponentialHistogram().DataPoints().At(0).Attributes()
-		}
-	case pmetric.MetricTypeSummary:
-		if m.Summary().DataPoints().Len() > 0 {
-			return m.Summary().DataPoints().At(0).Attributes()
-		}
-	}
-	return pcommon.NewMap()
-}
-
 // ─── ID conversion helpers ──────────────────────────────────────────
 
 func traceIDFromString(s string) pcommon.TraceID {

@@ -71,7 +71,7 @@ tasks:
     aliases: [bz]
     dir: runners/zig
     cmds:
-      - ../../bin/zig build -Doptimize=ReleaseSafe
+      - ../../bin/zig build -Doptimize=ReleaseFast
 
   # ── Test per-language ──────────────────────────────────────
   test:go:
@@ -340,6 +340,10 @@ tasks:
         set +e
         normalize='def enums: {"SPAN_KIND_INTERNAL":1,"SPAN_KIND_SERVER":2,"SPAN_KIND_CLIENT":3,"SPAN_KIND_PRODUCER":4,"SPAN_KIND_CONSUMER":5,"STATUS_CODE_OK":1,"STATUS_CODE_ERROR":2,"AGGREGATION_TEMPORALITY_DELTA":1,"AGGREGATION_TEMPORALITY_CUMULATIVE":2,"SEVERITY_NUMBER_TRACE":1,"SEVERITY_NUMBER_TRACE2":2,"SEVERITY_NUMBER_TRACE3":3,"SEVERITY_NUMBER_TRACE4":4,"SEVERITY_NUMBER_DEBUG":5,"SEVERITY_NUMBER_DEBUG2":6,"SEVERITY_NUMBER_DEBUG3":7,"SEVERITY_NUMBER_DEBUG4":8,"SEVERITY_NUMBER_INFO":9,"SEVERITY_NUMBER_INFO2":10,"SEVERITY_NUMBER_INFO3":11,"SEVERITY_NUMBER_INFO4":12,"SEVERITY_NUMBER_WARN":13,"SEVERITY_NUMBER_WARN2":14,"SEVERITY_NUMBER_WARN3":15,"SEVERITY_NUMBER_WARN4":16,"SEVERITY_NUMBER_ERROR":17,"SEVERITY_NUMBER_ERROR2":18,"SEVERITY_NUMBER_ERROR3":19,"SEVERITY_NUMBER_ERROR4":20,"SEVERITY_NUMBER_FATAL":21,"SEVERITY_NUMBER_FATAL2":22,"SEVERITY_NUMBER_FATAL3":23,"SEVERITY_NUMBER_FATAL4":24}; walk(if type == "object" then with_entries(select(.value != null and .value != [] and .value != "" and .value != 0 and .value != {} and .value != false and (.value | IN("SEVERITY_NUMBER_UNSPECIFIED","STATUS_CODE_UNSET","SPAN_KIND_UNSPECIFIED","AGGREGATION_TEMPORALITY_UNSPECIFIED") | not)) | if .value | type == "string" then .value = (enums[.value] // .value) else . end) elif type == "string" and test("^[0-9]+$") then tonumber elif type == "number" and (. | floor) == . then (. | floor) else . end)'
         detect_signal='if .resourceLogs then "log" elif .resourceMetrics then "metric" elif .resourceSpans then "trace" else "unknown" end'
+        # Normalize volume (spec: Volume Tracking): compare record counts only.
+        # Byte counts are optional and explicitly an estimate, so they are not
+        # conformance-checkable; missing fields in expected_volume.json read as 0.
+        normalize_volume='{log_records: (.log_records // 0), metric_data_points: (.metric_data_points // 0), spans: (.spans // 0)}'
         # Normalize expected stats for HTTP comparison: server reports hitful policies and compile-error statuses.
         normalize_http_stats='def norm_error: if test("^log: transform:.*invalid.*regex") then "log: transform: invalid regex" elif test("invalid regex") then sub("^(?<prefix>.*invalid regex \"[^\"]+\").*$"; "\(.prefix)") elif test("^log: keep:") then "log: keep" else . end; {policies: [.policies[] | del(.misses) | .errors = ((.errors // []) | map(norm_error) | sort) | if (.errors | length) == 0 then del(.errors) else . end | select((.hits // 0) > 0 or ((.errors // []) | length > 0))] | sort_by(.policy_id)}'
 
@@ -351,6 +355,16 @@ tasks:
         is_skipped() {
           [ -z "$SKIP_LIST" ] && return 1
           printf '%s\n' "$SKIP_LIST" | grep -Fxq "$1"
+        }
+
+        # Compare SyncRequest.volume accumulated by the server against
+        # expected_volume.json, for the test cases that declare one. Volume only
+        # reaches a provider, so this check exists in HTTP/gRPC mode alone.
+        check_volume() {
+          [ -f "$1/expected_volume.json" ] || return 0
+          curl -s "http://localhost:$HTTP_PORT/volume" > "$1/volume_{{.LANG}}_http.json" 2>/dev/null
+          diff <(jq -S "$normalize_volume" "$1/expected_volume.json") \
+               <(jq -S "$normalize_volume" "$1/volume_{{.LANG}}_http.json") > /dev/null 2>&1
         }
 
         TC_FILTER="{{.TC}}"
@@ -411,7 +425,7 @@ tasks:
             PROVIDER_ADDR="http://localhost:$HTTP_PORT/v1/policy/sync"
           fi
 
-          out_ok=true; stats_ok=true
+          out_ok=true; stats_ok=true; volume_ok=true
           runner_error=false
 
           if [ -f "$tc/input.json" ]; then
@@ -444,6 +458,7 @@ tasks:
                         <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
                 stats_ok=false
               fi
+              check_volume "$tc" || volume_ok=false
             fi
           else
             # ── Compound mode: multiple input_N/expected_N pairs ──
@@ -482,6 +497,7 @@ tasks:
                         <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") > /dev/null 2>&1; then
                 stats_ok=false
               fi
+              check_volume "$tc" || volume_ok=false
             fi
           fi
 
@@ -492,7 +508,7 @@ tasks:
           if $runner_error; then
             echo "  ERROR $name (runner exited $RUNNER_EXIT)"
             ERRORS=$((ERRORS + 1))
-          elif $out_ok && $stats_ok; then
+          elif $out_ok && $stats_ok && $volume_ok; then
             echo "  PASS  $name"
             PASS=$((PASS + 1))
           else
@@ -520,6 +536,11 @@ tasks:
               echo "    stats diff:"
               diff <(jq -S "$normalize_http_stats" "$tc/expected_stats.json") \
                    <(jq -S "$normalize_http_stats" "$tc/stats_{{.LANG}}_http.json") || true
+            fi
+            if ! $volume_ok; then
+              echo "    volume diff:"
+              diff <(jq -S "$normalize_volume" "$tc/expected_volume.json") \
+                   <(jq -S "$normalize_volume" "$tc/volume_{{.LANG}}_http.json") || true
             fi
             FAIL=$((FAIL + 1))
           fi

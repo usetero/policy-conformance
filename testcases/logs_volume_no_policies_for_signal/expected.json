@@ -1,0 +1,30 @@
+{
+  "resourceLogs": [
+    {
+      "scopeLogs": [
+        {
+          "logRecords": [
+            {
+              "body": {
+                "stringValue": "user login"
+              },
+              "severityText": "INFO"
+            },
+            {
+              "body": {
+                "stringValue": "cache miss"
+              },
+              "severityText": "WARN"
+            },
+            {
+              "body": {
+                "stringValue": "database error"
+              },
+              "severityText": "ERROR"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

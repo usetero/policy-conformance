@@ -10,6 +10,7 @@ import (
 
 	"github.com/usetero/policy-go/backend/teroscan"
 	"github.com/usetero/policy-go/policy"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -114,16 +115,7 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
 			sm := rm.ScopeMetrics().At(j)
 			sm.Metrics().RemoveIf(func(m pmetric.Metric) bool {
-				ctx := &MetricContext{
-					Metric:              m,
-					DatapointAttributes: getDatapointAttrs(m),
-					Resource:            rm.Resource(),
-					Scope:               sm.Scope(),
-					ResourceSchemaURL:   rm.SchemaUrl(),
-					ScopeSchemaURL:      sm.SchemaUrl(),
-				}
-				result := policy.EvaluateMetric(eng, ctx, MetricOpts...)
-				return result == policy.ResultDrop
+				return evalDataPoints(eng, m, rm, sm)
 			})
 		}
 	}
@@ -140,6 +132,48 @@ func processMetrics(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, i
 	})
 
 	return req.MarshalJSON()
+}
+
+// dataPointSlice is the shape every pmetric data point slice shares.
+type dataPointSlice[T any] interface {
+	Len() int
+	RemoveIf(func(T) bool)
+}
+
+// evalDataPoints evaluates each of a metric's data points with that data point's
+// own attributes and removes the dropped ones, reporting whether the metric is
+// now empty. The data point is the record for metrics: it is the unit of the
+// keep decision, of match stats, and of VolumeStats.metric_data_points.
+func evalDataPoints(eng *policy.PolicyEngine, m pmetric.Metric, rm pmetric.ResourceMetrics, sm pmetric.ScopeMetrics) bool {
+	switch m.Type() {
+	case pmetric.MetricTypeGauge:
+		return evalSlice[pmetric.NumberDataPoint](eng, m, rm, sm, m.Gauge().DataPoints())
+	case pmetric.MetricTypeSum:
+		return evalSlice[pmetric.NumberDataPoint](eng, m, rm, sm, m.Sum().DataPoints())
+	case pmetric.MetricTypeHistogram:
+		return evalSlice[pmetric.HistogramDataPoint](eng, m, rm, sm, m.Histogram().DataPoints())
+	case pmetric.MetricTypeExponentialHistogram:
+		return evalSlice[pmetric.ExponentialHistogramDataPoint](eng, m, rm, sm, m.ExponentialHistogram().DataPoints())
+	case pmetric.MetricTypeSummary:
+		return evalSlice[pmetric.SummaryDataPoint](eng, m, rm, sm, m.Summary().DataPoints())
+	}
+	// A metric with no data (MetricTypeEmpty) has no data point to evaluate.
+	return false
+}
+
+func evalSlice[T interface{ Attributes() pcommon.Map }, S dataPointSlice[T]](eng *policy.PolicyEngine, m pmetric.Metric, rm pmetric.ResourceMetrics, sm pmetric.ScopeMetrics, dps S) bool {
+	dps.RemoveIf(func(dp T) bool {
+		ctx := &MetricContext{
+			Metric:              m,
+			DatapointAttributes: dp.Attributes(),
+			Resource:            rm.Resource(),
+			Scope:               sm.Scope(),
+			ResourceSchemaURL:   rm.SchemaUrl(),
+			ScopeSchemaURL:      sm.SchemaUrl(),
+		}
+		return policy.EvaluateMetric(eng, ctx, MetricOpts...) == policy.ResultDrop
+	})
+	return dps.Len() == 0
 }
 
 func processTraces(eng *policy.PolicyEngine, registry *policy.PolicyRegistry, inputData []byte) ([]byte, error) {

@@ -145,26 +145,41 @@ async fn process_metrics(
         for sm in &mut rm.scope_metrics {
             let mut kept = Vec::new();
             for m in &sm.metrics {
-                let dp_attrs = m
-                    .data
-                    .as_ref()
-                    .map(|d| d.first_datapoint_attributes())
-                    .unwrap_or(&[]);
-                let ctx = eval::MetricContext {
-                    metric: m,
-                    datapoint_attributes: dp_attrs,
-                    resource: rm.resource.as_ref(),
-                    scope: sm.scope.as_ref(),
-                    resource_schema_url: &rm.schema_url,
-                    scope_schema_url: &sm.schema_url,
-                };
-                let result = engine.evaluate(snapshot, &ctx).unwrap_or_else(|e| {
-                    eprintln!("evaluation error: {e}");
-                    process::exit(1);
-                });
-                if !matches!(result, policy_rs::EvaluateResult::Drop { .. }) {
+                // The data point is the record unit for metrics: each is
+                // evaluated with its own attributes and dropped individually,
+                // and the metric goes only once every data point is gone.
+                let Some(data) = m.data.as_ref() else {
                     kept.push(m.clone());
+                    continue;
+                };
+                let keep: Vec<bool> = data
+                    .datapoint_attributes()
+                    .into_iter()
+                    .map(|dp_attrs| {
+                        let ctx = eval::MetricContext {
+                            metric: m,
+                            datapoint_attributes: dp_attrs,
+                            resource: rm.resource.as_ref(),
+                            scope: sm.scope.as_ref(),
+                            resource_schema_url: &rm.schema_url,
+                            scope_schema_url: &sm.schema_url,
+                        };
+                        let result = engine.evaluate(snapshot, &ctx).unwrap_or_else(|e| {
+                            eprintln!("evaluation error: {e}");
+                            process::exit(1);
+                        });
+                        !matches!(result, policy_rs::EvaluateResult::Drop { .. })
+                    })
+                    .collect();
+
+                let mut m = m.clone();
+                if let Some(data) = m.data.as_mut() {
+                    data.retain_datapoints(&keep);
+                    if data.datapoint_count() == 0 {
+                        continue;
+                    }
                 }
+                kept.push(m);
             }
             sm.metrics = kept;
         }

@@ -1,0 +1,14 @@
+{
+  "policies": [
+    {
+      "id": "drop-internal-metrics",
+      "name": "Drop internal metrics",
+      "metric": {
+        "match": [
+          { "metric_field": "name", "starts_with": "internal." }
+        ],
+        "keep": false
+      }
+    }
+  ]
+}

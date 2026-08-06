@@ -223,24 +223,39 @@ fn processMetrics(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus,
             var i: usize = 0;
             while (i < sm.metrics.items.len) {
                 const metric = &sm.metrics.items[i];
-                // Get datapoint attributes from the first datapoint
-                const dp_attrs = getDatapointAttrs(metric);
-                var ctx = eval.MetricContext{
-                    .metric = metric,
-                    .datapoint_attributes = dp_attrs,
-                    .resource = resource,
-                    .scope = scope,
-                    .resource_schema_url = rm.schema_url,
-                    .scope_schema_url = sm.schema_url,
-                };
-                var policy_id_buf: [16][]const u8 = undefined;
-                const result = engine.evaluate(.metric, &eval.metric_accessor, @ptrCast(&ctx), &policy_id_buf, .{
-                    .io = io,
-                });
-                evaluated += 1;
-                if (result.decision == .drop) {
+                // The data point is the record unit for metrics: each one is
+                // evaluated with its own attributes and dropped individually,
+                // and the metric goes only once every data point is gone.
+                if (metric.data) |*metric_data| {
+                    switch (metric_data.*) {
+                        inline else => |*variant| {
+                            var d: usize = 0;
+                            while (d < variant.data_points.items.len) {
+                                var ctx = eval.MetricContext{
+                                    .metric = metric,
+                                    .datapoint_attributes = variant.data_points.items[d].attributes.items,
+                                    .resource = resource,
+                                    .scope = scope,
+                                    .resource_schema_url = rm.schema_url,
+                                    .scope_schema_url = sm.schema_url,
+                                };
+                                var policy_id_buf: [16][]const u8 = undefined;
+                                const result = engine.evaluate(.metric, &eval.metric_accessor, @ptrCast(&ctx), &policy_id_buf, .{
+                                    .io = io,
+                                });
+                                evaluated += 1;
+                                if (result.decision == .drop) {
+                                    _ = variant.data_points.orderedRemove(d);
+                                    dropped += 1;
+                                } else {
+                                    d += 1;
+                                }
+                            }
+                        },
+                    }
+                }
+                if (metric.data != null and dataPointCount(metric) == 0) {
                     _ = sm.metrics.orderedRemove(i);
-                    dropped += 1;
                 } else {
                     i += 1;
                 }
@@ -352,14 +367,10 @@ fn processTraces(allocator: std.mem.Allocator, io: std.Io, bus: *o11y.EventBus, 
     return output;
 }
 
-fn getDatapointAttrs(metric: *const proto.metrics.Metric) []const proto.common.KeyValue {
-    const data = metric.data orelse return &.{};
+fn dataPointCount(metric: *const proto.metrics.Metric) usize {
+    const data = metric.data orelse return 0;
     return switch (data) {
-        .gauge => |g| if (g.data_points.items.len > 0) g.data_points.items[0].attributes.items else &.{},
-        .sum => |s| if (s.data_points.items.len > 0) s.data_points.items[0].attributes.items else &.{},
-        .histogram => |h| if (h.data_points.items.len > 0) h.data_points.items[0].attributes.items else &.{},
-        .exponential_histogram => |eh| if (eh.data_points.items.len > 0) eh.data_points.items[0].attributes.items else &.{},
-        .summary => |s| if (s.data_points.items.len > 0) s.data_points.items[0].attributes.items else &.{},
+        inline else => |variant| variant.data_points.items.len,
     };
 }
 

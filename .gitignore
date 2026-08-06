@@ -21,6 +21,7 @@ implementations/*/.version
 # Test outputs
 testcases/*/output_*.json
 testcases/*/stats_*.json
+testcases/*/volume_*.json
 output.txt
 
 # Benchmark results
