@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-metachar_brace-exact",
+      "name": "Drop logs where body exact a literal containing a brace quantifier",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E batch {id=7}"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_brace-starts_with",
+      "name": "Drop logs where body starts_with a literal containing a brace quantifier",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S batch {id=7}"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_brace-ends_with",
+      "name": "Drop logs where body ends_with a literal containing a brace quantifier",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W batch {id=7}"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_brace-contains",
+      "name": "Drop logs where body contains a literal containing a brace quantifier",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C batch {id=7}"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

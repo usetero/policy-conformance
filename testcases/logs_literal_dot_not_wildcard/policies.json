@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-dot_not_wildcard-exact",
+      "name": "Drop logs where body exact a literal containing a dot",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E com.example.Service"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-dot_not_wildcard-starts_with",
+      "name": "Drop logs where body starts_with a literal containing a dot",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S com.example.Service"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-dot_not_wildcard-ends_with",
+      "name": "Drop logs where body ends_with a literal containing a dot",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W com.example.Service"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-dot_not_wildcard-contains",
+      "name": "Drop logs where body contains a literal containing a dot",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C com.example.Service"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

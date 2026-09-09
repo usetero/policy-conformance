@@ -1,0 +1,20 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-dot_not_wildcard-contains",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-dot_not_wildcard-ends_with",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-dot_not_wildcard-exact",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-dot_not_wildcard-starts_with",
+      "hits": 1
+    }
+  ]
+}

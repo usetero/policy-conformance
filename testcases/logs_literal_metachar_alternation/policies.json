@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-metachar_alternation-exact",
+      "name": "Drop logs where body exact a literal containing an alternation |",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E GET|POST"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_alternation-starts_with",
+      "name": "Drop logs where body starts_with a literal containing an alternation |",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S GET|POST"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_alternation-ends_with",
+      "name": "Drop logs where body ends_with a literal containing an alternation |",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W GET|POST"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_alternation-contains",
+      "name": "Drop logs where body contains a literal containing an alternation |",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C GET|POST"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

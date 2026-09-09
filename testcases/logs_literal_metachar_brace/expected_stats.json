@@ -1,0 +1,20 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-metachar_brace-contains",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_brace-ends_with",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_brace-exact",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_brace-starts_with",
+      "hits": 1
+    }
+  ]
+}
