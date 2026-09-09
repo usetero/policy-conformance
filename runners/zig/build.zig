@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const regex_dep = b.dependency("regex", .{ .target = target, .optimize = optimize });
 
     const exe = b.addExecutable(.{
         .name = "runner-zig",
@@ -17,7 +18,8 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "policy_zig", .module = policy_dep.module("policy_zig") },
-                .{ .name = "o11y", .module = policy_dep.module("observability") },
+                .{ .name = "otel_proto", .module = policy_dep.module("proto") },
+                .{ .name = "regex", .module = regex_dep.module("regex") },
             },
         }),
     });
@@ -34,7 +36,8 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "policy_zig", .module = policy_dep.module("policy_zig") },
-                .{ .name = "o11y", .module = policy_dep.module("observability") },
+                .{ .name = "otel_proto", .module = policy_dep.module("proto") },
+                .{ .name = "regex", .module = regex_dep.module("regex") },
             },
         }),
     });
