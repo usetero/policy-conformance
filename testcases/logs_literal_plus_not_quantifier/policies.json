@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-plus_not_quantifier-exact",
+      "name": "Drop logs where body exact a literal containing a plus",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E 1+1"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-plus_not_quantifier-starts_with",
+      "name": "Drop logs where body starts_with a literal containing a plus",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S 1+1"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-plus_not_quantifier-ends_with",
+      "name": "Drop logs where body ends_with a literal containing a plus",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W 1+1"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-plus_not_quantifier-contains",
+      "name": "Drop logs where body contains a literal containing a plus",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C 1+1"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

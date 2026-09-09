@@ -1,0 +1,20 @@
+{
+  "policies": [
+    {
+      "policy_id": "drop-metachar_bracket-contains",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_bracket-ends_with",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_bracket-exact",
+      "hits": 1
+    },
+    {
+      "policy_id": "drop-metachar_bracket-starts_with",
+      "hits": 1
+    }
+  ]
+}

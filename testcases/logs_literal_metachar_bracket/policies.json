@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-metachar_bracket-exact",
+      "name": "Drop logs where body exact a literal containing an unbalanced [",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E Batch complete [count="
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_bracket-starts_with",
+      "name": "Drop logs where body starts_with a literal containing an unbalanced [",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S Batch complete [count="
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_bracket-ends_with",
+      "name": "Drop logs where body ends_with a literal containing an unbalanced [",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W Batch complete [count="
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_bracket-contains",
+      "name": "Drop logs where body contains a literal containing an unbalanced [",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C Batch complete [count="
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}

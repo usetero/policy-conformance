@@ -1,0 +1,56 @@
+{
+  "policies": [
+    {
+      "id": "drop-metachar_paren-exact",
+      "name": "Drop logs where body exact a literal containing a parenthesised group",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "exact": "E handler(request)"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_paren-starts_with",
+      "name": "Drop logs where body starts_with a literal containing a parenthesised group",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "starts_with": "S handler(request)"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_paren-ends_with",
+      "name": "Drop logs where body ends_with a literal containing a parenthesised group",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "ends_with": "W handler(request)"
+          }
+        ],
+        "keep": "none"
+      }
+    },
+    {
+      "id": "drop-metachar_paren-contains",
+      "name": "Drop logs where body contains a literal containing a parenthesised group",
+      "log": {
+        "match": [
+          {
+            "log_field": "body",
+            "contains": "C handler(request)"
+          }
+        ],
+        "keep": "none"
+      }
+    }
+  ]
+}
